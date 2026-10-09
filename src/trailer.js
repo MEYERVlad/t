@@ -120,10 +120,10 @@
 
   // ---------- Монтажный лист ----------
   const shots = [
-    { t0: 0, t1: 5, draw() {} },
+    { t0: 0, t1: 3, draw() {} },
     {
       // Автобус уходит, оставляя Льва одного под дождём.
-      t0: 5, t1: 14,
+      t0: 3, t1: 12.5, scale: 9 / 9.5,
       draw(c, t, lt, dt) {
         const k = lt / 9;
         camera(c, lerp(640, 690, smooth(k)), lerp(390, 420, k), lerp(1.02, 1.16, smooth(k)));
@@ -136,7 +136,7 @@
     },
     {
       // Молния: высокая фигура у леса.
-      t0: 14, t1: 21,
+      t0: 12.5, t1: 21.5, scale: 4.2 / 7.1,
       enter() { G.flags.tallBus = 'show'; },
       draw(c, t, lt, dt) {
         camera(c, lerp(880, 930, lt / 7), lerp(466, 474, lt / 7), lerp(1.5, 1.62, lt / 7));
@@ -145,10 +145,10 @@
         world(c, 'busstop', t, dt, [hero(780, 640, 1.03, 1, false, rim('#ffae5a', 0.5, -1))]);
       },
     },
-    { t0: 21, t1: 21.6, draw() {} },
+    { t0: 21.5, t1: 22, draw() {} },
     {
       // Улица: Лев идёт к «Заре».
-      t0: 21.6, t1: 29,
+      t0: 22, t1: 27, scale: 7.4 / 5,
       draw(c, t, lt, dt) {
         const k = lt / 7.4;
         camera(c, lerp(820, 470, smooth(k)), 420, 1.2);
@@ -158,7 +158,7 @@
     },
     {
       // Холл: хозяйка за стойкой.
-      t0: 29, t1: 35.5,
+      t0: 27, t1: 32.5, scale: 6.5 / 5.5,
       init() { this.props = SC('lobby').actors().find((a) => a.id === 'props'); },
       draw(c, t, lt, dt) {
         const k = smooth(lt / 6.5);
@@ -173,7 +173,7 @@
     },
     {
       // Номер 7: окно на озеро.
-      t0: 35.5, t1: 42,
+      t0: 32.5, t1: 38.5, scale: 6.5 / 6,
       draw(c, t, lt, dt) {
         const k = smooth(lt / 6.5);
         camera(c, lerp(720, 870, k), lerp(370, 318, k), lerp(1.0, 1.5, k));
@@ -182,7 +182,7 @@
     },
     {
       // Подводная церковь — вспышками.
-      t0: 42, t1: 46,
+      t0: 38.5, t1: 41.5, scale: 4 / 3,
       draw(c, t, lt) {
         const vis = (lt < 1.0) || (lt > 1.3 && lt < 2.6) || (lt > 2.75 && lt < 3.05) || lt > 3.3;
         if (!vis) return;
@@ -192,7 +192,7 @@
     },
     {
       // Красное видение: мальчик на пристани.
-      t0: 46, t1: 53.5,
+      t0: 41.5, t1: 46.5, scale: 7.5 / 5,
       draw(c, t, lt) {
         camera(c, lerp(760, 860, lt / 7.5), 440, lerp(1.0, 1.16, lt / 7.5));
         redVision(c, t, lt);
@@ -200,7 +200,7 @@
     },
     {
       // 00:13
-      t0: 53.5, t1: 57.5,
+      t0: 46.5, t1: 49.5, scale: 4 / 3,
       draw(c, t, lt) {
         c.fillStyle = '#060000';
         c.fillRect(0, 0, W, H);
@@ -215,7 +215,7 @@
     },
     {
       // Пристань: Лев идёт к мальчику, камера наезжает на Тихого.
-      t0: 57.5, t1: 66,
+      t0: 49.5, t1: 57.5, scale: 8.5 / 8,
       draw(c, t, lt, dt) {
         const k = ease(lt, 3.2, 8.5);
         const z = lt < 3.2 ? lerp(1.0, 1.05, lt / 3.2) : lerp(1.15, 2.2, Math.pow(k, 1.6));
@@ -231,10 +231,10 @@
         ]);
       },
     },
-    { t0: 66, t1: 71, draw() {} },
+    { t0: 57.5, t1: 59, draw() {} },
     {
       // Титул.
-      t0: 71, t1: DUR + 1,
+      t0: 59, t1: DUR + 1,
       draw(c, t, lt, dt) {
         camera(c, lerp(640, 600, lt / 13), lerp(330, 350, lt / 13), lerp(1.08, 1.0, lt / 13));
         world(c, 'pier', t, dt, [
@@ -245,15 +245,15 @@
   ];
 
   const captions = () => [
-    { t: 1.2, t1: 4.4, text: 'Осень 1996 года', kind: 'card' },
+    { t: 0.5, t1: 2.8, text: 'Осень 1996 года', kind: 'card' },
     ...OM.TRA.CUES.map((c) => ({ ...c, t1: OM.TRA.cueEnd(c) })),
   ];
   // [начало, конец, от, до] — затемнения между планами
   const fades = [
-    [0, 5, 1, 1], [5, 6.6, 1, 0], [20.5, 21, 0, 1], [21.6, 22.4, 1, 0], [28.6, 29, 0, 1], [29, 29.5, 1, 0],
-    [35.1, 35.5, 0, 1], [35.5, 36, 1, 0], [41.5, 42, 0, 1], [57.5, 58.6, 1, 0], [66, 71, 1, 1], [82.4, 84, 0, 1], [84, 99, 1, 1],
+    [0, 3, 1, 1], [3, 4.5, 1, 0], [21, 21.5, 0, 1], [21.5, 22, 1, 1], [22, 22.7, 1, 0], [26.7, 27, 0, 1], [27, 27.4, 1, 0],
+    [32.2, 32.5, 0, 1], [32.5, 32.9, 1, 0], [38.1, 38.5, 0, 1], [49.5, 50.4, 1, 0], [57.5, 59, 1, 1], [70.4, 72, 0, 1], [72, 99, 1, 1],
   ];
-  const flashes = [[42, 0.9], [46, 1], [52.75, 0.8], [53.5, 0.6], [71, 1]];
+  const flashes = [[38.5, 0.9], [41.5, 1], [45.7, 0.8], [46.5, 0.6], [59, 1]];
 
   function fadeAt(t) {
     let v = 0;
@@ -284,9 +284,9 @@
   // Титул с бликом, пробегающим по буквам.
   let titleCv = null;
   function title(c, t) {
-    const lt = t - 71;
+    const lt = t - 59;
     if (lt < 0) return;
-    const al = Math.min(1, lt / 1.2) * (1 - k01(t, 82.4, 84));
+    const al = Math.min(1, lt / 1.2) * (1 - k01(t, 70.4, 72));
     c.fillStyle = `rgba(0,0,0,${0.45 * Math.min(1, lt)})`;
     c.fillRect(0, 0, W, H);
     if (!titleCv) titleCv = OM.makeCanvas(W * 2, 400);
@@ -310,11 +310,11 @@
     c.shadowBlur = 30;
     c.drawImage(titleCv, 0, H / 2 - 150, W, 200);
     c.restore();
-    const a2 = Math.min(k01(lt, 2.6, 4), 1 - k01(t, 82.4, 84));
+    const a2 = Math.min(k01(lt, 2.6, 4), 1 - k01(t, 70.4, 72));
     P.text(c, 'в тихом омуте…', W / 2, H / 2 + 52, { font: 'italic 500 28px "Cormorant Garamond",serif', color: '#cdbfa6', alpha: a2 * 0.8, ls: 8 });
-    const a3 = Math.min(k01(lt, 5.4, 6.6), 1 - k01(t, 82.4, 84));
+    const a3 = Math.min(k01(lt, 5.4, 6.6), 1 - k01(t, 70.4, 72));
     P.text(c, 'ГЛАВА ПЕРВАЯ  ·  ПРИЕЗД', W / 2, H - BAR - 70, { font: '700 15px "PT Serif",serif', color: '#bba98a', alpha: a3 * 0.85, ls: 6 });
-    const a4 = Math.min(k01(lt, 8, 9.2), 1 - k01(t, 82.4, 84));
+    const a4 = Math.min(k01(lt, 8, 9.2), 1 - k01(t, 70.4, 72));
     P.text(c, 'СКОРО', W / 2, H - BAR - 38, { font: '700 13px "PT Serif",serif', color: '#e0b080', alpha: a4 * 0.9, ls: 10 });
   }
 
@@ -333,11 +333,11 @@
     G.fx.flash = Math.max(0, G.fx.flash - dt * 1.3);
     if (shot) {
       ctx.save();
-      shot.draw(ctx, t, t - shot.t0, dt);
+      shot.draw(ctx, t, (t - shot.t0) * (shot.scale || 1), dt);
       ctx.restore();
       ctx.setTransform(S, 0, 0, S, 0, 0);
     }
-    if (G.fx.flash > 0.01 && t < 42) {
+    if (G.fx.flash > 0.01 && t < 38) {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       ctx.fillStyle = `rgba(200,215,235,${G.fx.flash * 0.38})`;

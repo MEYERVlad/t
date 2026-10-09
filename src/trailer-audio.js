@@ -2,38 +2,50 @@
 // Работает и с обычным AudioContext (просмотр), и с OfflineAudioContext (экспорт в видео).
 (function () {
   const TRA = (OM.TRA = {});
-  TRA.DUR = 84;
+  TRA.DUR = 72;
 
-  // Реплики закадрового голоса. Файлы кладутся в assets/vo/<id>.wav|mp3|ogg|m4a — подхватываются сами.
+  // Трек с голосом (assets/vo/song.mp3) режется по двум чистым паузам на три куска,
+  // между ними — реплика Зинаиды, видения и «00:13».
+  TRA.SONG = [
+    { at: 2.5, from: 0, to: 16.4 },
+    { at: 32.0, from: 16.9, to: 31.4 },
+    { at: 49.5, from: 32.0, to: 38.8 },
+  ];
+  // Субтитры. Время фраз внутри трека найдено по согласным в голосовом диапазоне.
+  const S = (i, tau) => TRA.SONG[i].at + tau - TRA.SONG[i].from;
   TRA.CUES = [
-    { id: '01', t: 8.6, t1: 12.8, text: 'В каждом городе есть место, о котором молчат.' },
-    { id: '02', t: 14.6, t1: 17.6, text: 'Здесь молчат о воде.' },
-    { id: '03', t: 23.6, t1: 27.8, text: 'Я приехал продавать энциклопедии. «Всё обо всём».' },
-    { id: '04', t: 30.4, t1: 34.4, text: '— Номеров у нас всегда много.', kind: 'quote', room: 0.25 },
-    { id: '05', t: 37.0, t1: 40.8, text: 'А потом мне начали сниться чужие смерти.' },
-    { id: '06', t: 47.0, t1: 50.6, text: 'Я вижу, как это случится…', room: 0.3 },
-    { id: '07', t: 55.2, t1: 57.3, text: '…и знаю — когда.', room: 0.3 },
-    { id: '08', t: 58.6, t1: 61.6, text: 'Они всегда стояли здесь.' },
-    { id: '09', t: 62.4, t1: 65.6, text: 'Просто раньше я их не видел.' },
-    { id: '10', t: 66.8, t1: 70.4, text: 'Не смотри им в лицо.', kind: 'card', room: 0.7 },
+    { t: S(0, 6.0), t1: S(0, 11.6), text: 'В каждом городе есть место, о котором молчат.' },
+    { t: S(0, 13.5), t1: S(0, 16.4), text: 'Здесь молчат о воде.' },
+    { id: '04', t: 27.9, t1: 31.4, text: '— Номеров у нас всегда много.', kind: 'quote', room: 0.25 },
+    { t: S(1, 18.6), t1: S(1, 25.4), text: 'Я приехал продавать энциклопедии. «Всё обо всём».' },
+    { t: S(1, 26.7), t1: S(1, 29.6), text: 'А потом мне начали сниться чужие смерти.' },
+    { t: S(1, 30.0), t1: S(1, 31.4), text: 'Я вижу, как это случится…' },
+    { t: 47.3, t1: 49.3, text: '…и знаю — когда.' },
+    { t: S(2, 32.0), t1: S(2, 34.1), text: 'Они всегда стояли здесь.' },
+    { t: S(2, 34.2), t1: S(2, 36.4), text: 'Просто раньше я их не видел.' },
+    { t: S(2, 36.5), t1: S(2, 38.8), text: 'Не смотри им в лицо.' },
   ];
   TRA.vo = {};
+  TRA.song = null;
+  const fetchAudio = async (dec, url) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      return await dec.decodeAudioData(await res.arrayBuffer());
+    } catch (e) { return null; }
+  };
   TRA.loadVO = async function (base = 'assets/vo/') {
     const dec = new OfflineAudioContext(2, 1, 48000);
-    await Promise.all(TRA.CUES.map(async (c) => {
+    TRA.song = await fetchAudio(dec, base + 'song.mp3');
+    await Promise.all(TRA.CUES.filter((c) => c.id).map(async (c) => {
       for (const ext of ['wav', 'mp3', 'ogg', 'm4a', 'webm']) {
-        try {
-          const res = await fetch(base + c.id + '.' + ext);
-          if (!res.ok) continue;
-          TRA.vo[c.id] = await dec.decodeAudioData(await res.arrayBuffer());
-          return;
-        } catch (e) { /* файла нет — остаются субтитры */ }
+        const b = await fetchAudio(dec, base + c.id + '.' + ext);
+        if (b) { TRA.vo[c.id] = b; return; }
       }
     }));
-    return Object.keys(TRA.vo).length;
+    return Object.keys(TRA.vo).length + (TRA.song ? 1 : 0);
   };
-  // Когда реплика заканчивается (с учётом длины записи).
-  TRA.cueEnd = (c) => (TRA.vo[c.id] ? Math.max(c.t1, c.t + TRA.vo[c.id].duration + 0.6) : c.t1);
+  TRA.cueEnd = (c) => (c.id && TRA.vo[c.id] ? Math.max(c.t1, c.t + TRA.vo[c.id].duration + 0.6) : c.t1);
 
   TRA.score = function (ac, out, T0) {
     const sr = ac.sampleRate;
@@ -94,10 +106,10 @@
     const r2 = loop(brown), lp2 = filt('lowpass', 500);
     r2.connect(lp2); lp2.connect(gain(0.45, rainLP));
     auto(rainG.gain, [
-      [0, 0], [3.5, 0.5], [21, 0.55], [21.05, 0.35, 'set'], [29, 0.35], [29.05, 0.3, 'set'], [35.5, 0.3], [41.9, 0.25],
-      [42, 0, 'set'], [57.5, 0, 'set'], [59, 0.3], [66, 0.32], [66.02, 0, 'set'], [71, 0, 'set'], [72.5, 0.4], [82.5, 0.3], [84, 0],
+      [0, 0], [2.5, 0.45], [21.5, 0.5], [21.55, 0.35, 'set'], [27, 0.35], [27.05, 0.3, 'set'], [38.4, 0.25],
+      [38.5, 0, 'set'], [49.5, 0, 'set'], [50.5, 0.3], [57.5, 0.32], [57.52, 0, 'set'], [59, 0, 'set'], [60.5, 0.4], [70.5, 0.3], [72, 0],
     ]);
-    auto(rainLP.frequency, [[0, 16000], [29, 16000, 'set'], [29.02, 700, 'set'], [42, 700], [57.5, 16000, 'set']]);
+    auto(rainLP.frequency, [[0, 16000], [27, 16000, 'set'], [27.02, 700, 'set'], [38.5, 700], [49.5, 16000, 'set']]);
 
     // ---------- Ветер ----------
     const windG = gain(0, master);
@@ -105,7 +117,7 @@
     w1.connect(wf); wf.connect(windG);
     const wl = osc('sine', 0.08), wlg = gain(200);
     wl.connect(wlg); wlg.connect(wf.frequency);
-    auto(windG.gain, [[0, 0], [5, 0.35], [21, 0.4], [21.05, 0.1, 'set'], [57.5, 0.1, 'set'], [60, 0.55], [66, 0.7], [66.02, 0, 'set'], [71, 0.25, 'set'], [84, 0]]);
+    auto(windG.gain, [[0, 0], [3, 0.3], [21.5, 0.35], [21.55, 0.1, 'set'], [49.5, 0.1, 'set'], [51, 0.5], [57.5, 0.6], [57.52, 0, 'set'], [59, 0.25, 'set'], [72, 0]]);
 
     // ---------- Вода у пристани ----------
     const waterG = gain(0, master);
@@ -114,12 +126,12 @@
     wa.connect(wlp); wlp.connect(wam); wam.connect(waterG);
     const wal = osc('sine', 0.23), walg = gain(0.5);
     wal.connect(walg); walg.connect(wam.gain);
-    auto(waterG.gain, [[0, 0], [57.5, 0, 'set'], [58.5, 0.5], [66, 0.5], [66.02, 0, 'set'], [71, 0.3, 'set'], [84, 0]]);
+    auto(waterG.gain, [[0, 0], [49.5, 0, 'set'], [50.5, 0.5], [57.5, 0.5], [57.52, 0, 'set'], [59, 0.3, 'set'], [72, 0]]);
 
     // ---------- Гул ламп и тиканье в гостинице ----------
     const humG = gain(0, master);
-    [50, 100, 150].forEach((f, i) => osc('sine', f, 29, 42).connect(gain([0.05, 0.025, 0.01][i], humG)));
-    auto(humG.gain, [[0, 0], [29, 1, 'set'], [41.9, 1], [42, 0, 'set']]);
+    [50, 100, 150].forEach((f, i) => osc('sine', f, 27, 38.6).connect(gain([0.05, 0.025, 0.01][i], humG)));
+    auto(humG.gain, [[0, 0], [27, 1, 'set'], [38.4, 1], [38.5, 0, 'set']]);
 
     // ---------- Дрон напряжения ----------
     const droneG = gain(0, master);
@@ -127,17 +139,17 @@
     dLP.connect(droneG);
     [41.2, 41.6, 61.8, 82.0, 55.0].forEach((f, i) => osc(i < 3 ? 'sawtooth' : 'sine', f).connect(gain(0.1, dLP)));
     auto(droneG.gain, [
-      [0, 0], [6, 0.2], [21, 0.25], [29, 0.18], [42, 0.3], [53.5, 0.45], [57.5, 0.35], [65.95, 0.75],
-      [66, 0, 'set'], [71, 0, 'set'], [71.05, 0.35, 'set'], [84, 0],
+      [0, 0], [4, 0.12], [21.5, 0.15], [27, 0.15], [38.5, 0.25], [46.5, 0.45], [49.5, 0.3], [57.45, 0.65],
+      [57.5, 0, 'set'], [59, 0, 'set'], [59.05, 0.35, 'set'], [72, 0],
     ]);
-    auto(dLP.frequency, [[0, 140], [18, 200], [42, 260], [53, 420], [57.5, 220], [65.9, 900], [66, 140, 'set'], [84, 140]]);
+    auto(dLP.frequency, [[0, 140], [19, 200], [38.5, 260], [46, 420], [49.5, 220], [57.4, 800], [57.5, 140, 'set'], [72, 140]]);
     // высокий дрожащий кластер
     const highG = gain(0, master);
     highG.connect(gain(0.6, rev));
     [1244, 1318, 1975].forEach((f) => osc('sine', f).connect(gain(0.025, highG)));
     const trem = osc('sine', 5.3), tremG = gain(0.4);
     trem.connect(tremG); tremG.connect(highG.gain);
-    auto(highG.gain, [[0, 0], [46, 0, 'set'], [53, 0.5], [53.5, 0, 'set'], [60, 0], [65.95, 0.9], [66, 0, 'set'], [67, 0, 'set'], [68, 0.15], [70.5, 0], [84, 0]]);
+    auto(highG.gain, [[0, 0], [41.5, 0, 'set'], [46, 0.4], [46.5, 0, 'set'], [52, 0], [57.45, 0.8], [57.5, 0, 'set'], [72, 0]]);
 
     // ---------- Событийные звуки ----------
     const burst = (t, o) => {
@@ -258,65 +270,76 @@
     };
 
     // ---------- Монтажная партитура ----------
-    // 0–5: темнота, дождь, далёкий гром
-    thunder(1.5, 0.25);
-    arp(2.0, 4, 0.9, [null, 76, 74, 71]);
-    // 5–14: автобус уходит
-    const busO = osc('sawtooth', 36, 4.5, 15), busN = loop(brown, 4.5, 15);
+    thunder(1.0, 0.25);
+    // 3–12.5: автобус уходит
+    const busO = osc('sawtooth', 36, 3, 13), busN = loop(brown, 3, 13);
     const busLP = filt('lowpass', 260, 2), busG = gain(0, master);
     busO.connect(busLP); busN.connect(busLP); busLP.connect(busG);
-    auto(busG.gain, [[4.5, 0], [5.5, 0.22], [6.6, 0.22], [7.2, 0.36], [10, 0.25], [14, 0]]);
-    auto(busO.frequency, [[4.5, 36], [6.6, 36], [7.6, 58], [11, 50], [14, 40]]);
-    // 14–21: молния и Тихий в лесу
-    stinger(16.8, 1);
-    thunder(18.2, 1);
-    braam(18.25, 0.7, 4);
-    // 21.6–29: улица; 29–35.5: холл
-    arp(21.6, 3, 0.8, [72, null, 69]);
-    for (let t = 29.3; t < 35.5; t += 1) tick(t, Math.round(t) % 2, 0.06);
-    bell(29.6, 0.6);
-    // 35.5–42: номер
-    note(36.2, 76, 4, 0.04);
-    note(38.4, 74, 4, 0.035);
-    note(40.4, 71, 4, 0.03);
-    // 42–46: подводное видение
-    braam(42, 0.8, 3.5);
-    whisper(42.2, 3.6, 0.16);
-    hit(43.3, 0.5);
-    hit(44.7, 0.5);
-    // 46–53.5: красное видение
-    hit(46, 1);
-    for (let t = 46.4; t < 52.6; t += 1.05) heartbeat(t, 0.9);
-    whisper(48, 4.5, 0.1);
-    burst(52.8, { type: 'lowpass', f: 3000, f2: 300, v: 0.7, a: 0.01, d: 1, rev: 0.5 });
-    hit(52.8, 0.9);
-    // 53.5–57.5: 00:13
-    braam(53.5, 1, 4);
-    for (let t = 54; t < 57.4; t += 0.5) tick(t, Math.round(t * 2) % 2, 0.16);
-    // 57.5–66: пристань, нарастание
-    let t = 58.2, gap = 1.25;
-    while (t < 65.9) { heartbeat(t, 0.7 + (t - 58) * 0.06); t += gap; gap = Math.max(0.36, gap * 0.9); }
-    const riserS = loop(white, 60.5, 66), riserF = filt('bandpass', 300, 1.2), riserG = gain(0, master);
+    auto(busG.gain, [[3, 0], [4, 0.2], [5.4, 0.2], [6, 0.33], [8.5, 0.22], [12.5, 0]]);
+    auto(busO.frequency, [[3, 36], [5.4, 36], [6.4, 58], [9.5, 50], [12.5, 40]]);
+    // 19.6: молния в паузе трека — Тихий у леса
+    stinger(18.4, 1);
+    thunder(19.6, 1);
+    braam(19.65, 0.7, 4);
+    // 27–32.5: холл
+    for (let t = 27.3; t < 32.5; t += 1) tick(t, Math.round(t) % 2, 0.06);
+    bell(27.6, 0.6);
+    // 38.5–41.5: подводное видение
+    braam(38.5, 0.8, 3);
+    whisper(38.7, 2.8, 0.12);
+    hit(39.6, 0.5);
+    hit(40.6, 0.5);
+    // 41.5–46.5: красное видение
+    hit(41.5, 1);
+    for (let t = 41.9; t < 45.6; t += 1.05) heartbeat(t, 0.8);
+    burst(45.77, { type: 'lowpass', f: 3000, f2: 300, v: 0.7, a: 0.01, d: 1, rev: 0.5 });
+    hit(45.77, 0.9);
+    // 46.5–49.5: 00:13
+    braam(46.5, 1, 3.5);
+    for (let t = 47; t < 49.4; t += 0.5) tick(t, Math.round(t * 2) % 2, 0.16);
+    // 49.5–57.5: пристань, нарастание
+    let t = 50.2, gap = 1.2;
+    while (t < 57.4) { heartbeat(t, 0.6 + (t - 50) * 0.06); t += gap; gap = Math.max(0.36, gap * 0.9); }
+    const riserS = loop(white, 54.5, 57.5), riserF = filt('bandpass', 300, 1.2), riserG = gain(0, master);
     riserS.connect(riserF); riserF.connect(riserG); riserG.connect(gain(0.5, rev));
-    auto(riserF.frequency, [[60.5, 300], [66, 5000, 'exp']]);
-    auto(riserG.gain, [[60.5, 0], [65.95, 0.35], [66, 0, 'set']]);
-    stinger(62.4, 1.2);
-    // 66: тишина; шёпот
-    whisper(66.8, 3.6, 0.18);
-    // 71: титул
-    braam(71, 1.2, 6);
-    arp(72.2, 3, 1, [76, 74, 72]);
-    note(83.2, 57, 3, 0.03);
-    bell(80.6, 0.5);
+    auto(riserF.frequency, [[54.5, 300], [57.5, 5000, 'exp']]);
+    auto(riserG.gain, [[54.5, 0], [57.45, 0.3], [57.5, 0, 'set']]);
+    stinger(55, 1.1);
+    // 57.5: тишина; 59: титул
+    braam(59, 1.2, 6);
+    arp(60.2, 3, 1, [76, 74, 72]);
+    note(70.4, 57, 2, 0.03);
+    bell(68.6, 0.5);
+
+    // ---------- Трек с голосом: три куска, под ними приглушаем подложку ----------
+    const songG = gain(0.9, comp);
+    songG.connect(gain(0.08, rev));
+    if (TRA.song) {
+      TRA.SONG.forEach((p) => {
+        const len = p.to - p.from;
+        const src = ac.createBufferSource();
+        src.buffer = TRA.song;
+        const g = gain(0, songG);
+        src.connect(g);
+        g.gain.setValueAtTime(0, at(p.at));
+        g.gain.linearRampToValueAtTime(1, at(p.at + (p.from ? 0.03 : 0.01)));
+        g.gain.setValueAtTime(1, at(p.at + len - 0.08));
+        g.gain.linearRampToValueAtTime(0, at(p.at + len));
+        src.start(at(p.at), p.from, len);
+        master.gain.setValueAtTime(0.95, at(p.at - 0.2));
+        master.gain.linearRampToValueAtTime(0.55, at(p.at + 0.3));
+        master.gain.setValueAtTime(0.55, at(p.at + len - 0.2));
+        master.gain.linearRampToValueAtTime(0.95, at(p.at + len + 0.3));
+      });
+    }
 
     // ---------- Закадровый голос: свой канал мимо приглушаемой музыки ----------
     const voComp = ac.createDynamicsCompressor();
     voComp.threshold.value = -22;
     voComp.ratio.value = 3;
     voComp.connect(comp);
-    master.gain.setValueAtTime(0.95, at(0));
     TRA.CUES.forEach((c) => {
-      const b = TRA.vo[c.id];
+      const b = c.id && TRA.vo[c.id];
       if (!b) return;
       const src = ac.createBufferSource();
       src.buffer = b;
