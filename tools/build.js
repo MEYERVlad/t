@@ -15,3 +15,13 @@ fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 const out = path.join(root, 'dist', 'omut.html');
 fs.writeFileSync(out, html);
 console.log(`${path.relative(root, out)}: ${(html.length / 1024).toFixed(0)} КБ`);
+
+// Вариант для публикации страницей claude.ai: без собственного каркаса документа.
+const frag = html
+  .replace(/<!doctype html>\s*/i, '')
+  .replace(/<\/?html[^>]*>\s*/g, '')
+  .replace(/<\/?head>\s*/g, '')
+  .replace(/<\/?body>\s*/g, '')
+  .replace(/<meta [^>]*>\s*/g, '')
+  .replace('<style>', '<style>\n:root { color-scheme: dark; }');
+fs.writeFileSync(path.join(root, 'dist', 'omut-page.html'), frag);
