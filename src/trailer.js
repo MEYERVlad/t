@@ -119,11 +119,27 @@
   }
 
   // ---------- Монтажный лист ----------
+  // Время в кадрах подогнано под фразы трека «Молчат о воде» (см. TRA.SONG / TRA.CUES).
+  function pierShot(c, t, lt, dt) {
+    const k = ease(lt, 3.2, 8.5);
+    const z = lt < 3.2 ? lerp(1.0, 1.05, lt / 3.2) : lerp(1.15, 2.2, Math.pow(k, 1.6));
+    const cx = lt < 3.2 ? lerp(640, 680, lt / 3.2) : lerp(980, 1196, k);
+    const cy = lt < 3.2 ? 380 : lerp(450, 418, k);
+    camera(c, cx, cy, z);
+    const reach = ease(lt, 0.5, 8.4);
+    const hx = lerp(330, 760, Math.min(1, lt / 8.5));
+    world(c, 'pier', t, dt, [
+      hero(hx, 594, 0.97, 1, true, rim('#b8c8e0', 0.45, -1)),
+      { y: 592, draw: (cc, tt) => A.mitya(cc, { x: 1100, y: 592, s: 0.97, face: 1, sleep: true, rim: { color: 'rgba(255,174,90,.35)', dx: -1.2 } }, tt) },
+      { y: 590, draw: (cc, tt) => A.tall(cc, { x: lerp(1250, 1205, reach), y: 830, s: 1.12, face: -1, reach, alpha: 1, jitter: 1.2 + k * 3, body: '#020305', face2: 1 + k * 2 }, tt) },
+    ]);
+  }
+
   const shots = [
-    { t0: 0, t1: 3, draw() {} },
+    { t0: 0, t1: 2.5, draw() {} },
     {
-      // Автобус уходит, оставляя Льва одного под дождём.
-      t0: 3, t1: 12.5, scale: 9 / 9.5,
+      // «В каждом городе есть место…» — автобус уходит, оставляя Льва одного.
+      t0: 2.5, t1: 11, scale: 9 / 8.5,
       draw(c, t, lt, dt) {
         const k = lt / 9;
         camera(c, lerp(640, 690, smooth(k)), lerp(390, 420, k), lerp(1.02, 1.16, smooth(k)));
@@ -135,8 +151,8 @@
       },
     },
     {
-      // Молния: высокая фигура у леса.
-      t0: 12.5, t1: 21.5, scale: 4.2 / 7.1,
+      // «Здесь молчат о воде» — и молния: высокая фигура у леса.
+      t0: 11, t1: 15, scale: 1.5,
       enter() { G.flags.tallBus = 'show'; },
       draw(c, t, lt, dt) {
         camera(c, lerp(880, 930, lt / 7), lerp(466, 474, lt / 7), lerp(1.5, 1.62, lt / 7));
@@ -145,10 +161,9 @@
         world(c, 'busstop', t, dt, [hero(780, 640, 1.03, 1, false, rim('#ffae5a', 0.5, -1))]);
       },
     },
-    { t0: 21.5, t1: 22, draw() {} },
     {
-      // Улица: Лев идёт к «Заре».
-      t0: 22, t1: 27, scale: 7.4 / 5,
+      // «Я приехал продавать энциклопедии» — улица, Лев идёт к «Заре».
+      t0: 15, t1: 19.6, scale: 7.4 / 4.6,
       draw(c, t, lt, dt) {
         const k = lt / 7.4;
         camera(c, lerp(820, 470, smooth(k)), 420, 1.2);
@@ -157,13 +172,13 @@
       },
     },
     {
-      // Холл: хозяйка за стойкой.
-      t0: 27, t1: 32.5, scale: 6.5 / 5.5,
+      // Холл: «Номеров у нас всегда много».
+      t0: 19.6, t1: 24.6, scale: 1.3,
       init() { this.props = SC('lobby').actors().find((a) => a.id === 'props'); },
       draw(c, t, lt, dt) {
         const k = smooth(lt / 6.5);
         camera(c, lerp(600, 610, k), lerp(380, 352, k), lerp(1.0, 1.32, k));
-        const talking = lt > 1.4 && lt < 4.8;
+        const talking = t > 20.5 && t < 23.7;
         world(c, 'lobby', t, dt, [
           { y: 452, draw: (cc, tt) => A.zina(cc, { x: 612, y: 452, s: 1.15, talking }, tt) },
           { y: 606, draw: (cc, tt) => this.props.draw(cc, this.props, tt) },
@@ -172,8 +187,8 @@
       },
     },
     {
-      // Номер 7: окно на озеро.
-      t0: 32.5, t1: 38.5, scale: 6.5 / 6,
+      // «А потом мне начали сниться чужие смерти» — номер 7.
+      t0: 24.6, t1: 29.4, scale: 6.5 / 4.8,
       draw(c, t, lt, dt) {
         const k = smooth(lt / 6.5);
         camera(c, lerp(720, 870, k), lerp(370, 318, k), lerp(1.0, 1.5, k));
@@ -181,26 +196,31 @@
       },
     },
     {
-      // Подводная церковь — вспышками.
-      t0: 38.5, t1: 41.5, scale: 4 / 3,
-      draw(c, t, lt) {
-        const vis = (lt < 1.0) || (lt > 1.3 && lt < 2.6) || (lt > 2.75 && lt < 3.05) || lt > 3.3;
-        if (!vis) return;
-        camera(c, 640, 380, 1 + lt * 0.08 + (lt > 1.3 ? 0.15 : 0));
-        photoVision(c, t);
-      },
-    },
-    {
-      // Красное видение: мальчик на пристани.
-      t0: 41.5, t1: 46.5, scale: 7.5 / 5,
+      // «Я вижу, как это случится» — красное видение.
+      t0: 29.4, t1: 33, scale: 2,
       draw(c, t, lt) {
         camera(c, lerp(760, 860, lt / 7.5), 440, lerp(1.0, 1.16, lt / 7.5));
         redVision(c, t, lt);
       },
     },
     {
-      // 00:13
-      t0: 46.5, t1: 49.5, scale: 4 / 3,
+      // «Они всегда стояли здесь» — подводная церковь и фигуры вокруг.
+      t0: 33, t1: 37.2, scale: 4 / 4.2,
+      draw(c, t, lt) {
+        const vis = (lt < 1.6) || (lt > 1.75 && lt < 3.0) || lt > 3.15;
+        if (!vis) return;
+        camera(c, 640, 380, 1 + lt * 0.08 + (lt > 1.75 ? 0.15 : 0));
+        photoVision(c, t);
+      },
+    },
+    {
+      // «Просто раньше я их не видел» — пристань, общий план.
+      t0: 37.2, t1: 39.6, scale: 3.2 / 2.4,
+      draw: pierShot,
+    },
+    {
+      // 00:13 — на музыкальном вступлении третьего куска.
+      t0: 39.6, t1: 42.6, scale: 4 / 3,
       draw(c, t, lt) {
         c.fillStyle = '#060000';
         c.fillRect(0, 0, W, H);
@@ -214,27 +234,14 @@
       },
     },
     {
-      // Пристань: Лев идёт к мальчику, камера наезжает на Тихого.
-      t0: 49.5, t1: 57.5, scale: 8.5 / 8,
-      draw(c, t, lt, dt) {
-        const k = ease(lt, 3.2, 8.5);
-        const z = lt < 3.2 ? lerp(1.0, 1.05, lt / 3.2) : lerp(1.15, 2.2, Math.pow(k, 1.6));
-        const cx = lt < 3.2 ? lerp(640, 680, lt / 3.2) : lerp(980, 1196, k);
-        const cy = lt < 3.2 ? 380 : lerp(450, 418, k);
-        camera(c, cx, cy, z);
-        const reach = ease(lt, 0.5, 8.4);
-        const hx = lerp(330, 760, Math.min(1, lt / 8.5));
-        world(c, 'pier', t, dt, [
-          hero(hx, 594, 0.97, 1, true, rim('#b8c8e0', 0.45, -1)),
-          { y: 592, draw: (cc, tt) => A.mitya(cc, { x: 1100, y: 592, s: 0.97, face: 1, sleep: true, rim: { color: 'rgba(255,174,90,.35)', dx: -1.2 } }, tt) },
-          { y: 590, draw: (cc, tt) => A.tall(cc, { x: lerp(1250, 1205, reach), y: 830, s: 1.12, face: -1, reach, alpha: 1, jitter: 1.2 + k * 3, body: '#020305', face2: 1 + k * 2 }, tt) },
-        ]);
-      },
+      // «Не смотри им в лицо» — наезд на Тихого.
+      t0: 42.6, t1: 46.6, offset: 3.2, scale: 5.3 / 4,
+      draw: pierShot,
     },
-    { t0: 57.5, t1: 59, draw() {} },
+    { t0: 46.6, t1: 48, draw() {} },
     {
       // Титул.
-      t0: 59, t1: DUR + 1,
+      t0: 48, t1: DUR + 1,
       draw(c, t, lt, dt) {
         camera(c, lerp(640, 600, lt / 13), lerp(330, 350, lt / 13), lerp(1.08, 1.0, lt / 13));
         world(c, 'pier', t, dt, [
@@ -245,15 +252,15 @@
   ];
 
   const captions = () => [
-    { t: 0.5, t1: 2.8, text: 'Осень 1996 года', kind: 'card' },
+    { t: 0.3, t1: 2.4, text: 'Осень 1996 года', kind: 'card' },
     ...OM.TRA.CUES.map((c) => ({ ...c, t1: OM.TRA.cueEnd(c) })),
   ];
   // [начало, конец, от, до] — затемнения между планами
   const fades = [
-    [0, 3, 1, 1], [3, 4.5, 1, 0], [21, 21.5, 0, 1], [21.5, 22, 1, 1], [22, 22.7, 1, 0], [26.7, 27, 0, 1], [27, 27.4, 1, 0],
-    [32.2, 32.5, 0, 1], [32.5, 32.9, 1, 0], [38.1, 38.5, 0, 1], [49.5, 50.4, 1, 0], [57.5, 59, 1, 1], [70.4, 72, 0, 1], [72, 99, 1, 1],
+    [0, 2.5, 1, 1], [2.5, 3.8, 1, 0], [14.8, 15, 0, 1], [15, 15.4, 1, 0], [19.3, 19.6, 0, 1], [19.6, 20, 1, 0],
+    [24.3, 24.6, 0, 1], [24.6, 25, 1, 0], [37, 37.2, 0, 1], [37.2, 37.6, 1, 0], [46.6, 48, 1, 1], [58.4, 60, 0, 1], [60, 99, 1, 1],
   ];
-  const flashes = [[38.5, 0.9], [41.5, 1], [45.7, 0.8], [46.5, 0.6], [59, 1]];
+  const flashes = [[29.4, 1], [32.55, 0.8], [33, 0.9], [39.6, 0.6], [48, 1]];
 
   function fadeAt(t) {
     let v = 0;
@@ -284,9 +291,9 @@
   // Титул с бликом, пробегающим по буквам.
   let titleCv = null;
   function title(c, t) {
-    const lt = t - 59;
+    const lt = t - 48;
     if (lt < 0) return;
-    const al = Math.min(1, lt / 1.2) * (1 - k01(t, 70.4, 72));
+    const al = Math.min(1, lt / 1.2) * (1 - k01(t, 58.4, 60));
     c.fillStyle = `rgba(0,0,0,${0.45 * Math.min(1, lt)})`;
     c.fillRect(0, 0, W, H);
     if (!titleCv) titleCv = OM.makeCanvas(W * 2, 400);
@@ -310,11 +317,11 @@
     c.shadowBlur = 30;
     c.drawImage(titleCv, 0, H / 2 - 150, W, 200);
     c.restore();
-    const a2 = Math.min(k01(lt, 2.6, 4), 1 - k01(t, 70.4, 72));
+    const a2 = Math.min(k01(lt, 2.6, 4), 1 - k01(t, 58.4, 60));
     P.text(c, 'в тихом омуте…', W / 2, H / 2 + 52, { font: 'italic 500 28px "Cormorant Garamond",serif', color: '#cdbfa6', alpha: a2 * 0.8, ls: 8 });
-    const a3 = Math.min(k01(lt, 5.4, 6.6), 1 - k01(t, 70.4, 72));
+    const a3 = Math.min(k01(lt, 5.4, 6.6), 1 - k01(t, 58.4, 60));
     P.text(c, 'ГЛАВА ПЕРВАЯ  ·  ПРИЕЗД', W / 2, H - BAR - 70, { font: '700 15px "PT Serif",serif', color: '#bba98a', alpha: a3 * 0.85, ls: 6 });
-    const a4 = Math.min(k01(lt, 8, 9.2), 1 - k01(t, 70.4, 72));
+    const a4 = Math.min(k01(lt, 8, 9.2), 1 - k01(t, 58.4, 60));
     P.text(c, 'СКОРО', W / 2, H - BAR - 38, { font: '700 13px "PT Serif",serif', color: '#e0b080', alpha: a4 * 0.9, ls: 10 });
   }
 
@@ -333,11 +340,11 @@
     G.fx.flash = Math.max(0, G.fx.flash - dt * 1.3);
     if (shot) {
       ctx.save();
-      shot.draw(ctx, t, (t - shot.t0) * (shot.scale || 1), dt);
+      shot.draw(ctx, t, (shot.offset || 0) + (t - shot.t0) * (shot.scale || 1), dt);
       ctx.restore();
       ctx.setTransform(S, 0, 0, S, 0, 0);
     }
-    if (G.fx.flash > 0.01 && t < 38) {
+    if (G.fx.flash > 0.01 && t < 16) {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
       ctx.fillStyle = `rgba(200,215,235,${G.fx.flash * 0.38})`;

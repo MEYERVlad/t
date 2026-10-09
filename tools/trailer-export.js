@@ -37,6 +37,16 @@ const only = opt('--only', null);
     return Buffer.from(data.split(',')[1], 'base64');
   };
 
+  const audioOnly = opt('--audio', null);
+  if (audioOnly) {
+    // Только звуковая дорожка — для проверки синхрона.
+    fs.writeFileSync(audioOnly, Buffer.from(await p.evaluate(() => OM.TRA.renderWav()), 'base64'));
+    console.log(audioOnly);
+    await b.close();
+    srv.close();
+    return;
+  }
+
   if (only) {
     // Превью: прогоняем время до каждой точки, чтобы дождь/вспышки были в правильном состоянии.
     const pts = only.split(',').map(Number).sort((a, b) => a - b);
