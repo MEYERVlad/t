@@ -218,7 +218,7 @@
       t0: 57.5, t1: 66,
       draw(c, t, lt, dt) {
         const k = ease(lt, 3.2, 8.5);
-        const z = lt < 3.2 ? lerp(1.0, 1.05, lt / 3.2) : lerp(1.15, 2.7, Math.pow(k, 1.6));
+        const z = lt < 3.2 ? lerp(1.0, 1.05, lt / 3.2) : lerp(1.15, 2.2, Math.pow(k, 1.6));
         const cx = lt < 3.2 ? lerp(640, 680, lt / 3.2) : lerp(980, 1196, k);
         const cy = lt < 3.2 ? 380 : lerp(450, 418, k);
         camera(c, cx, cy, z);
@@ -227,7 +227,7 @@
         world(c, 'pier', t, dt, [
           hero(hx, 594, 0.97, 1, true, rim('#b8c8e0', 0.45, -1)),
           { y: 592, draw: (cc, tt) => A.mitya(cc, { x: 1100, y: 592, s: 0.97, face: 1, sleep: true, rim: { color: 'rgba(255,174,90,.35)', dx: -1.2 } }, tt) },
-          { y: 590, draw: (cc, tt) => A.tall(cc, { x: lerp(1240, 1190, reach), y: 830, s: 1.12, face: -1, reach, alpha: 1, jitter: 1.2 + k * 3, body: '#020305', face2: 1 + k * 2 }, tt) },
+          { y: 590, draw: (cc, tt) => A.tall(cc, { x: lerp(1250, 1205, reach), y: 830, s: 1.12, face: -1, reach, alpha: 1, jitter: 1.2 + k * 3, body: '#020305', face2: 1 + k * 2 }, tt) },
         ]);
       },
     },

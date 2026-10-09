@@ -315,6 +315,19 @@
       c.lineTo(-7, 36);
       c.quadraticCurveTo(-14, 12, -12, -6);
       c.fill();
+      if (!rimPass) {
+        // мокрый блеск на прядях
+        c.strokeStyle = 'rgba(150,175,185,.16)';
+        strands.forEach(([u, v, w], i) => {
+          if (i % 3) return;
+          const sx = -10 + u * 22, len = 38 + v * 74;
+          c.lineWidth = 0.7;
+          c.beginPath();
+          c.moveTo(sx + 1, -8);
+          c.quadraticCurveTo(sx + 6 + w * 8, 10, sx + 4 + Math.sin(t * 0.9 + i * 0.7) * 2.5 + (u - 0.5) * 10, len * 0.8);
+          c.stroke();
+        });
+      }
       c.restore();
     };
 
@@ -324,11 +337,13 @@
     ctx.scale(a.s * a.face, a.s);
     ctx.rotate(Math.sin(t * 0.5 + seed) * 0.02);
     // мягкий ореол — края растворяются в тумане
-    ctx.save();
-    ctx.globalAlpha = al * 0.5;
-    ctx.filter = 'blur(4px)';
-    shape(ctx, a.body || '#040507', true);
-    ctx.restore();
+    for (const [dx, dy] of [[-3, 0], [3, 0], [0, -3]]) {
+      ctx.save();
+      ctx.globalAlpha = al * 0.18;
+      ctx.translate(dx, dy);
+      shape(ctx, a.body || '#040507', true);
+      ctx.restore();
+    }
     if (a.rim) {
       ctx.save();
       ctx.translate(a.rim.dx || 1.2, -0.5);
