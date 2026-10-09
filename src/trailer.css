@@ -1,0 +1,21 @@
+:root { --paper: #ece2cc; --warm: #ffd696; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: var(--paper); font-family: 'PT Serif', Georgia, serif; }
+body { display: flex; align-items: center; justify-content: center; }
+#screen { position: relative; width: 100vw; max-width: calc(100vh * 16 / 9); aspect-ratio: 16 / 9; background: #000; }
+#film { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#gate {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.6rem; background: radial-gradient(ellipse at 50% 50%, rgba(10,8,6,.5), #000 75%); transition: opacity 1s;
+}
+#gate.off { opacity: 0; pointer-events: none; }
+#gate .name { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(48px, 10vw, 120px); letter-spacing: .32em; margin-left: .32em; line-height: 1; }
+#gate .sub { font-style: italic; letter-spacing: .3em; opacity: .6; }
+#gate button {
+  margin-top: 1.6rem; background: none; border: 1px solid rgba(236,226,204,.35); color: var(--paper); cursor: pointer;
+  font-family: 'Cormorant Garamond', serif; font-size: clamp(18px, 2.4vw, 26px); letter-spacing: .2em; padding: .5em 1.6em;
+  transition: border-color .2s, color .2s;
+}
+#gate button:hover:not(:disabled), #gate button:focus-visible { border-color: var(--warm); color: var(--warm); outline: none; }
+#gate button:disabled { opacity: .5; cursor: default; }
+#gate .note { font-size: 13px; opacity: .45; letter-spacing: .08em; }

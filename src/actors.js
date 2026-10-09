@@ -171,13 +171,10 @@
       c.fill();
       // вихры
       c.beginPath();
-      c.moveTo(-8, -112);
-      c.lineTo(-11, -119);
-      c.lineTo(-3, -116);
-      c.lineTo(0, -121);
-      c.lineTo(3, -116);
-      c.lineTo(9, -118);
-      c.lineTo(8, -110);
+      c.moveTo(-9, -108);
+      c.quadraticCurveTo(-11, -119, -2, -119.5);
+      c.quadraticCurveTo(1, -122, 4, -119);
+      c.quadraticCurveTo(11, -117, 9.5, -108);
       c.fill();
       limb(c, 2, -90, 6 + Math.sin(arm) * 12, -76, 2 + Math.sin(arm) * 32, -66 - arm * 12, 7);
       if (!isRim) {
@@ -195,69 +192,164 @@
     ctx.restore();
   };
 
-  // ---------- Тихий: высокий безликий ----------
+  // ---------- Тихий: утопленник в мокром саване ----------
+  // Сутулый, слишком высокий; мокрые волосы скрывают лицо; руки ниже колен; с пальцев капает вода.
   A.tall = (ctx, a, t) => {
-    if (a.alpha <= 0) return;
-    ctx.save();
-    ctx.globalAlpha = a.alpha ?? 1;
-    const jx = (Math.random() - 0.5) * (a.jitter ?? 1.2);
-    ctx.translate(a.x + jx, a.y);
-    ctx.scale(a.s * a.face, a.s);
-    const sway = Math.sin(t * 0.6 + (a.seed || 0)) * 0.025;
-    ctx.rotate(sway);
-    const col = a.body || '#040507';
-    const draw = (c, color) => {
-      c.fillStyle = color;
-      c.strokeStyle = color;
+    const al = a.alpha ?? 1;
+    if (al <= 0) return;
+    const seed = a.seed || 0;
+    const r = OM.rng(17 + Math.floor(seed * 1000));
+    const hem = Array.from({ length: 23 }, () => r());
+    const strands = Array.from({ length: 28 }, () => [r(), r(), r()]);
+    // редкие судорожные подёргивания головы
+    const tw = Math.floor(t * 1.7 + seed * 7);
+    const twitch = OM.rng(tw * 31 + 7)() < 0.12 ? (OM.rng(tw)() - 0.5) * 0.5 : 0;
+    const reach = a.reach || 0;
+    const breathe = Math.sin(t * 0.8 + seed) * 1.5;
+    const L = (p, q, k) => p + (q - p) * k;
+    // плечи, локти, кисти: [дальняя рука, ближняя рука]
+    const arms = [
+      { s: [-24, -322], e: [-36, -238], h: [-32, -128], ang: Math.PI / 2 + 0.1 },
+      {
+        s: [18, -332],
+        e: [L(26, 66, reach), L(-246, -300, reach)],
+        h: [L(30, 138, reach), L(-136, -300, reach)],
+        ang: L(Math.PI / 2 - 0.1, 0.45, reach),
+      },
+    ];
+    const fingers = (h, ang) => [-1.5, -0.5, 0.5, 1.5].map((k, i) => {
+      const a1 = ang + k * 0.16, a2 = a1 + 0.35 + i * 0.05, l1 = 17 + (i % 2) * 3, l2 = 15;
+      const m = [h[0] + Math.cos(a1) * l1, h[1] + Math.sin(a1) * l1];
+      return [h, m, [m[0] + Math.cos(a2) * l2, m[1] + Math.sin(a2) * l2]];
+    });
+
+    const shape = (c, col, rimPass) => {
+      c.fillStyle = col;
+      c.strokeStyle = col;
       c.lineCap = 'round';
-      // ноги — длинные, тонкие
-      limb(c, -5, -200, -7, -100, -9, 0, 7);
-      limb(c, 5, -200, 8, -100, 10, 0, 7);
-      // туловище
+      c.lineJoin = 'round';
+      limb(c, -8, -70, -10, -34, -11, 0, 5);
+      limb(c, 7, -70, 9, -34, 10, 0, 5);
+      // саван
       c.beginPath();
-      c.moveTo(-15, -345);
-      c.quadraticCurveTo(-22, -300, -12, -200);
-      c.lineTo(12, -200);
-      c.quadraticCurveTo(22, -300, 15, -345);
-      c.quadraticCurveTo(0, -356, -15, -345);
+      c.moveTo(-4, -354);
+      c.quadraticCurveTo(-26, -352, -30, -322 + breathe);
+      c.quadraticCurveTo(-35, -220, -41, -120);
+      c.quadraticCurveTo(-45, -92, -49, -72);
+      for (let i = 0; i <= 22; i++) {
+        const x = -49 + (i / 22) * 96;
+        c.lineTo(x, -72 + hem[i] * 62 + Math.sin(t * 1.3 + i) * 2);
+        if (i < 22) c.lineTo(x + 2.2, -80 + hem[(i + 5) % 22] * 22);
+      }
+      c.quadraticCurveTo(43, -112, 35, -200);
+      c.quadraticCurveTo(31, -300, 20, -334 + breathe);
+      c.quadraticCurveTo(10, -352, 4, -352);
+      c.closePath();
       c.fill();
-      // руки до колен с длинными пальцами
-      const reach = a.reach || 0;
-      c.lineWidth = 5.5;
-      [-1, 1].forEach((sd) => {
-        const rx = sd === 1 ? reach : 0;
-        const ex = sd * 20 + rx * 40, ey = -270 + rx * 30;
-        const hx = sd * 24 + rx * 120, hy = -150 - rx * 110;
-        limb(c, sd * 15, -338, ex, ey, hx, hy, 5.5);
-        c.lineWidth = 1.6;
-        for (let f = -2; f <= 2; f++) {
+      if (!rimPass) {
+        // складки мокрой ткани
+        c.save();
+        c.globalCompositeOperation = 'source-atop';
+        c.strokeStyle = 'rgba(150,170,180,.07)';
+        c.lineWidth = 2;
+        for (let i = 0; i < 7; i++) {
+          const x = -30 + i * 10;
           c.beginPath();
-          c.moveTo(hx, hy);
-          c.quadraticCurveTo(hx + f * 2 + rx * 10, hy + 14 - rx * 8, hx + f * 3.5 + rx * 22, hy + 30 - rx * 22);
+          c.moveTo(x, -320);
+          c.quadraticCurveTo(x + Math.sin(i * 2.1) * 8, -200, x - 4 + i * 1.5, -40);
           c.stroke();
         }
+        c.fillStyle = P.hgrad(c, -45, 45, [[0, 'rgba(0,0,0,0)'], [0.75, 'rgba(0,0,0,0)'], [1, 'rgba(140,165,180,.09)']]);
+        c.fillRect(-60, -360, 120, 360);
+        c.restore();
+        c.fillStyle = col;
+        c.strokeStyle = col;
+      }
+      // руки и пальцы
+      arms.forEach((arm) => {
+        c.lineWidth = 5;
+        c.beginPath();
+        c.moveTo(arm.s[0], arm.s[1]);
+        c.lineTo(arm.e[0], arm.e[1]);
+        c.lineTo(arm.h[0], arm.h[1]);
+        c.stroke();
+        c.lineWidth = 2;
+        fingers(arm.h, arm.ang).forEach(([h, m, e]) => {
+          c.beginPath();
+          c.moveTo(h[0], h[1]);
+          c.lineTo(m[0], m[1]);
+          c.lineTo(e[0], e[1]);
+          c.stroke();
+        });
       });
-      // шея и голова
-      c.fillRect(-3, -366, 6, 18);
+      // шея вперёд, голова свешена
+      c.save();
+      c.translate(2, -350);
+      c.rotate(0.38 + twitch);
+      c.fillRect(-3.5, -26, 7, 28);
+      c.translate(0, -34);
       c.beginPath();
-      c.ellipse(0, -384, 11, 17, 0, 0, TAU);
+      c.ellipse(0, 0, 11, 15, 0, 0, TAU);
       c.fill();
+      if (!rimPass) {
+        // бледный край лица в просвете волос
+        c.fillStyle = P.rgrad(c, 5, 6, 0, 10, [[0, hex('#b9c6c4', 0.22 * (a.face2 ?? 1))], [1, hex('#b9c6c4', 0)]]);
+        c.beginPath();
+        c.ellipse(5, 6, 4, 10, 0, 0, TAU);
+        c.fill();
+        c.fillStyle = col;
+      }
+      // мокрые пряди
+      strands.forEach(([u, v, w], i) => {
+        const sx = -10 + u * 22, len = 38 + v * 74;
+        c.lineWidth = 0.8 + w * 2.2;
+        c.beginPath();
+        c.moveTo(sx, -13);
+        c.quadraticCurveTo(sx + 5 + w * 8, 8, sx + 3 + Math.sin(t * 0.9 + i * 0.7) * 2.5 + (u - 0.5) * 10, len);
+        c.stroke();
+      });
+      c.beginPath();
+      c.moveTo(-12, -6);
+      c.quadraticCurveTo(-2, -22, 12, -6);
+      c.quadraticCurveTo(13, 20, 4, 40);
+      c.lineTo(-7, 36);
+      c.quadraticCurveTo(-14, 12, -12, -6);
+      c.fill();
+      c.restore();
     };
+
+    ctx.save();
+    ctx.globalAlpha = al;
+    ctx.translate(a.x + (Math.random() - 0.5) * (a.jitter ?? 1) * 0.5, a.y);
+    ctx.scale(a.s * a.face, a.s);
+    ctx.rotate(Math.sin(t * 0.5 + seed) * 0.02);
+    // мягкий ореол — края растворяются в тумане
+    ctx.save();
+    ctx.globalAlpha = al * 0.5;
+    ctx.filter = 'blur(4px)';
+    shape(ctx, a.body || '#040507', true);
+    ctx.restore();
     if (a.rim) {
       ctx.save();
       ctx.translate(a.rim.dx || 1.2, -0.5);
-      draw(ctx, a.rim.color);
+      shape(ctx, a.rim.color, true);
       ctx.restore();
     }
-    draw(ctx, col);
-    // бледное пятно лица без черт
-    ctx.fillStyle = P.rgrad(ctx, 1, -386, 1, 15, [
-      [0, hex('#c9d0d2', 0.16 * (a.face2 ?? 1))],
-      [1, hex('#c9d0d2', 0)],
-    ]);
-    ctx.beginPath();
-    ctx.ellipse(1, -386, 9, 14, 0, 0, TAU);
-    ctx.fill();
+    shape(ctx, a.body || '#040507', false);
+    // бледные кончики пальцев и капли
+    arms.forEach((arm, ai) => {
+      fingers(arm.h, arm.ang).forEach(([h, m, e], i) => {
+        ctx.strokeStyle = 'rgba(170,185,180,.28)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(m[0], m[1]);
+        ctx.lineTo(e[0], e[1]);
+        ctx.stroke();
+        const ph = (t * 0.9 + i * 0.37 + ai * 0.5) % 1;
+        ctx.fillStyle = `rgba(190,205,210,${0.5 * (1 - ph)})`;
+        ctx.fillRect(e[0] - 0.8, e[1] + ph * 60, 1.6, 3);
+      });
+    });
     ctx.restore();
   };
 
