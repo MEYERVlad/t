@@ -16,7 +16,7 @@
     $('#title').classList.remove('off');
     $('#menu-btn').classList.remove('on');
     $('#title [data-act=continue]').hidden = !OM.hasSave();
-    $('#title [data-act=ch2]').hidden = !OM.store.get('omut-ch1-done');
+    $('#title [data-act=ch2]').hidden = false;
     OM.fadeTo(0, 2200);
   }
 
