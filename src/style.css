@@ -122,3 +122,21 @@ button { font: inherit; color: inherit; }
 #menu.on { display: flex; }
 #menu .box { display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 4px); }
 #menu .h { font-family: 'Cormorant Garamond', serif; font-size: calc(var(--u) * 20px); letter-spacing: .4em; opacity: .5; margin-bottom: calc(var(--u) * 16px); text-transform: uppercase; }
+
+#frags {
+  position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(var(--u) * 18px); background: radial-gradient(ellipse at 50% 50%, rgba(40,0,0,.82), rgba(0,0,0,.96)); pointer-events: auto;
+}
+#frags.on { display: flex; }
+#frags.shake { animation: shake .45s; }
+@keyframes shake { 20% { transform: translateX(-10px); } 40% { transform: translateX(9px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(4px); } }
+#frags .h { font-family: 'Cormorant Garamond', serif; font-size: calc(var(--u) * 30px); letter-spacing: .4em; color: #e8b0a0; text-transform: uppercase; }
+#frags .cards, #frags .slots { display: flex; gap: calc(var(--u) * 14px); }
+#frags .frag { padding: 0; border: 1px solid rgba(255,120,100,.4); background: #000; cursor: pointer; width: calc(var(--u) * 240px); aspect-ratio: 16 / 9; transition: transform .15s, opacity .2s, border-color .2s; }
+#frags .frag:hover { transform: translateY(-4px) rotate(-.6deg); border-color: #ffb0a0; }
+#frags .frag.used { opacity: .15; pointer-events: none; }
+#frags canvas { width: 100%; height: 100%; display: block; }
+#frags .pslot { width: calc(var(--u) * 240px); aspect-ratio: 16 / 9; border: 1px dashed rgba(255,160,140,.35); position: relative; background: rgba(0,0,0,.4); }
+#frags .pslot::before { content: attr(data-n); position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Cormorant Garamond', serif; font-size: calc(var(--u) * 40px); color: rgba(255,160,140,.3); }
+#frags .pslot.full::before { content: none; }
+#frags .hint { font-style: italic; color: #e8c8b8; font-size: calc(var(--u) * 19px); min-height: 1.4em; }

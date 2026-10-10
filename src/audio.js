@@ -273,6 +273,17 @@
       }
     }
   };
+  // Жужжание динамо-фонарика «жучок».
+  S.whirr = () => {
+    tone({ type: 'sawtooth', f: 140, f2: 210, v: 0.012, a: 0.02, d: 0.16 });
+    burst({ type: 'bandpass', f: 1800, q: 3, v: 0.015, d: 0.1 });
+  };
+  // Отключение электричества: гул проседает и щёлкает реле.
+  S.powerDown = () => {
+    tone({ type: 'sawtooth', f: 100, f2: 30, v: 0.08, a: 0.01, d: 1.4 });
+    burst({ type: 'bandpass', f: 2500, q: 4, v: 0.25, d: 0.05 });
+    burst({ buf: brown, type: 'lowpass', f: 300, v: 0.3, d: 0.4, delay: 0.05 });
+  };
   S.staticNoise = (dur = 1, v = 0.1) => burst({ type: 'bandpass', f: 2500, q: 0.4, v, a: 0.05, d: dur });
   // «Шёпот»: шум с прыгающими формантами.
   S.whisper = (dur = 2, v = 0.12) => {

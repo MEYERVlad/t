@@ -126,6 +126,9 @@
     child: { name: '???', color: '#8fb6c4' },
     book: { name: 'Энциклопедия «Всё обо всём»', color: '#d9b25a' },
     narr: { name: '', color: '#cfc6b4' },
+    sem: { name: 'Семёныч', color: '#cdbf98', actor: 'sem' },
+    vera: { name: 'Вера Андреевна', color: '#b6d0b0', actor: 'vera' },
+    radio: { name: 'Громкоговоритель', color: '#a8b0b8' },
   };
   let subs, subsWho, subsText;
   OM.say = (who, text, o = {}) =>

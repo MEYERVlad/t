@@ -330,9 +330,9 @@
     await OM.fadeTo(1, 2200);
     S.music('end');
     await OM.card('Конец первой главы', 'Нити только начинают натягиваться…', 4200);
-    await OM.card('Продолжение следует', 'Глава вторая: «Город»', 3200);
-    OM.clearSave();
+    OM.store.set('omut-ch1-done', 1);
     OM.letterbox(false);
-    OM.toTitle();
+    S.music(null);
+    await OM.story2.start();
   }
 })();

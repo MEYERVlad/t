@@ -16,6 +16,7 @@
     $('#title').classList.remove('off');
     $('#menu-btn').classList.remove('on');
     $('#title [data-act=continue]').hidden = !OM.hasSave();
+    $('#title [data-act=ch2]').hidden = !OM.store.get('omut-ch1-done');
     OM.fadeTo(0, 2200);
   }
 
@@ -47,6 +48,15 @@
     if (!(await OM.loadSave())) newGame();
   }
 
+  async function startCh2() {
+    S.init();
+    S.music(null);
+    OM.clearSave();
+    $('#title').classList.add('off');
+    $('#menu-btn').classList.add('on');
+    await OM.story2.start();
+  }
+
   function toggleMenu(on) {
     const m = $('#menu');
     on = on ?? !m.classList.contains('on');
@@ -69,6 +79,7 @@
     $('#title').addEventListener('pointerdown', startMusic);
     $('#title [data-act=new]').addEventListener('click', newGame);
     $('#title [data-act=continue]').addEventListener('click', continueGame);
+    $('#title [data-act=ch2]').addEventListener('click', startCh2);
     $('#menu-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMenu(true); });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') toggleMenu();
