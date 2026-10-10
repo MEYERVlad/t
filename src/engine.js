@@ -395,7 +395,6 @@
     G.hero.x = e.x; G.hero.y = e.y; G.hero.face = e.face || 1;
     G.hero.target = null; G.hero.res = null; G.hero.move = 0;
     G.hero.visible = true;
-    G.hero.body = sc.heroBody || '#0a0c0f';
     G.hero.s = depthOf(sc, G.hero.y);
     G.over = null;
     S.amb(sc.amb || {});

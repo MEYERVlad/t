@@ -175,6 +175,7 @@
   OM.scene('pier', {
     name: 'Пристань',
     surface: 'wood',
+    figLight: { amb: 0.36, tint: '#2a3a50' },
     amb: { rain: 0.15, wind: 0.7, water: 1, drone: 0.6 },
     walk: [[150, DECK + 2], [1090, DECK + 2], [1090, DECK + 12], [150, DECK + 12]],
     depth: { y0: DECK, s0: 0.96, y1: DECK + 12, s1: 0.98 },

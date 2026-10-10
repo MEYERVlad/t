@@ -306,7 +306,7 @@
     ctx.fill();
     ctx.restore();
     // стрелки часов
-    const time = OM.flag('vision') ? 23 * 60 + 56 : 23 * 60 + 38;
+    const time = OM.flag('ch2') ? 9 * 60 + 20 : OM.flag('vision') ? 23 * 60 + 56 : 23 * 60 + 38;
     const hA = ((time / 60) % 12) / 12 * Math.PI * 2 - Math.PI / 2, mA = (time % 60) / 60 * Math.PI * 2 - Math.PI / 2;
     ctx.strokeStyle = '#1a120a';
     ctx.lineCap = 'round';
@@ -373,7 +373,7 @@
     }
   }
 
-  const zina = OM.actor({ id: 'zina', x: 612, y: 452, s: 1.15, autoScale: false, draw: (c, a, t) => { a.asleep = !!OM.flag('zinaSleeps'); A.zina(c, a, t); } });
+  const zina = OM.actor({ id: 'zina', x: 612, y: 454, s: 1.35, face: -1, autoScale: false, draw: (c, a, t) => { a.asleep = !!OM.flag('zinaSleeps'); A.zina(c, a, t); } });
   const props = OM.actor({ id: 'props', x: 0, y: 606, autoScale: false, draw: deskProps });
 
   // ---------- Разговор с Зинаидой ----------
@@ -459,8 +459,8 @@
   OM.scene('lobby', {
     name: 'Холл гостиницы',
     surface: 'floor',
+    figLight: { amb: 0.62, tint: '#5a4030' },
     amb: { rain: 0.5, wind: 0.2, hum: 1, indoor: true, drone: 0.15 },
-    heroBody: '#0f0b08',
     walk: [[60, 618], [1110, 618], [1110, 706], [60, 706]],
     depth: { y0: 618, s0: 1.3, y1: 706, s1: 1.44 },
     entries: {

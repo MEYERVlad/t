@@ -316,8 +316,8 @@
   OM.scene('room', {
     name: 'Номер 7',
     surface: 'floor',
+    figLight: { amb: 0.58, tint: '#503828' },
     amb: { rain: 0.35, wind: 0.25, indoor: true, drone: 0.2 },
-    heroBody: '#0e0a08',
     walk: [[160, 626], [1250, 626], [1250, 706], [160, 706]],
     depth: { y0: 626, s0: 1.32, y1: 706, s1: 1.45 },
     entries: {

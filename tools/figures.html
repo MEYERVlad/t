@@ -1,0 +1,26 @@
+<!doctype html><meta charset="utf-8"><title>Стенд персонажей</title>
+<body style="margin:0;background:#222"><canvas id="c" width="2400" height="1300"></canvas>
+<script src="../src/util.js"></script><script src="../src/paint.js"></script><script src="../src/actors.js"></script><script src="../src/figure.js"></script>
+<script>
+// Стенд: персонажи в разных позах при дневном и ночном освещении (для проверки рисовки).
+const c = document.getElementById('c'), g = c.getContext('2d');
+const A = OM.Actors, t = 1.3;
+const day = { amb: 0.95, tint: '#9aa4ab' }, night = { amb: 0.35, tint: '#24303c' };
+g.fillStyle = '#9ea7ac'; g.fillRect(0, 0, 2400, 650);
+g.fillStyle = '#10161c'; g.fillRect(0, 650, 2400, 650);
+g.setTransform(2, 0, 0, 2, 0, 0);
+const row = (y, light, rim) => {
+  A.hero(g, { x: 70, y, s: 1, face: 1, light, rim, item: 'case' }, t);
+  A.hero(g, { x: 190, y, s: 1, face: 1, light, rim, move: 1, phase: 0.6, item: 'case' }, t);
+  A.hero(g, { x: 310, y, s: 1, face: -1, light, rim, move: 1, phase: 2.2, item: 'none' }, t);
+  A.hero(g, { x: 430, y, s: 1, face: 1, light, rim, pose: 'reach', item: 'none' }, t);
+  A.mitya(g, { x: 540, y, s: 1, face: 1, light, rim, sleep: true }, t);
+  A.mitya(g, { x: 620, y, s: 1, face: -1, light, rim, move: 1, phase: 1 }, t);
+  A.vera(g, { x: 730, y, s: 1, face: 1, light, rim, hold: 'book' }, t);
+  A.vera(g, { x: 840, y, s: 1, face: -1, light, rim, move: 1, phase: 0.4 }, t);
+  A.semenych(g, { x: 960, y, s: 1, face: 1, light, rim }, t);
+  A.zina(g, { x: 1110, y: y - 40, s: 1.15, face: -1, light, rim, talking: true }, t);
+};
+row(300, day, null);
+row(620, night, { color: 'rgba(255,170,90,.8)', dx: 1.4 });
+</script>

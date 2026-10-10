@@ -335,6 +335,7 @@
   OM.scene('street', {
     name: 'Набережная улица',
     surface: 'wet',
+    figLight: { amb: 0.38, tint: '#3a3040' },
     lightning: true,
     amb: { rain: 0.9, wind: 0.5, drone: 0.3 },
     walk: [[30, 646], [1268, 646], [1268, 708], [30, 708]],

@@ -289,6 +289,7 @@
   OM.scene('busstop', {
     name: 'Остановка',
     surface: 'wet',
+    figLight: { amb: 0.34, tint: '#2a3a48' },
     lightning: true,
     amb: { rain: 1, wind: 0.6, drone: 0.25 },
     walk: [[90, 618], [1275, 618], [1275, 708], [90, 708]],
