@@ -498,9 +498,8 @@
     S.music('end');
     G.hero.holdLight = false;
     await OM.card('Конец второй главы', 'Нити тянутся к тебе самому…', 4200);
-    await OM.card('Продолжение следует', 'Глава третья: «Покровское»', 3200);
-    OM.clearSave();
     OM.letterbox(false);
-    OM.toTitle();
+    S.music(null);
+    await OM.story3.start();
   };
 })();

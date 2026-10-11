@@ -88,10 +88,10 @@ require('fs').mkdirSync(OUT, { recursive: true });
       if (!shotTall) { shotTall = true; await p.waitForTimeout(300); await shot('c2-07-tall'); }
     }
     if (s.saying) await G(() => OM.debug.advance());
-    if (s.end && s.mode === 'title') break;
+    if (s.end && (await G(() => OM.G.sid === 'shore' && OM.flag('ch3')))) break;
     await p.waitForTimeout(100);
   }
-  await expect(() => OM.store.get('omut-ch2-done') && OM.G.mode === 'title', 'chapter 2 finished');
+  await expect(() => OM.store.get('omut-ch2-done') && OM.G.sid === 'shore' && OM.flag('ch3'), 'chapter 3 starts');
   console.log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'OK, no errors');
   await b.close();
   process.exit(errs.length ? 1 : 0);

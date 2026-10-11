@@ -140,3 +140,12 @@ button { font: inherit; color: inherit; }
 #frags .pslot::before { content: attr(data-n); position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Cormorant Garamond', serif; font-size: calc(var(--u) * 40px); color: rgba(255,160,140,.3); }
 #frags .pslot.full::before { content: none; }
 #frags .hint { font-style: italic; color: #e8c8b8; font-size: calc(var(--u) * 19px); min-height: 1.4em; }
+
+#threads-btn {
+  position: absolute; left: calc(var(--u) * 18px); bottom: calc(var(--u) * 16px); width: calc(var(--u) * 56px); height: calc(var(--u) * 56px);
+  border-radius: 50%; border: 1px solid rgba(255,214,150,.35); background: rgba(10,8,14,.55) no-repeat center/62%
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M4 32c8-12 17-18 28-18s20 6 28 18c-8 12-17 18-28 18S12 44 4 32z' fill='none' stroke='%23ffd696' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='9' fill='none' stroke='%23ffd696' stroke-width='3'/%3E%3Cpath d='M32 23c4 6 4 12 0 18M14 52c10-6 26-6 36 0' fill='none' stroke='%23ffd696' stroke-width='1.6' opacity='.7'/%3E%3C/svg%3E");
+  pointer-events: auto; cursor: pointer; display: none; transition: box-shadow .3s, background-color .3s;
+}
+#threads-btn.on { display: block; }
+#threads-btn.active { box-shadow: 0 0 calc(var(--u) * 22px) rgba(255,210,122,.65); background-color: rgba(40,60,100,.7); }

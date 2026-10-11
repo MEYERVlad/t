@@ -532,3 +532,43 @@
     ctx.restore();
   };
 })();
+
+// Нить (режим «Нити»): светящаяся провисающая кривая с бегущими искрами.
+(function () {
+  const P = OM.P;
+  OM.thread = P.thread = (ctx, a, b, t, o = {}) => {
+    const al = o.a ?? 1;
+    if (al <= 0.01) return;
+    const color = o.color || '#ffd27a';
+    const sag = o.sag ?? 40;
+    const w = o.w || 1.4;
+    const mx = (a[0] + b[0]) / 2 + Math.sin(t * 0.7 + a[0] * 0.01) * 8;
+    const my = (a[1] + b[1]) / 2 + sag + Math.sin(t * 0.9 + b[0] * 0.01) * 6;
+    const pt = (k) => [
+      (1 - k) * (1 - k) * a[0] + 2 * (1 - k) * k * mx + k * k * b[0],
+      (1 - k) * (1 - k) * a[1] + 2 * (1 - k) * k * my + k * k * b[1],
+    ];
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    [[w * 7, 0.06], [w * 3, 0.16], [w, 0.75]].forEach(([lw, la]) => {
+      ctx.strokeStyle = OM.hex(color, la * al);
+      ctx.lineWidth = lw;
+      ctx.beginPath();
+      ctx.moveTo(a[0], a[1]);
+      ctx.quadraticCurveTo(mx, my, b[0], b[1]);
+      ctx.stroke();
+    });
+    // искры бегут от начала к концу
+    for (let i = 0; i < 5; i++) {
+      const k = (t * (o.speed || 0.18) + i / 5) % 1;
+      const [x, y] = pt(k);
+      ctx.fillStyle = OM.hex(color, al * 0.9 * Math.sin(k * Math.PI));
+      ctx.beginPath();
+      ctx.arc(x, y, w * 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    P.glow(ctx, b[0], b[1], 18 + w * 6, color, al * 0.35);
+    ctx.restore();
+  };
+})();

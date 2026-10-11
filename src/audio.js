@@ -273,6 +273,78 @@
       }
     }
   };
+  // Режим «Нити»: стеклянный звон при включении и тихий высокий гул, пока включён.
+  let thrNode = null;
+  S.threads = (on) => {
+    if (!c) return;
+    [1318, 1760, 2637].forEach((f, i) => tone({ f: on ? f : f * 0.75, v: 0.04, d: 1.2, delay: i * 0.06, rev: 0.8 }));
+    if (on && !thrNode) {
+      const g = gain(0, sfx);
+      const o1 = osc('sine', 880), o2 = osc('sine', 883.5);
+      o1.connect(g); o2.connect(g);
+      g.gain.setTargetAtTime(0.012, now(), 0.5);
+      thrNode = { g, o1, o2 };
+    } else if (!on && thrNode) {
+      const n = thrNode; thrNode = null;
+      n.g.gain.setTargetAtTime(0, now(), 0.2);
+      setTimeout(() => { n.o1.stop(); n.o2.stop(); }, 1200);
+    }
+  };
+  // Большой колокол: низкие негармонические обертоны; pan — от -1 (слева) до 1 (справа).
+  S.bigBell = (pan = 0, v = 1) => {
+    if (!c) return;
+    const t = now();
+    const p = c.createStereoPanner ? c.createStereoPanner() : null;
+    const out = gain(1);
+    if (p) { p.pan.value = Math.max(-1, Math.min(1, pan)); out.connect(p); p.connect(sfx); } else out.connect(sfx);
+    out.connect(gain(0.6, rev));
+    [[1, 0.5, 7], [2.0, 0.25, 5], [2.4, 0.2, 4], [3.0, 0.12, 3], [4.2, 0.08, 2.4], [5.4, 0.05, 1.8], [0.5, 0.3, 8]].forEach(([m, a, d]) => {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = 196 * m;
+      const g = gain(0);
+      o.connect(g); g.connect(out);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(a * 0.22 * v, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.start(t); o.stop(t + d + 0.1);
+    });
+    burst({ type: 'bandpass', f: 1200, q: 1, v: 0.15 * v, d: 0.08 });
+  };
+  S.oar = () => {
+    burst({ buf: brown, type: 'lowpass', f: 700, f2: 200, v: 0.25, a: 0.05, d: 0.5 });
+    burst({ type: 'bandpass', f: 1600, q: 0.8, v: 0.05, a: 0.08, d: 0.4, delay: 0.1 });
+    tone({ type: 'sawtooth', f: 70, f2: 90, v: 0.012, a: 0.1, d: 0.3 });
+  };
+  // Хор под сводами: гласная «а» из пилообразных волн через формантные фильтры.
+  let choirNode = null;
+  S.choir = (on) => {
+    if (!c) return;
+    if (on && !choirNode) {
+      const g = gain(0, sfx);
+      g.connect(gain(1.2, rev));
+      const f1 = filt('bandpass', 700, 6), f2 = filt('bandpass', 1150, 8);
+      f1.connect(g); f2.connect(g);
+      const oscs = [146.8, 147.4, 220, 220.6, 174.6, 293.7].map((f) => {
+        const o = osc('sawtooth', f);
+        const vib = osc('sine', 4.5 + Math.random()), vg = gain(f * 0.004);
+        vib.connect(vg); vg.connect(o.frequency);
+        o.connect(f1); o.connect(f2);
+        return [o, vib];
+      });
+      g.gain.setTargetAtTime(0.05, now(), 2);
+      choirNode = { g, oscs };
+    } else if (!on && choirNode) {
+      const n = choirNode; choirNode = null;
+      n.g.gain.setTargetAtTime(0, now(), 0.8);
+      setTimeout(() => n.oscs.forEach(([o, v]) => { o.stop(); v.stop(); }), 4000);
+    }
+  };
+  // Глушение всего звука «под водой»: 0 — норма, 1 — почти тишина и бас.
+  S.muffle = (k) => {
+    if (!c) return;
+    ambLP.frequency.setTargetAtTime(k > 0.01 ? 16000 * Math.pow(1 - Math.min(k, 0.98), 3) + 250 : ambState.indoor ? 700 : 16000, now(), 0.1);
+  };
   // Жужжание динамо-фонарика «жучок».
   S.whirr = () => {
     tone({ type: 'sawtooth', f: 140, f2: 210, v: 0.012, a: 0.02, d: 0.16 });

@@ -710,7 +710,7 @@
   // ---------- Вера Андреевна, библиотекарь ----------
   const VERA = { cardigan: '#5e6a5a', blouse: '#e0d8c8', skirt: '#3e3a44', skin: '#e0b39a', hair: '#4a2e22', shoes: '#2a1c16', tights: '#3a302c' };
   F.vera = (ctx, a, t) => {
-    const C = VERA;
+    const C = a.pal || VERA;
     const dims = { hip: 86, L1: 40, L2: 40, ankle: 6.5 };
     const pose = standing(a, t, dims);
     const { mv, ph, legN, legF, drop, breathe } = pose;
@@ -760,6 +760,23 @@
       c.translate(3, shY - 19 + breathe * 0.3);
       if (a.talking) c.rotate(Math.sin(t * 7) * 0.03);
       head(c, { skin: C.skin, nose: 12.2, chin: 9, rx: 9, ry: 10.6, brow: 'rgba(60,35,25,.8)', mouth: a.talking ? Math.max(0, Math.sin(t * 16)) * 1.2 : 0 });
+      if (a.scarf) {
+        // платок, завязанный под подбородком
+        c.fillStyle = a.scarf;
+        smoothPath(c, [[-11.5, 8], [-12, -6], [-6, -13.5], [3, -13.5], [9.5, -9], [10.5, -4], [7, -5], [4, -6.5], [1, -4], [0.5, 4], [3, 11], [-2, 14], [-9, 13]]);
+        c.fill();
+        c.strokeStyle = 'rgba(0,0,0,.25)';
+        c.lineWidth = 0.7;
+        for (let i = 0; i < 4; i++) {
+          c.beginPath();
+          c.moveTo(-10 + i * 3, -10 + i);
+          c.quadraticCurveTo(-6 + i * 2, 0, -9 + i * 3, 11);
+          c.stroke();
+        }
+        c.fillStyle = a.scarfPat || 'rgba(255,240,200,.35)';
+        for (let i = 0; i < 7; i++) { c.beginPath(); c.arc(-9 + (i % 3) * 4, -8 + i * 3, 0.9, 0, TAU); c.fill(); }
+        c.restore();
+      } else {
       c.fillStyle = C.hair;
       smoothPath(c, [[-9.8, 5], [-10.5, -6], [-6, -11.8], [1, -12.4], [7.5, -10], [10, -5.5], [6, -6.8], [2, -7.5], [-1.5, -3], [-4, 4], [-7, 8]]);
       c.fill();
@@ -774,16 +791,38 @@
       c.quadraticCurveTo(10 + Math.sin(t) * 0.5, -2, 8.5, 4);
       c.stroke();
       // очки
-      c.strokeStyle = '#1a1210';
-      c.lineWidth = 0.85;
-      c.beginPath();
-      c.arc(7.2, -1.4, 2.6, 0, TAU);
-      c.moveTo(4.6, -1.6);
-      c.lineTo(-1, -0.8);
-      c.stroke();
+      if (a.glasses !== false) {
+        c.strokeStyle = '#1a1210';
+        c.lineWidth = 0.85;
+        c.beginPath();
+        c.arc(7.2, -1.4, 2.6, 0, TAU);
+        c.moveTo(4.6, -1.6);
+        c.lineTo(-1, -0.8);
+        c.stroke();
+      }
       c.restore();
-      // ближняя рука: книга или фонарь
+      }
+      // ближняя рука: книга, фонарь или младенец
       const hold = a.hold;
+      if (hold === 'baby') {
+        // свёрток у груди, обе руки обнимают
+        c.fillStyle = '#e8e0d0';
+        c.save();
+        c.translate(9, shY + 22);
+        c.rotate(-0.4);
+        c.beginPath();
+        c.ellipse(0, 0, 14, 8, 0, 0, TAU);
+        c.fill();
+        c.fillStyle = 'rgba(0,0,0,.15)';
+        for (let i = -10; i < 12; i += 5) c.fillRect(i, -7, 1, 14);
+        c.fillStyle = '#e6b8a0';
+        c.beginPath();
+        c.arc(11, -2, 4.5, 0, TAU);
+        c.fill();
+        c.restore();
+        arm(c, [2, shY + 2], 0.25, 1.75, 28, 25, { sleeve: C.cardigan, skin: C.skin, r0: 5, r1: 4, r2: 3.4, cuff: C.blouse, hand: { size: 0.85, curl: 0.6 } });
+        return;
+      }
       const A = hold ? 0.55 : -0.3 * Math.sin(ph) * mv + 0.05;
       const E = hold ? 1.2 : 0.3;
       const r = arm(c, [2, shY + 2], A, E, 28, 25, { sleeve: C.cardigan, skin: C.skin, r0: 5, r1: 4, r2: 3.4, cuff: C.blouse, hand: hold ? { size: 0.85, grip: true } : { size: 0.85, curl: 0.4 } });
@@ -803,6 +842,87 @@
         P.rrect(c, r.wrist[0] - 1, r.wrist[1] - 4, 10, 8, 2);
         c.fill();
       }
+    });
+  };
+
+  // ---------- Отец Никодим: подрясник, скуфья, седая борода, крест ----------
+  const NIK = { robe: '#211e1e', robeHi: '#3a3434', skin: '#cf9e86', beard: '#cfcac0', hair: '#a8a29a', cap: '#141212', cross: '#c9a050', shoes: '#141212' };
+  F.nikodim = (ctx, a, t) => {
+    const C = NIK;
+    const dims = { hip: 98, L1: 46, L2: 45, ankle: 7 };
+    const pose = standing(a, t, dims);
+    const { mv, ph, legN, legF, drop, breathe } = pose;
+    const shY = -154 + drop;
+    groundShadow(ctx, a, 32);
+    render(ctx, a, t, [-62, -214, 80, 12], (c) => {
+      shoe(c, legF.ankle, legF.fa, shade(C.shoes, -0.2));
+      shoe(c, legN.ankle, legN.fa, C.shoes);
+      // дальний рукав — широкий
+      arm(c, [-2, shY + 3], -0.3 * Math.sin(ph) * mv + 0.08, 0.35, 32, 29, { sleeve: shade(C.robe, -0.3), skin: shade(C.skin, -0.25), r0: 7, r1: 7.5, r2: 7, hand: { curl: 0.45 } });
+      // подрясник до щиколоток
+      const kx = Math.max(legN.knee[0], legF.knee[0]), kb = Math.min(legN.knee[0], legF.knee[0]);
+      const hemY = -9 + drop;
+      const robe = [[-9, shY - 10], [-18, shY + 2], [-17, shY + 40 + breathe], [-19, shY + 90], [Math.min(-24, kb - 14), hemY - 6], [Math.min(-24, kb - 14), hemY],
+        [Math.max(24, kx + 15), hemY - 1], [Math.max(24, kx + 15), hemY - 7], [18, shY + 92], [16, shY + 50], [18 + breathe * 0.5, shY + 20], [16, shY + 2], [9, shY - 10]];
+      c.fillStyle = C.robe;
+      smoothPath(c, robe);
+      c.fill();
+      c.save();
+      smoothPath(c, robe);
+      c.clip();
+      c.strokeStyle = 'rgba(255,255,255,.06)';
+      c.lineWidth = 1.2;
+      for (let i = 0; i < 6; i++) {
+        c.beginPath();
+        c.moveTo(-12 + i * 6, shY + 50);
+        c.quadraticCurveTo(-14 + i * 7 + (kx - 10) * 0.2, shY + 110, -18 + i * 9 + (kx + kb) * 0.15, hemY);
+        c.stroke();
+      }
+      c.fillStyle = 'rgba(255,255,255,.05)';
+      c.fillRect(10, shY, 3, 150);
+      c.fillStyle = '#0c0a0a';
+      c.fillRect(-19, shY + 56, 40, 4);
+      c.restore();
+      // голова: длинные волосы, борода, скуфья
+      c.save();
+      c.translate(3.5, shY - 22 + breathe * 0.3);
+      if (a.talking) c.rotate(Math.sin(t * 6) * 0.025);
+      c.fillStyle = C.hair;
+      smoothPath(c, [[-10.5, -6], [-12, 6], [-13, 18], [-8, 20], [-4, 8], [-2, -2]]);
+      c.fill();
+      head(c, { skin: C.skin, nose: 13.6, chin: 9.6, brow: 'rgba(200,195,185,.9)', mouth: a.talking ? Math.max(0, Math.sin(t * 15)) * 1.2 : 0 });
+      c.fillStyle = C.beard;
+      smoothPath(c, [[-1, 2], [6, 4], [10.5, 5.5], [11.5, 10], [9, 20], [4, 30], [0, 26], [-2, 14]]);
+      c.fill();
+      c.fillStyle = C.hair;
+      smoothPath(c, [[5.5, 4.2], [10.5, 4.8], [10, 6.4], [6, 6]]);
+      c.fill();
+      c.strokeStyle = shade(C.beard, -0.25);
+      c.lineWidth = 0.6;
+      for (let i = 0; i < 7; i++) {
+        c.beginPath();
+        c.moveTo(1 + i * 1.5, 6);
+        c.quadraticCurveTo(2 + i * 1.3, 16, i * 1.2 + 1, 27 - i);
+        c.stroke();
+      }
+      c.fillStyle = C.cap;
+      smoothPath(c, [[-10.5, -6], [-9.5, -12.5], [-3, -16], [5, -15], [9.5, -10], [9.5, -7], [0, -8.5]]);
+      c.fill();
+      c.restore();
+      // наперсный крест на цепочке
+      c.strokeStyle = C.cross;
+      c.lineWidth = 0.8;
+      c.beginPath();
+      c.moveTo(-2, shY - 6);
+      c.quadraticCurveTo(10, shY + 18, 13, shY + 30);
+      c.stroke();
+      c.fillStyle = C.cross;
+      c.fillRect(11.5, shY + 29, 3, 13);
+      c.fillRect(8.5, shY + 32, 9, 2.6);
+      // ближний рукав
+      const A = a.pose === 'point' ? 1.25 : a.pose === 'bless' ? 0.9 : 0.3 * Math.sin(ph) * mv + 0.08;
+      const E = a.pose === 'point' ? 0.05 : a.pose === 'bless' ? 1.4 : 0.35;
+      arm(c, [2, shY + 3], A, E, 32, 29, { sleeve: C.robe, skin: C.skin, r0: 7, r1: 7.5, r2: 7.2, cuff: C.robeHi, hand: { curl: a.pose === 'point' ? 0.05 : 0.4 } });
     });
   };
 
@@ -919,4 +1039,5 @@
   A.zina = F.zina;
   A.vera = F.vera;
   A.semenych = F.semenych;
+  A.nikodim = F.nikodim;
 })();

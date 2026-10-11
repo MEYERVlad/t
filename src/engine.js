@@ -129,6 +129,10 @@
     sem: { name: 'Семёныч', color: '#cdbf98', actor: 'sem' },
     vera: { name: 'Вера Андреевна', color: '#b6d0b0', actor: 'vera' },
     radio: { name: 'Громкоговоритель', color: '#a8b0b8' },
+    nik: { name: 'Отец Никодим', color: '#cfc6e0', actor: 'nik' },
+    anna: { name: 'Анна', color: '#f0c8a8' },
+    zinaY: { name: 'Зина', color: '#e3a877' },
+    mother: { name: '…', color: '#dfe8f0' },
   };
   let subs, subsWho, subsText;
   OM.say = (who, text, o = {}) =>
@@ -402,6 +406,9 @@
     G.over = null;
     S.amb(sc.amb || {});
     S.tension(0);
+    G.fx.warp = 0;
+    if (sc.noThreads) G.threads = false;
+    if (S.muffle) S.muffle(0);
     if (sc.setup) sc.setup(entry);
     G.rain = sc.rain ? new P.Rain(sc.rain.n || 420, sc.rain) : null;
     G.nextBolt = 6 + Math.random() * 10;
@@ -465,6 +472,7 @@
   let pressT = null, pressPos = null, longFired = false;
   function onDown(e) {
     S.init();
+    G.mouse.down = true;
     if (e.pointerType === 'touch') {
       G.touch = true;
       stage.classList.add('touch');
@@ -483,6 +491,7 @@
     click(x, y, e.button);
   }
   function onUp(e) {
+    G.mouse.down = false;
     if (e.pointerType !== 'touch') return;
     clearTimeout(pressT);
     if (!longFired && pressPos) click(pressPos[0], pressPos[1], 0);
@@ -492,6 +501,7 @@
     if (G.mode !== 'play') return;
     if (advanceSay()) return;
     if (G.choosing || G.busy) return;
+    if (G.scene.onClick && G.scene.onClick(x, y, button)) return;
     const h = findHs(x, y);
     if (button === 2) {
       if (G.sel) { G.sel = null; renderInv(); return; }
@@ -547,6 +557,9 @@
     fx.letter = lerp(fx.letter, fx.letterTarget, Math.min(1, dt * 4));
     fx.flash = Math.max(0, fx.flash - dt * 2.8);
     fx.shake = Math.max(0, fx.shake - dt * 18);
+    G.threadsK = lerp(G.threadsK || 0, G.threads ? 1 : 0, Math.min(1, dt * 5));
+    if (threadsBtn) threadsBtn.classList.toggle('on', G.mode === 'play' && !!G.flags.threadsUnlocked && !G.vision);
+    if (threadsBtn) threadsBtn.classList.toggle('active', !!G.threads);
     updateSay(dt);
     invEl.classList.toggle('hidden', !!(G.busy || G.saying || G.choosing || G.mode !== 'play'));
     const sc = G.scene;
@@ -605,6 +618,19 @@
       if (sc.front) ctx.drawImage(OM.cache(sc.id + ':fg', (g) => sc.front(g)), 0, 0, W, H);
       if (G.rain) G.rain.draw(ctx, sc.rainLights || [], sc.rain.base ?? 0.1, sc.rain.tint);
       if (sc.over) sc.over(ctx, t);
+      const tk = G.threadsK || 0;
+      if (tk > 0.01) {
+        ctx.save();
+        ctx.globalAlpha = tk;
+        ctx.globalCompositeOperation = 'saturation';
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.fillStyle = '#4a6a9a';
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+        if (sc.threads) sc.threads(ctx, t, tk);
+      }
       if (G.fx.flash > 0.01) {
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
@@ -613,6 +639,7 @@
         ctx.restore();
       }
     }
+    if ((G.fx.warp || 0) > 0.01) warpPass(t);
     ctx.setTransform(ps, 0, 0, ps, 0, 0);
     P.vignette(ctx, sc && sc.vignette != null ? sc.vignette : 1);
     P.grain(ctx, 0.09);
@@ -631,6 +658,36 @@
     }
     drawCursor();
   }
+
+  // Волновое искажение картинки — «тонешь»: строки сдвигаются по синусу, всё синеет.
+  let warpCv = null;
+  function warpPass(t) {
+    const k = Math.min(1, G.fx.warp);
+    if (!warpCv || warpCv.width !== cv.width || warpCv.height !== cv.height) warpCv = OM.makeCanvas(cv.width, cv.height);
+    const w = warpCv.getContext('2d');
+    w.setTransform(1, 0, 0, 1, 0, 0);
+    w.drawImage(cv, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const row = Math.max(2, Math.round(4 * ps));
+    for (let y = 0; y < cv.height; y += row) {
+      const dx = Math.sin(y * 0.02 / ps + t * 3.2) * k * 14 * ps + Math.sin(y * 0.007 / ps - t * 1.3) * k * 8 * ps;
+      ctx.drawImage(warpCv, 0, y, cv.width, row, dx, y, cv.width, row);
+    }
+    ctx.globalAlpha = k * 0.45;
+    ctx.fillStyle = '#0a2a3a';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.globalAlpha = 1;
+  }
+
+  // Режим «Нити»: доступен после второй главы.
+  OM.toggleThreads = (on) => {
+    if (!G.flags.threadsUnlocked || G.mode !== 'play' || G.vision) return;
+    if (G.scene && G.scene.noThreads) return;
+    G.threads = on ?? !G.threads;
+    S.threads && S.threads(G.threads);
+    if (G.scene && G.scene.onThreads) G.scene.onThreads(G.threads);
+  };
+  let threadsBtn = null;
 
   function drawCursor() {
     if (G.touch || !G.mouse.in || G.mode !== 'play') return;
@@ -718,7 +775,15 @@
     stage.addEventListener('pointerdown', onDown);
     stage.addEventListener('pointerup', onUp);
     stage.addEventListener('pointermove', onMove);
-    stage.addEventListener('pointerleave', () => { G.mouse.in = false; hideLabel(); });
+    stage.addEventListener('pointerleave', () => { G.mouse.in = false; G.mouse.down = false; hideLabel(); });
+    G.keys = {};
+    window.addEventListener('keydown', (e) => {
+      G.keys[e.key] = true;
+      if ((e.key === ' ' || e.key === 't' || e.key === 'е') && !e.repeat) { OM.toggleThreads(); e.preventDefault(); }
+    });
+    window.addEventListener('keyup', (e) => { G.keys[e.key] = false; });
+    threadsBtn = document.getElementById('threads-btn');
+    if (threadsBtn) threadsBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); OM.toggleThreads(); });
     stage.addEventListener('contextmenu', (e) => e.preventDefault());
     document.getElementById('inv-bag').addEventListener('pointerdown', (e) => {
       e.stopPropagation();
