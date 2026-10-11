@@ -1,28 +1,57 @@
 <!doctype html><meta charset="utf-8"><title>Стенд персонажей</title>
-<body style="margin:0;background:#222"><canvas id="c" width="2600" height="1300"></canvas>
+<body style="margin:0;background:#222"><canvas id="c"></canvas>
 <script src="../src/util.js"></script><script src="../src/paint.js"></script><script src="../src/actors.js"></script><script src="../src/figure.js"></script>
 <script>
-// Стенд: персонажи в разных позах при дневном и ночном освещении (для проверки рисовки).
+// Стенд: каждый персонаж в своей клетке, крупно, лицом вправо и влево, днём и ночью.
+// ?z=3 — масштаб, ?only=имя — только один персонаж.
+const q = new URLSearchParams(location.search), Z = +(q.get('z') || 2);
+const A = OM.Actors, t = +(q.get('t') || 1.3);
+const day = { amb: 0.95, tint: '#9aa4ab' }, night = { amb: 0.4, tint: '#24303c' };
+const ANNA = { cardigan: '#5a4a3a', blouse: '#d8ccb0', skirt: '#3a3030', skin: '#e2b49a', hair: '#3a2418', shoes: '#2a1c16', tights: '#3a302c' };
+const CELLS = [
+  ['lev', (g, o) => A.hero(g, { ...o, item: 'case' }, t)],
+  ['lev walk', (g, o) => A.hero(g, { ...o, move: 1, phase: 0.6, item: 'none' }, t)],
+  ['lev reach', (g, o) => A.hero(g, { ...o, pose: 'reach', item: 'none' }, t)],
+  ['lev point', (g, o) => A.hero(g, { ...o, pose: 'point', item: 'none' }, t)],
+  ['lev light', (g, o) => A.hero(g, { ...o, pose: 'point', item: 'none', holdLight: true }, t)],
+  ['mitya', (g, o) => A.mitya(g, { ...o }, t)],
+  ['mitya sleep', (g, o) => A.mitya(g, { ...o, sleep: true }, t)],
+  ['vera book', (g, o) => A.vera(g, { ...o, hold: 'book' }, t)],
+  ['vera walk', (g, o) => A.vera(g, { ...o, move: 1, phase: 0.4 }, t)],
+  ['vera light', (g, o) => A.vera(g, { ...o, hold: 'light' }, t)],
+  ['anna baby', (g, o) => A.vera(g, { ...o, hold: 'baby', scarf: '#8a3a2a', glasses: false, pal: ANNA }, t)],
+  ['zinaY baby walk', (g, o) => A.vera(g, { ...o, hold: 'baby', move: 1, phase: 1.1, glasses: false, pal: { cardigan: '#4a5a6a', blouse: '#e0d8c8', skirt: '#2a2a3a', skin: '#e8bca0', hair: '#5a3a24', shoes: '#2a1c16', tights: '#3a302c' } }, t)],
+  ['anna reach', (g, o) => A.vera(g, { ...o, hold: 'reach', scarf: '#8a3a2a', glasses: false, pal: ANNA }, t)],
+  ['vera trance', (g, o) => A.vera(g, { ...o, hold: 'trance', long: true, hairDown: true, glasses: false, pal: { cardigan: '#d8d2c4', blouse: '#e0d8c8', skirt: '#d0c8b8', skin: '#e0b39a', hair: '#4a2e22', shoes: '#c89a88', tights: '#e0b39a' } }, t)],
+  ['vera face', (g, o) => A.vera(g, { ...o, hold: 'face' }, t)],
+  ['nik', (g, o) => A.nikodim(g, { ...o }, t)],
+  ['nik bless', (g, o) => A.nikodim(g, { ...o, pose: 'bless' }, t)],
+  ['nik point', (g, o) => A.nikodim(g, { ...o, pose: 'point' }, t)],
+  ['sem', (g, o) => A.semenych(g, { ...o }, t)],
+  ['semwalk', (g, o) => A.semWalk(g, { ...o, move: 1, phase: 0.8 }, t)],
+  ['semwalk sleep', (g, o) => A.semWalk(g, { ...o, sleep: true }, t)],
+  ['semwalk raise', (g, o) => A.semWalk(g, { ...o, raise: true, talking: true }, t)],
+  ['zina stand', (g, o) => A.vera(g, { ...o, shawl: '#7a3a2e', shawlPat: 'rgba(196,154,90,.8)', highBun: true, pal: { cardigan: '#5a4c44', blouse: '#c9bfae', skirt: '#3a3236', skin: '#d3a68e', hair: '#9a948c', shoes: '#2a1c16', tights: '#4a3a34' } }, t)],
+  ['zina walk', (g, o) => A.vera(g, { ...o, move: 1, phase: 2, hold: 'trance', eyesClosed: true, shawl: '#7a3a2e', highBun: true, pal: { cardigan: '#5a4c44', blouse: '#c9bfae', skirt: '#3a3236', skin: '#d3a68e', hair: '#9a948c', shoes: '#2a1c16', tights: '#4a3a34' } }, t)],
+  ['sleeper', (g, o) => A.sleeper(g, { ...o, x: o.x - 40, y: o.y - 60 }, t)],
+  ['zina', (g, o) => A.zina(g, { ...o, y: o.y - 40, talking: true }, t)],
+  ['tall', (g, o) => A.tall(g, { ...o, s: 0.55, jitter: 0 }, t)],
+  ['tall reach', (g, o) => A.tall(g, { ...o, s: 0.55, reach: 1, jitter: 0 }, t)],
+  ...(OM.extraFigures || []),
+].filter(([n]) => !q.get('only') || n.startsWith(q.get('only')));
+const CW = 170, CH = 250, cols = Math.min(CELLS.length, +(q.get('cols') || 9));
+const rows = Math.ceil(CELLS.length / cols);
 const c = document.getElementById('c'), g = c.getContext('2d');
-const A = OM.Actors, t = 1.3;
-const day = { amb: 0.95, tint: '#9aa4ab' }, night = { amb: 0.35, tint: '#24303c' };
-g.fillStyle = '#9ea7ac'; g.fillRect(0, 0, 2400, 650);
-g.fillStyle = '#10161c'; g.fillRect(0, 650, 2400, 650);
-g.setTransform(2, 0, 0, 2, 0, 0);
-const row = (y, light, rim) => {
-  A.hero(g, { x: 70, y, s: 1, face: 1, light, rim, item: 'case' }, t);
-  A.hero(g, { x: 190, y, s: 1, face: 1, light, rim, move: 1, phase: 0.6, item: 'case' }, t);
-  A.hero(g, { x: 310, y, s: 1, face: -1, light, rim, move: 1, phase: 2.2, item: 'none' }, t);
-  A.hero(g, { x: 430, y, s: 1, face: 1, light, rim, pose: 'reach', item: 'none' }, t);
-  A.mitya(g, { x: 540, y, s: 1, face: 1, light, rim, sleep: true }, t);
-  A.mitya(g, { x: 620, y, s: 1, face: -1, light, rim, move: 1, phase: 1 }, t);
-  A.vera(g, { x: 730, y, s: 1, face: 1, light, rim, hold: 'book' }, t);
-  A.vera(g, { x: 840, y, s: 1, face: -1, light, rim, move: 1, phase: 0.4 }, t);
-  A.semenych(g, { x: 960, y, s: 1, face: 1, light, rim }, t);
-  A.zina(g, { x: 1180, y: y - 40, s: 1.15, face: -1, light, rim, talking: true }, t);
-  A.nikodim(g, { x: 1050, y, s: 1, face: 1, light, rim, pose: 'bless' }, t);
-  A.vera(g, { x: 1160, y, s: 0.95, face: -1, light, rim, hold: 'baby', scarf: '#8a3a2a', glasses: false, pal: { cardigan: '#5a4a3a', blouse: '#d8ccb0', skirt: '#3a3030', skin: '#e2b49a', hair: '#3a2418', shoes: '#2a1c16', tights: '#3a302c' } }, t);
-};
-row(300, day, null);
-row(620, night, { color: 'rgba(255,170,90,.8)', dx: 1.4 });
+c.width = cols * CW * Z; c.height = rows * CH * 2 * Z;
+CELLS.forEach(([name, fn], i) => {
+  const cx = (i % cols) * CW, cy = Math.floor(i / cols) * CH * 2;
+  [[day, '#9ea7ac', 1, null], [night, '#10161c', -1, { color: 'rgba(255,170,90,.8)', dx: 1.4 }]].forEach(([light, bg, face, rim], k) => {
+    const y0 = cy + k * CH;
+    g.setTransform(Z, 0, 0, Z, 0, 0);
+    g.fillStyle = bg; g.fillRect(cx, y0, CW, CH);
+    g.strokeStyle = 'rgba(255,255,255,.15)'; g.strokeRect(cx + 0.5, y0 + 0.5, CW - 1, CH - 1);
+    g.fillStyle = k ? '#aaa' : '#333'; g.font = '11px sans-serif'; g.fillText(name, cx + 4, y0 + 13);
+    fn(g, { x: cx + CW / 2, y: y0 + CH - 22, s: 1, face, light, rim });
+  });
+});
 </script>

@@ -312,32 +312,49 @@
     P.fillV(g, 876, 556, 68, 44, [[0, '#c8c0b0'], [1, '#8a8478']]);
   }
 
-  function crowd(ctx, n, seed, shift = 0, ox = 0) {
-    const r = rng(seed);
-    for (let i = 0; i < n; i++) {
-      const x = 80 + r() * 760 + ox + shift * (0.5 + r()), y = 600 + r() * 90, s = 0.8 + (y - 600) / 200;
-      ctx.fillStyle = `rgba(30,18,10,${0.75 + r() * 0.2})`;
-      ctx.beginPath();
-      ctx.ellipse(x, y - 120 * s, 9 * s, 11 * s, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(x - 16 * s, y);
-      ctx.lineTo(x - 12 * s, y - 100 * s);
-      ctx.quadraticCurveTo(x, y - 112 * s, x + 12 * s, y - 100 * s);
-      ctx.lineTo(x + 16 * s, y);
-      ctx.fill();
-      if (r() < 0.4) { ctx.fillStyle = 'rgba(120,40,30,.6)'; ctx.fillRect(x - 10 * s, y - 132 * s, 20 * s, 10 * s); }
+  // Прихожане 1955 года — живые люди на скелете: женщины в платках, мужчины в пальто и кепках.
+  const SCARVES = ['#7a2a20', '#3a4a6a', '#6a5a3a', '#8a7a6a', '#4a3a3a'];
+  const WOMEN = [
+    { cardigan: '#4a3a30', blouse: '#d0c4a8', skirt: '#2a2422', skin: '#d8a88e', hair: '#3a2418', shoes: '#1a1210', tights: '#2a2220' },
+    { cardigan: '#3a3a44', blouse: '#d0c4a8', skirt: '#30282a', skin: '#e0b096', hair: '#3a2418', shoes: '#1a1210', tights: '#2a2220' },
+    { cardigan: '#5a4430', blouse: '#d0c4a8', skirt: '#3a3026', skin: '#cfa086', hair: '#3a2418', shoes: '#1a1210', tights: '#2a2220' },
+  ];
+  function parishioner(ctx, i, x, y, s, face, t, move) {
+    const r = rng(300 + i * 7);
+    const o = { x, y, s, face, light: pastLight, move, phase: t * 5 + i, seed: i };
+    if (r() < 0.62) A.vera(ctx, Object.assign(o, { pal: WOMEN[i % 3], scarf: SCARVES[i % 5], glasses: false, hold: r() < 0.25 ? 'chest' : null }), t);
+    else A.hero(ctx, Object.assign(o, { item: 'none', hat: false, hair: ['#2a211b', '#5a4a3a', '#8a8478'][i % 3] }), t);
+  }
+  function crowd(ctx, t, shot, shift) {
+    if (shot === 0) {
+      // полный храм — стоят, слушают службу (статично, в кэше)
+      ctx.drawImage(OM.cache('past:crowd', (g) => {
+        const r = rng(900);
+        const list = [];
+        for (let i = 0; i < 22; i++) list.push([60 + r() * 760, 610 + r() * 70, i]);
+        list.sort((p, q) => p[1] - q[1]);
+        list.forEach(([x, y, i]) => parishioner(g, i, x, y, 0.62 + (y - 610) / 300, 1, 0.5, 0));
+      }), 0, 0, W, H);
+      return;
+    }
+    // уходят: идут к дверям налево
+    const r = rng(901);
+    for (let i = 0; i < 9; i++) {
+      const x = 120 + r() * 660 + shift * (0.6 + r() * 0.6), y = 615 + r() * 60;
+      if (x < -60) continue;
+      parishioner(ctx, i, x, y, 0.62 + (y - 610) / 300, -1, t, 1);
     }
   }
-  function candles(ctx, t) {
+  function candles(ctx, t, lit = 1) {
     for (let i = 0; i < 18; i++) {
+      if (lit < 1 && i / 18 > lit) continue;
       const x = 920 + (i % 6) * 14 + Math.floor(i / 6) * 7, y = 520 + Math.floor(i / 6) * 10;
       ctx.fillStyle = '#e8dcc0';
       ctx.fillRect(x, y, 2, 14);
       const f = 0.8 + Math.sin(t * 9 + i) * 0.2;
       P.glow(ctx, x + 1, y - 3, 10, '#ffcc66', 0.6 * f);
     }
-    P.glow(ctx, 960, 520, 220, '#ffb060', 0.18);
+    P.glow(ctx, 960, 520, 220, '#ffb060', 0.18 * lit);
   }
   function grade(ctx, t, k = 1) {
     ctx.save();
@@ -363,7 +380,7 @@
   const pastLight = { amb: 0.95, tint: '#c09060', side: 1 };
 
   async function flashback() {
-    const v = { shot: 0, water: 0, crowdShift: 0, zx: 140, zina: false, zinaBaby: false, anna: 1, annaStretch: 1, annaX: 880, text: '', textA: 0, white: 0 };
+    const v = { shot: 0, water: 0, crowdShift: 0, zx: 140, zina: false, zinaBaby: false, anna: 1, annaCold: 0, annaX: 880, text: '', textA: 0, white: 0 };
     let last = performance.now();
     OM.letterbox(true);
     S.choir(false);
@@ -378,24 +395,27 @@
       ctx.scale(z, z);
       ctx.translate(-W / 2, -H / 2);
       ctx.drawImage(OM.cache('past:bg', paintPast), 0, 0, W, H);
-      candles(ctx, t);
-      crowd(ctx, v.shot >= 1 ? 12 : 26, 900, v.crowdShift, 0);
+      candles(ctx, t, 1 - v.annaCold);
+      crowd(ctx, t, v.shot, v.crowdShift);
+      // Анна у купели (рисуется до воды — вода закрывает её по грудь)
+      if (v.anna > 0) {
+        const k = v.annaCold;
+        const L = { amb: lerp(0.95, 0.32, k), tint: k > 0.01 ? '#3a5a70' : '#c09060', side: 1 };
+        ctx.save();
+        ctx.globalAlpha = v.anna;
+        A.vera(ctx, { x: v.annaX, y: 640, s: 1.25, face: -1, light: L, scarf: '#7a2a20', glasses: false, pal: ANNA, hold: v.zinaBaby ? (k > 0.2 ? 'chest' : null) : 'baby', talking: v.annaTalk, headTilt: k * 0.22, eyesClosed: k > 0.55 }, t);
+        ctx.restore();
+      }
       // вода прибывает
       if (v.water > 0) {
         const wy = 720 - v.water;
-        P.fillV(ctx, 0, wy, W, v.water, [[0, 'rgba(90,110,100,.7)'], [1, 'rgba(30,40,40,.9)']]);
+        P.fillV(ctx, 0, wy, W, v.water, [[0, 'rgba(90,110,100,.78)'], [1, 'rgba(30,40,40,.95)']]);
         ctx.fillStyle = 'rgba(230,240,230,.35)';
         ctx.fillRect(0, wy, W, 1.5);
-      }
-      // Анна у купели
-      if (v.anna > 0) {
-        ctx.save();
-        ctx.globalAlpha = v.anna;
-        ctx.translate(v.annaX, 640);
-        ctx.scale(1, v.annaStretch);
-        ctx.translate(-v.annaX, -640);
-        A.vera(ctx, { x: v.annaX, y: 640, s: 1.25, face: -1, light: pastLight, scarf: '#7a2a20', glasses: false, pal: ANNA, hold: v.zinaBaby ? null : 'baby', talking: v.annaTalk }, t);
-        ctx.restore();
+        for (let i = 0; i < 6; i++) {
+          ctx.fillStyle = 'rgba(230,240,230,.12)';
+          ctx.fillRect(((i * 211 + t * 30) % W), wy + 6 + i * 9, 60 + i * 10, 1);
+        }
       }
       if (v.zina) A.vera(ctx, { x: v.zx, y: 650, s: 1.2, face: v.zinaFace || 1, move: v.zMove || 0, phase: t * 5, light: pastLight, glasses: false, pal: ZINAY, hold: v.zinaBaby ? 'baby' : null, talking: v.zinaTalk }, t);
       ctx.restore();
@@ -436,9 +456,11 @@
     await tween(2200, (k) => { v.zx = lerp(790, 60, k); v.water = 50 + k * 60; });
     v.zina = false; v.zinaTalk = false;
     if (G.saying) G.saying.res();
-    // 5. Анна остаётся; вода поднимается; она вытягивается — становится одной из них
+    // 5. Анна остаётся. Вода поднимается ей до груди, свечи гаснут одна за другой,
+    //    свет на ней остывает — она закрывает глаза и опускает голову. Больше она не уйдёт.
     S.whisper(4, 0.12);
-    await tween(4200, (k) => { v.water = 110 + k * 130; v.annaStretch = 1 + k * k * 0.9; });
+    await tween(5200, (k) => { v.water = 110 + k * 100; v.annaCold = OM.smooth ? OM.smooth(k) : k; });
+    await OM.say('anna', 'Лёвушка…', { italic: true, hold: 1.2 });
     S.hit();
     await tween(500, (k) => (v.white = k));
     OM.endVision();
@@ -477,9 +499,9 @@
     S.choir(false);
     S.music('end');
     await OM.card('Конец третьей главы', 'Сорок лет они ждали. Одну ночь подождут ещё.', 4400);
-    await OM.card('Продолжение следует', 'Глава четвёртая: «Нити»', 3200);
+    S.music(null);
     OM.clearSave();
     OM.letterbox(false);
-    OM.toTitle();
+    await OM.story4.start();
   };
 })();

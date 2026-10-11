@@ -133,6 +133,7 @@
     anna: { name: 'Анна', color: '#f0c8a8' },
     zinaY: { name: 'Зина', color: '#e3a877' },
     mother: { name: '…', color: '#dfe8f0' },
+    spidola: { name: 'Приёмник', color: '#9ab8e0' },
   };
   let subs, subsWho, subsText;
   OM.say = (who, text, o = {}) =>
@@ -473,6 +474,16 @@
   function onDown(e) {
     S.init();
     G.mouse.down = true;
+    // Перетаскивание (нити и т. п.): сцена может перехватить нажатие до клика.
+    if (G.mode === 'play' && G.scene && G.scene.onPress && !G.busy && !G.saying && !G.choosing) {
+      const [px, py] = toLogical(e);
+      G.mouse.x = px; G.mouse.y = py;
+      if (G.scene.onPress(px, py, e.button)) {
+        if (e.pointerType === 'touch') { G.touch = true; stage.classList.add('touch'); }
+        pressPos = null;
+        return;
+      }
+    }
     if (e.pointerType === 'touch') {
       G.touch = true;
       stage.classList.add('touch');
@@ -538,7 +549,10 @@
     if (G.scene.walk) OM.walk(x, y);
   }
   function onMove(e) {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch') {
+      if (G.mouse.down) { const [x, y] = toLogical(e); G.mouse.x = x; G.mouse.y = y; }
+      return;
+    }
     const [x, y] = toLogical(e);
     G.mouse.x = x; G.mouse.y = y; G.mouse.in = true;
     const nearBottom = y > H * 0.83;

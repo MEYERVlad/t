@@ -66,6 +66,15 @@
     await OM.story3.start();
   }
 
+  async function startCh4() {
+    S.init();
+    S.music(null);
+    OM.clearSave();
+    $('#title').classList.add('off');
+    $('#menu-btn').classList.add('on');
+    await OM.story4.start();
+  }
+
   function toggleMenu(on) {
     const m = $('#menu');
     on = on ?? !m.classList.contains('on');
@@ -90,6 +99,7 @@
     $('#title [data-act=continue]').addEventListener('click', continueGame);
     $('#title [data-act=ch2]').addEventListener('click', startCh2);
     $('#title [data-act=ch3]').addEventListener('click', startCh3);
+    $('#title [data-act=ch4]').addEventListener('click', startCh4);
     $('#menu-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMenu(true); });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') toggleMenu();

@@ -111,12 +111,12 @@ require('fs').mkdirSync(OUT, { recursive: true });
   await shot('c3-07-ring');
   const t1 = Date.now();
   while (Date.now() - t1 < 60000) {
-    const s = await G(() => ({ saying: !!OM.G.saying, mode: OM.G.mode, end: OM.store.get('omut-ch3-done') }));
+    const s = await G(() => ({ saying: !!OM.G.saying, ch4: !!OM.flag('ch4'), end: OM.store.get('omut-ch3-done') }));
     if (s.saying) await G(() => OM.debug.advance());
-    if (s.end && s.mode === 'title') break;
+    if (s.end && s.ch4) break;
     await p.waitForTimeout(150);
   }
-  await expect(() => OM.store.get('omut-ch3-done') && OM.G.mode === 'title', 'chapter 3 finished');
+  await expect(() => OM.store.get('omut-ch3-done') && OM.flag('ch4'), 'chapter 3 finished → chapter 4');
   console.log(errs.length ? 'ERRORS:\n' + errs.join('\n') : 'OK, no errors');
   await b.close();
   process.exit(errs.length ? 1 : 0);
