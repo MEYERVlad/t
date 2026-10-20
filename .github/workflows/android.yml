@@ -46,25 +46,31 @@ jobs:
           if [ -n "$KS" ]; then
             echo "$KS" | base64 -d > "$RUNNER_TEMP/omut-release.jks"
             echo "OMUT_KEYSTORE=$RUNNER_TEMP/omut-release.jks" >> "$GITHUB_ENV"
-            echo "ok=1" >> "$GITHUB_OUTPUT"
+            echo "real=1" >> "$GITHUB_OUTPUT"
           else
-            echo "Секрет OMUT_KEYSTORE_BASE64 не задан — релиз не подписываем, будет только тестовый APK."
+            # Ключа нет — проверяем, что релизная сборка с подписью вообще собирается, на временном ключе.
+            # Эти файлы не выкладываются: для RuStore нужен ваш постоянный ключ.
+            echo "Секрет OMUT_KEYSTORE_BASE64 не задан — релиз собирается для проверки на временном ключе и не выкладывается."
+            keytool -genkeypair -keystore "$RUNNER_TEMP/tmp.jks" -alias tmp -keyalg RSA -keysize 2048 -validity 1 \
+              -storepass tmppass -keypass tmppass -dname "CN=tmp" >/dev/null 2>&1
+            echo "OMUT_KEYSTORE=$RUNNER_TEMP/tmp.jks" >> "$GITHUB_ENV"
+            echo "TMP_PW=tmppass" >> "$GITHUB_ENV"
+            echo "TMP_ALIAS=tmp" >> "$GITHUB_ENV"
           fi
 
-      - name: Релиз для RuStore (APK + AAB)
-        if: steps.key.outputs.ok == '1'
+      - name: Релиз (APK + AAB)
         working-directory: app/android
         env:
-          OMUT_KEYSTORE_PASSWORD: ${{ secrets.OMUT_KEYSTORE_PASSWORD }}
-          OMUT_KEY_ALIAS: ${{ secrets.OMUT_KEY_ALIAS }}
-          OMUT_KEY_PASSWORD: ${{ secrets.OMUT_KEY_PASSWORD }}
+          OMUT_KEYSTORE_PASSWORD: ${{ secrets.OMUT_KEYSTORE_PASSWORD || env.TMP_PW }}
+          OMUT_KEY_ALIAS: ${{ secrets.OMUT_KEY_ALIAS || env.TMP_ALIAS }}
+          OMUT_KEY_PASSWORD: ${{ secrets.OMUT_KEY_PASSWORD || env.TMP_PW }}
         run: ./gradlew --no-daemon assembleRelease bundleRelease
 
       - name: Переименовать файлы
         run: |
           mkdir -p out
           cp app/android/app/build/outputs/apk/debug/app-debug.apk out/omut-test.apk
-          if [ -f app/android/app/build/outputs/apk/release/app-release.apk ]; then
+          if [ "${{ steps.key.outputs.real }}" = "1" ]; then
             cp app/android/app/build/outputs/apk/release/app-release.apk out/omut-rustore.apk
             cp app/android/app/build/outputs/bundle/release/app-release.aab out/omut-rustore.aab
           fi
