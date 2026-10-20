@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Омут — Android-обёртка (Capacitor) для публикации в RuStore",
   "scripts": {
-    "web": "node ../tools/build.js && node -e \"require('fs').copyFileSync('../dist/omut-app.html','www/index.html')\"",
+    "web": "node ../tools/build.js && node -e \"const fs=require('fs');fs.mkdirSync('www',{recursive:true});fs.copyFileSync('../dist/omut-app.html','www/index.html')\"",
     "sync": "npm run web && npx cap sync android"
   },
   "dependencies": {
