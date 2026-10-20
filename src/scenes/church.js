@@ -364,6 +364,7 @@
   }
 
   async function fail() {
+    OM.ach.unlock('gaze');
     S.hit();
     S.whisper(2, 0.2);
     OM.shake(12);

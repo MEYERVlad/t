@@ -386,6 +386,15 @@
     }
     if (!OM.flag('checkedIn')) {
       await zsay(fromBell ? 'Ну? Чего трезвоните? Не глухая.' : 'Поздненько вы.');
+      if (OM.store.get('omut-forgot')) {
+        // после концовки «Берег»: город помнит его, а он — нет
+        await OM.wait(500);
+        await zsay('…Вы у нас впервые?');
+        await say('Впервые. А что?');
+        await zsay('Ничего. Показалось. Лицо знакомое.');
+        OM.store.del('omut-forgot');
+        OM.ach.unlock('blank');
+      }
       await say('Добрый вечер. Мне бы номер. На одну ночь, максимум на две.');
       await zsay('Паспорт.');
       await say('Вот, пожалуйста.');

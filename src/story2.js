@@ -376,11 +376,13 @@
       }
       function check() {
         if (placed.join() === '0,1,2,3') {
+          if (!OM.flag('montageMiss')) OM.ach.unlock('montage');
           hint.textContent = 'Вот как это будет.';
           S.hit();
           setTimeout(() => { root.classList.remove('on'); resolve(); }, 900);
         } else {
           hint.textContent = 'Нет… не складывается. Ещё раз.';
+          G.flags.montageMiss = 1;
           root.classList.add('shake');
           S.staticNoise(0.4, 0.08);
           setTimeout(() => { root.classList.remove('shake'); reset(); }, 900);

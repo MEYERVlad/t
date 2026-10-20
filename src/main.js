@@ -15,8 +15,11 @@
     G.hero.visible = false;
     $('#title').classList.remove('off');
     $('#menu-btn').classList.remove('on');
-    $('#title [data-act=continue]').hidden = !OM.hasSave();
-    $('#title [data-act=ch2]').hidden = false;
+    // после концовки «Берег» игра «забывает»: остаётся только новая игра
+    const forgot = !!OM.store.get('omut-forgot');
+    $('#title [data-act=continue]').hidden = forgot || !OM.hasSave();
+    ['ch2', 'ch3', 'ch4', 'ch5'].forEach((k) => ($('#title [data-act=' + k + ']').hidden = forgot));
+    $('#title .tag').textContent = forgot ? 'вы у нас впервые?' : 'в тихом омуте…';
     OM.fadeTo(0, 2200);
   }
 
@@ -75,6 +78,15 @@
     await OM.story4.start();
   }
 
+  async function startCh5() {
+    S.init();
+    S.music(null);
+    OM.clearSave();
+    $('#title').classList.add('off');
+    $('#menu-btn').classList.add('on');
+    await OM.story5.start();
+  }
+
   function toggleMenu(on) {
     const m = $('#menu');
     on = on ?? !m.classList.contains('on');
@@ -96,10 +108,18 @@
     };
     $('#title').addEventListener('pointerdown', startMusic);
     $('#title [data-act=new]').addEventListener('click', newGame);
+    // тот, кто помнит, может вернуть главы: трижды нажать на название
+    let logoTaps = 0;
+    $('#title .logo').addEventListener('pointerdown', () => {
+      if (!OM.store.get('omut-forgot')) return;
+      if (++logoTaps >= 3) { OM.store.del('omut-forgot'); S.achieve && S.achieve(); showTitle(); }
+    });
     $('#title [data-act=continue]').addEventListener('click', continueGame);
     $('#title [data-act=ch2]').addEventListener('click', startCh2);
     $('#title [data-act=ch3]').addEventListener('click', startCh3);
     $('#title [data-act=ch4]').addEventListener('click', startCh4);
+    $('#title [data-act=ch5]').addEventListener('click', startCh5);
+    $('#title [data-act=ach]').addEventListener('click', () => { S.init(); OM.ach.show(); });
     $('#menu-btn').addEventListener('pointerdown', (e) => { e.stopPropagation(); toggleMenu(true); });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') toggleMenu();

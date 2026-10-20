@@ -36,6 +36,7 @@ const CELLS = [
   ['sleeper', (g, o) => A.sleeper(g, { ...o, x: o.x - 40, y: o.y - 60 }, t)],
   ['zina', (g, o) => A.zina(g, { ...o, y: o.y - 40, talking: true }, t)],
   ['tall', (g, o) => A.tall(g, { ...o, s: 0.55, jitter: 0 }, t)],
+  ['tall hat', (g, o) => A.tall(g, { ...o, s: 0.48, hat: true, jitter: 0 }, t)],
   ['tall reach', (g, o) => A.tall(g, { ...o, s: 0.55, reach: 1, jitter: 0 }, t)],
   ...(OM.extraFigures || []),
 ].filter(([n]) => !q.get('only') || n.startsWith(q.get('only')));

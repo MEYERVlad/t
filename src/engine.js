@@ -23,7 +23,12 @@
     action: 0,
   });
   OM.scene = (id, def) => { def.id = id; G.scenes[id] = def; };
-  OM.flag = (k, v) => (v === undefined ? G.flags[k] : (G.flags[k] = v));
+  OM.flag = (k, v) => {
+    if (v === undefined) return G.flags[k];
+    G.flags[k] = v;
+    if (v && OM.ach && G.mode === 'play') OM.ach.onFlag(k);
+    return v;
+  };
 
   // ---------- Холст ----------
   let stage, cv, ctx, ps = 1, scale = 1;
@@ -134,6 +139,7 @@
     zinaY: { name: 'Зина', color: '#e3a877' },
     mother: { name: '…', color: '#dfe8f0' },
     spidola: { name: 'Приёмник', color: '#9ab8e0' },
+    drowned: { name: '…', color: '#a8c0d8' },
   };
   let subs, subsWho, subsText;
   OM.say = (who, text, o = {}) =>
@@ -794,8 +800,11 @@
     window.addEventListener('keydown', (e) => {
       G.keys[e.key] = true;
       if ((e.key === ' ' || e.key === 't' || e.key === 'е') && !e.repeat) { OM.toggleThreads(); e.preventDefault(); }
+      if ((e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') && !e.repeat && OM.flipWorld) OM.flipWorld();
     });
     window.addEventListener('keyup', (e) => { G.keys[e.key] = false; });
+    const flipBtn = document.getElementById('flip-btn');
+    if (flipBtn) flipBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); OM.flipWorld && OM.flipWorld(); });
     threadsBtn = document.getElementById('threads-btn');
     if (threadsBtn) threadsBtn.addEventListener('pointerdown', (e) => { e.stopPropagation(); OM.toggleThreads(); });
     stage.addEventListener('contextmenu', (e) => e.preventDefault());

@@ -390,7 +390,7 @@
     scarf: '#7c3328', skin: '#d6a98b', shoes: '#211b16', case: '#73553a', caseDark: '#4a3624', metal: '#b89a62',
   };
   F.lev = (ctx, a, t) => {
-    const C = LEV;
+    const C = a.pal || LEV;
     const dims = { hip: 97, L1: 45, L2: 45, ankle: 7.2 };
     const pose = standing(a, t, dims);
     const { mv, ph, legN, legF, drop, breathe } = pose;
@@ -574,7 +574,7 @@
   // ---------- Митя: 9 лет, полосатая пижама, босиком ----------
   const MITYA = { pj: '#9fb0c2', stripe: '#6c7f96', skin: '#e2b79c', hair: '#5a4030' };
   F.mitya = (ctx, a, t) => {
-    const C = MITYA;
+    const C = a.pal || MITYA;
     const dims = { hip: 58, L1: 27, L2: 27, ankle: 5 };
     const pose = standing(a, t, dims);
     const { mv, ph, legN, legF, drop, breathe } = pose;
@@ -968,7 +968,7 @@
   // ---------- Отец Никодим: подрясник, скуфья, седая борода, крест ----------
   const NIK = { robe: '#211e1e', robeHi: '#3a3434', skin: '#cf9e86', beard: '#cfcac0', hair: '#a8a29a', cap: '#141212', cross: '#c9a050', shoes: '#141212' };
   F.nikodim = (ctx, a, t) => {
-    const C = NIK;
+    const C = a.pal || NIK;
     const dims = { hip: 98, L1: 46, L2: 45, ankle: 7 };
     const pose = standing(a, t, dims);
     const { mv, ph, legN, legF, drop, breathe } = pose;
@@ -1514,6 +1514,17 @@
       o.quadraticCurveTo(sx + 6 + w * 8, 10, sx + 4 + Math.sin(t * 0.9 + i * 0.7) * 2.5 + (u - 0.5) * 10, len * 0.8);
       o.stroke();
     });
+    if (a.hat) {
+      // шляпа Льва — та самая, с лентой
+      o.fillStyle = col;
+      o.beginPath();
+      o.ellipse(0.5, -12, 19, 4, -0.06, 0, TAU);
+      o.fill();
+      smoothPath(o, [[-11.5, -12.5], [-12, -21], [-8.5, -27], [-1, -24], [5.5, -27], [11, -23], [11.5, -12.5]]);
+      o.fill();
+      o.fillStyle = 'rgba(150,170,190,.18)';
+      o.fillRect(-11.5, -17, 23, 3);
+    }
     o.restore();
     // бледные костяшки и мокрый блеск на руках
     o.save();

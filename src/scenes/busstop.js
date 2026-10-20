@@ -278,7 +278,9 @@
     P.glow(ctx, 651, 440, 40, '#ffe0a0', 0.18);
     // Тихий в лесу при вспышке молнии
     if (st.tallA > 0.01) {
-      OM.Actors.tall(ctx, { x: 1185, y: 478, s: 0.27, face: -1, alpha: st.tallA, jitter: 2, body: '#020304' }, t);
+      const loop = !!OM.store.get('omut-loop');
+      OM.Actors.tall(ctx, { x: 1185, y: 478, s: 0.27, face: -1, alpha: st.tallA, jitter: 2, body: '#020304', hat: loop }, t);
+      if (loop && st.tallA > 0.6 && OM.G.mode === 'play') OM.ach.unlock('loop');
     }
   }
 

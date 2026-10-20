@@ -204,6 +204,7 @@
   };
 
   s3.arriveChurch = async () => {
+    if (!OM.lake.st.hits) OM.ach.unlock('lake');
     OM.letterbox(true);
     S.bigBell(0, 1);
     await OM.fadeTo(1, 900);

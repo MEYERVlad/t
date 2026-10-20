@@ -19,6 +19,7 @@
     <div id="inv" class="empty"><div id="inv-bag" title="Чемодан"></div><div id="inv-items"></div></div>
     <button id="menu-btn" aria-label="Меню">≡</button>
     <button id="threads-btn" aria-label="Нити" title="Нити (пробел)"></button>
+    <button id="flip-btn" aria-label="Перевернуть мир" title="Перевернуть мир (F)">⇅</button>
     <div id="frags"><div class="h">Видение</div><div class="cards"></div><div class="slots"></div><div class="hint"></div></div>
     <div id="card"><div class="t"></div><div class="s"></div></div>
     <div id="title">
@@ -30,9 +31,13 @@
         <button data-act="ch2">Глава вторая</button>
         <button data-act="ch3">Глава третья</button>
         <button data-act="ch4">Глава четвёртая</button>
+        <button data-act="ch5">Глава пятая</button>
+        <button data-act="ach" class="ach-btn">Достижения</button>
       </div>
       <div class="hint">Лучше в наушниках · ЛКМ — действие · ПКМ — осмотреть · долгое касание на телефоне</div>
     </div>
+    <div id="ach-pop"></div>
+    <div id="ach-screen"><div class="box"><div class="hh"><span>Достижения</span><span class="cnt"></span></div><div class="list"></div><button class="close">Закрыть</button></div></div>
     <div id="menu">
       <div class="box">
         <div class="h">Пауза</div>
@@ -49,6 +54,7 @@
 <script src="src/figure.js"></script>
 <script src="src/audio.js"></script>
 <script src="src/engine.js"></script>
+<script src="src/achievements.js"></script>
 <script src="src/scenes/busstop.js"></script>
 <script src="src/scenes/street.js"></script>
 <script src="src/scenes/lobby.js"></script>
@@ -65,10 +71,15 @@
 <script src="src/scenes/boatyard.js"></script>
 <script src="src/scenes/veraflat.js"></script>
 <script src="src/scenes/zinaroom.js"></script>
+<script src="src/scenes/dawn.js"></script>
+<script src="src/scenes/inverse.js"></script>
+<script src="src/scenes/annahouse.js"></script>
 <script src="src/story.js"></script>
 <script src="src/story2.js"></script>
 <script src="src/story3.js"></script>
 <script src="src/story4.js"></script>
+<script src="src/story5.js"></script>
+<script src="src/endings.js"></script>
 <script src="src/main.js"></script>
 </body>
 </html>

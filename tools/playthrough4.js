@@ -18,6 +18,7 @@ require('fs').mkdirSync(OUT, { recursive: true });
     const t0 = Date.now();
     let quiet = 0;
     while (Date.now() - t0 < maxMs) {
+      if (await G(() => !!OM.flag('ch5'))) return; // глава 4 кончилась — началась пятая
       const s = await G(() => ({ busy: OM.G.busy, saying: !!OM.G.saying, choosing: !!OM.G.choosing, walking: !!OM.G.hero.target }));
       if (s.choosing) {
         const all = await p.$$('#choices button');
@@ -80,7 +81,7 @@ require('fs').mkdirSync(OUT, { recursive: true });
     await p.waitForTimeout(2600);
     await p.mouse.up();
     await idle();
-    await expect(() => OM.flag('saved_hotel') || OM.G.mode === 'title', 'zina saved');
+    await expect(() => OM.flag('saved_hotel') || OM.flag('ch5'), 'zina saved');
   }
   const lerp = (a, b, k) => a + (b - a) * k;
   // --- Вера: голос, вилка, платок, зеркало ---
@@ -96,7 +97,7 @@ require('fs').mkdirSync(OUT, { recursive: true });
     await expect(() => OM.has('shawl'), 'shawl');
     await use('shawl', 1010, 360, 'cover mirror');
     await idle();
-    await expect(() => OM.flag('saved_library') || OM.G.mode === 'title', 'vera saved');
+    await expect(() => OM.flag('saved_library') || OM.flag('ch5'), 'vera saved');
   }
   // --- Семёныч: светить, догнать ---
   async function doSem(shots) {
@@ -117,12 +118,12 @@ require('fs').mkdirSync(OUT, { recursive: true });
     await p.mouse.click(await G(() => OM.boatyard.sem.x - 20), 612);
     await p.waitForTimeout(2500);
     await idle();
-    await expect(() => OM.flag('saved_sem') || OM.G.mode === 'title', 'sem saved');
+    await expect(() => OM.flag('saved_sem') || OM.flag('ch5'), 'sem saved');
   }
   async function finish(lost, shots) {
     await idle(120000, shots ? { name: 'c4-08-midnight' } : null);
     await p.waitForTimeout(200);
-    await expect(() => OM.G.mode === 'title' || OM.G.sid === 'midnight', 'reached midnight/title');
+    await expect(() => OM.flag('ch5') || OM.G.sid === 'midnight', 'reached midnight / chapter 5');
     const out = await G(() => OM.store.get('omut-ch4'));
     console.log('outcome', JSON.stringify(out));
     if (JSON.stringify(out.lost) !== JSON.stringify(lost)) throw new Error('FAILED: outcome ' + JSON.stringify(out));

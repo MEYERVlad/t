@@ -414,6 +414,7 @@
   }
 
   async function fail(why) {
+    G.flags.fails4 = (G.flags.fails4 || 0) + 1;
     S.hit();
     OM.shake(10);
     S.whisper(1.6, 0.18);

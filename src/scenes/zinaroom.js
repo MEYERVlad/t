@@ -611,6 +611,7 @@
   }
 
   async function fail() {
+    G.flags.fails4 = (G.flags.fails4 || 0) + 1;
     S.hit();
     await OM.fadeTo(1, 900);
     await OM.say('narr', 'Зина сложила письмо, накинула шаль и вышла. Догнал её только у самой воды — и не смог развернуть.', { hold: 1.8 });

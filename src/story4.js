@@ -155,6 +155,7 @@
     ]);
     if (c === 'nik') {
       G.flags.nikGoes = 1;
+      OM.ach.unlock('nik');
       await say('Идите к Семёнычу.');
       await nsay('Вот и ладно. Отпою их оттуда — изнутри. Давно хотел.');
       await nsay('А ты беги. Гостиница и библиотека — твои.');
@@ -386,6 +387,7 @@
   };
   // Спасение удалось — возвращаемся на карту, часы догоняют.
   s4.rescued = async (id) => {
+    OM.ach.unlock({ hotel: 'zina', library: 'vera', sem: 'sem' }[id]);
     G.flags['saved_' + id] = 1;
     G.flags.pendingRescue = C4.RESCUE;
     OM.save();
@@ -413,6 +415,8 @@
 
   s4.end = async () => {
     const f = G.flags;
+    OM.ach.unlock('notnow');
+    if (!f.fails4) OM.ach.unlock('clean4');
     const outcome = { lost: f.lostList || [], nik: !!f.nikGoes };
     OM.store.set('omut-ch4', outcome);
     OM.store.set('omut-ch4-done', 1);
@@ -426,10 +430,9 @@
     }[who];
     await OM.card('Конец четвёртой главы', outcome.nik ? 'Отец Никодим ушёл к своему приходу. Из-под воды до утра было слышно, как поют.' : sub || 'Этой ночью вода никого не взяла.', 5200);
     if (outcome.nik && who) await OM.card('', sub, 4200);
-    await OM.card('Продолжение следует', 'Глава пятая: «Омут»', 3200);
+    S.music(null);
     OM.clearSave();
-    G.hero.item = 'case';
     OM.letterbox(false);
-    OM.toTitle();
+    await OM.story5.start();
   };
 })();

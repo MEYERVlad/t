@@ -551,6 +551,7 @@
   }
 
   async function fail() {
+    G.flags.fails4 = (G.flags.fails4 || 0) + 1;
     S.hit();
     OM.shake(8);
     G.fx.warp = 1;

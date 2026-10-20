@@ -403,6 +403,12 @@
     busNode.g.gain.setTargetAtTime(0.35, now(), 0.3);
   };
 
+  // Достижение: тихий тёплый перезвон, две ноты вверх.
+  S.achieve = () => {
+    if (!c) return;
+    [[784, 0], [1175, 0.14], [1568, 0.28]].forEach(([f, d]) => tone({ type: 'sine', f, f2: f, v: 0.05, a: 0.01, d: 1.6, delay: d, rev: 0.6 }));
+  };
+
   // ---------- Музыка: медленное «пианино» с реверберацией ----------
   function note(f, t, d, v) {
     const o1 = c.createOscillator(), o2 = c.createOscillator();
