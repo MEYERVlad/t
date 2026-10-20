@@ -33,3 +33,18 @@ for (const [src, name] of [['index.html', 'omut'], ['trailer.html', 'omut-traile
   fs.writeFileSync(path.join(root, 'dist', name + '-page.html'), fragment(html));
   console.log(`dist/${name}.html: ${(html.length / 1024).toFixed(0)} КБ`);
 }
+
+// Версия для мобильного приложения: шрифты вшиты (работает без сети), без запросов к Google Fonts.
+{
+  let html = inline('index.html');
+  const fontsCss = fs.readFileSync(path.join(root, 'assets', 'fonts.css'), 'utf8').replace(/url\(fonts\/([^)]+)\)/g, (_, f) =>
+    `url(data:font/woff2;base64,${fs.readFileSync(path.join(root, 'assets', 'fonts', f)).toString('base64')})`);
+  html = html
+    .replace(/<link rel="preconnect"[^>]*>\s*/g, '')
+    .replace(/<link href="https:\/\/fonts\.googleapis\.com[^>]*>\s*/g, `<style>\n${fontsCss}</style>\n`)
+    .replace('<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+      '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">');
+  if (/fonts\.googleapis/.test(html)) throw new Error('Google Fonts не вырезаны из версии приложения');
+  fs.writeFileSync(path.join(root, 'dist', 'omut-app.html'), html);
+  console.log(`dist/omut-app.html: ${(html.length / 1024).toFixed(0)} КБ (шрифты внутри)`);
+}

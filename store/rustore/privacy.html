@@ -1,0 +1,75 @@
+<title>Омут — конфиденциальность</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Одна колонка документа, как страница из старой книги: заголовок-логотип игры, ровный текст, даты сбоку. */
+:root {
+  --bg: #f3efe6; --fg: #1d2230; --muted: #5d6474; --rule: #d6cfbf; --accent: #8a5a1c; --card: #ebe5d8;
+  --display: "Cormorant Garamond", "Times New Roman", serif;
+  --body: "PT Serif", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #090c14; --fg: #e9e2d0; --muted: #9aa0ae; --rule: #232a3a; --accent: #ffd27a; --card: #10151f; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #090c14; --fg: #e9e2d0; --muted: #9aa0ae; --rule: #232a3a; --accent: #ffd27a; --card: #10151f; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.65; }
+.wrap { max-width: 42rem; margin: 0 auto; padding-block: 3rem 4rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 1.6rem; }
+header { display: flex; flex-direction: column; gap: .3rem; border-bottom: 1px solid var(--rule); padding-bottom: 1.4rem; }
+.logo { font-family: var(--display); font-weight: 500; font-size: clamp(2.6rem, 9vw, 3.6rem); letter-spacing: .32em; line-height: 1; }
+.tag { font-family: var(--display); font-style: italic; color: var(--muted); letter-spacing: .08em; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 1.9rem; line-height: 1.15; margin: .8rem 0 0; text-wrap: balance; }
+.meta { color: var(--muted); font-size: .9rem; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; margin: 0; text-wrap: balance; }
+section { display: flex; flex-direction: column; gap: .5rem; }
+p, ul { margin: 0; }
+ul { padding-left: 1.2rem; display: flex; flex-direction: column; gap: .3rem; }
+.short { background: var(--card); border-left: 3px solid var(--accent); padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; }
+.short p { font-style: italic; }
+code { font-size: .9em; background: var(--card); padding: 0 .25em; border-radius: 3px; }
+footer { color: var(--muted); font-size: .9rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; }
+</style>
+<div class="wrap">
+  <header>
+    <div class="logo">ОМУТ</div>
+    <div class="tag">в тихом омуте…</div>
+    <h1>Политика конфиденциальности</h1>
+    <div class="meta">Мобильная игра «Омут» для Android · редакция от 20 октября 2026 года</div>
+  </header>
+
+  <div class="short"><p>Коротко: игра не собирает и не передаёт никаких данных о вас. Ваш прогресс хранится только на вашем телефоне.</p></div>
+
+  <section>
+    <h2>Какие данные собирает игра</h2>
+    <p>Никаких. «Омут» не запрашивает имя, почту, телефон, контакты, геолокацию, фотографии, микрофон или камеру. В игре нет регистрации, рекламы, аналитики, внутриигровых покупок и сторонних библиотек для сбора данных.</p>
+  </section>
+
+  <section>
+    <h2>Что хранится на устройстве</h2>
+    <p>Чтобы вы могли продолжить с того места, где остановились, игра записывает в память самого приложения:</p>
+    <ul>
+      <li>сохранение: текущую сцену, предметы и решения, принятые в сюжете;</li>
+      <li>полученные достижения и пройденные концовки;</li>
+      <li>настройку звука.</li>
+    </ul>
+    <p>Эти записи не покидают телефон и никому не отправляются. Они удаляются вместе с игрой или при очистке данных приложения в настройках Android. Начать заново можно и из меню паузы.</p>
+  </section>
+
+  <section>
+    <h2>Интернет и разрешения</h2>
+    <p>Игра работает полностью без сети: графика, звук и шрифты встроены в приложение. Разрешение на доступ в интернет объявлено технической оболочкой приложения (WebView), но игра им не пользуется и не обращается ни к каким серверам.</p>
+  </section>
+
+  <section>
+    <h2>Дети</h2>
+    <p>Игра не рассчитана на детей младше 12 лет из-за пугающих сцен и тем смерти. Данные детей, как и любые другие, игра не собирает.</p>
+  </section>
+
+  <section>
+    <h2>Изменения политики</h2>
+    <p>Если в будущей версии игры появится сбор каких-либо данных, эта страница будет обновлена до выхода такой версии, а в описании обновления будет об этом сказано.</p>
+  </section>
+
+  <footer>
+    Вопросы о конфиденциальности можно задать разработчику через страницу игры «Омут» в RuStore — раздел «Связаться с разработчиком».
+  </footer>
+</div>

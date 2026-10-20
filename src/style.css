@@ -194,3 +194,4 @@ button { font: inherit; color: inherit; }
 body.flip-on #flip-btn { display: block; }
 #flip-btn:hover { background: rgba(40,70,100,.6); }
 #frags.blue { background: radial-gradient(ellipse at 50% 50%, rgba(10,24,48,.86), rgba(0,0,0,.96)); }
+#ach-pop:not(.on) { opacity: 0; transition: transform .6s, opacity .3s .4s; }

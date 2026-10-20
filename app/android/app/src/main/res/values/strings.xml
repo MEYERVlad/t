@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Омут</string>
+    <string name="title_activity_main">Омут</string>
+    <string name="package_name">ru.tikhiyomut.omut</string>
+    <string name="custom_url_scheme">ru.tikhiyomut.omut</string>
+</resources>

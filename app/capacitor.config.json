@@ -1,0 +1,11 @@
+{
+  "appId": "ru.tikhiyomut.omut",
+  "appName": "Омут",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#05060a",
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

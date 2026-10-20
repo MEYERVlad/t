@@ -1,0 +1,61 @@
+<!doctype html><meta charset="utf-8"><title>Арт для магазина</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<body style="margin:0;background:#000"><canvas id="c"></canvas>
+<script src="../src/util.js"></script><script src="../src/paint.js"></script><script src="../src/actors.js"></script><script src="../src/figure.js"></script>
+<script>
+// Иконка, заставка и обложка для RuStore — тем же движком, что и игра.
+// ?art=bg|fg|icon|splash|cover&w=…&h=… ; рисует в canvas нужного размера.
+const q = new URLSearchParams(location.search);
+const art = q.get('art') || 'icon';
+const W0 = +(q.get('w') || 1024), H0 = +(q.get('h') || 1024);
+const c = document.getElementById('c'), g = c.getContext('2d');
+c.width = W0; c.height = H0;
+const P = OM.P, A = OM.Actors, TAU = Math.PI * 2;
+
+function night(g, w, h, hz, mx = 0.7) {
+  P.fillV(g, 0, 0, w, hz, [[0, '#03060e'], [0.6, '#0e1a30'], [1, '#22304a']]);
+  const r = OM.rng(5);
+  for (let i = 0; i < 160; i++) { g.fillStyle = `rgba(220,230,255,${0.2 + r() * 0.6})`; g.fillRect(r() * w, Math.pow(r(), 1.5) * hz * 0.8, 1.6 * w / 1024, 1.6 * w / 1024); }
+  P.moon(g, w * mx, hz * 0.32, w * 0.09);
+  P.forest(g, 7, { x0: -20, x1: w + 20, yb: hz, hMin: w * 0.025, hMax: w * 0.06, color: '#04070c', step: [w * 0.008, w * 0.018] });
+  P.fillV(g, 0, hz, w, h - hz, [[0, '#18233a'], [0.4, '#0b1322'], [1, '#02040a']]);
+  P.streak(g, w * mx, hz + 2, w * 0.06, h - hz, '#cfdcf0', 0.45, 11, 0);
+  for (let i = 0; i < 70; i++) { g.fillStyle = `rgba(160,185,220,${0.05 + r() * 0.08})`; g.fillRect(r() * w, hz + 4 + r() * (h - hz), w * (0.02 + r() * 0.06), 1.4); }
+}
+function tall(g, x, y, s, o = {}) {
+  // по пояс в воде — видно только то, что над водой
+  g.save();
+  g.beginPath(); g.rect(0, 0, 1e5, y - 120 * s); g.clip();
+  A.tall(g, Object.assign({ x, y, s, face: -1, alpha: 1, jitter: 0, body: '#020306', rim: { color: 'rgba(200,215,240,.7)', dx: 1.4 }, face2: 1.2 }, o), 1.3);
+  g.restore();
+  for (let i = 0; i < 3; i++) {
+    g.strokeStyle = `rgba(200,215,240,${0.45 - i * 0.12})`;
+    g.lineWidth = 2 * s;
+    g.beginPath(); g.ellipse(x, y - 120 * s, (40 + i * 34) * s, (6 + i * 4) * s, 0, 0, TAU); g.stroke();
+  }
+}
+function thread(g, a, b, w) { OM.thread(g, a, b, 0.4, { color: '#ffd27a', a: 1, sag: 40 * w / 1024, w: 3 * w / 1024 }); }
+function logo(g, x, y, size, tag) {
+  P.text(g, 'ОМУТ', x, y, { font: `500 ${size}px "Cormorant Garamond", serif`, color: '#ece2cc', ls: size * 0.28 });
+  if (tag) P.text(g, 'в тихом омуте…', x, y + size * 0.62, { font: `italic 500 ${size * 0.22}px "Cormorant Garamond", serif`, color: 'rgba(236,226,204,.65)', ls: size * 0.05 });
+}
+
+document.fonts.ready.then(() => {
+  if (art === 'bg') night(g, W0, H0, H0 * 0.6);
+  if (art === 'fg') { tall(g, W0 * 0.5, H0 * 0.9, W0 * 0.00155); thread(g, [W0 * 0.5, H0 * 0.14], [W0 * 0.515, H0 * 0.3], W0); }
+  if (art === 'icon') { night(g, W0, H0, H0 * 0.6); tall(g, W0 * 0.5, H0 * 0.9, W0 * 0.00155); thread(g, [W0 * 0.5, H0 * 0.14], [W0 * 0.515, H0 * 0.3], W0); }
+  if (art === 'splash') {
+    g.fillStyle = '#05060a'; g.fillRect(0, 0, W0, H0);
+    const m = Math.min(W0, H0);
+    P.glow(g, W0 / 2, H0 / 2, m * 0.6, '#1a2a44', 0.6);
+    logo(g, W0 / 2, H0 / 2, m * 0.16, true);
+  }
+  if (art === 'cover') {
+    night(g, W0, H0, H0 * 0.62, 0.88);
+    tall(g, W0 * 0.68, H0 * 1.02, H0 * 0.00125);
+    thread(g, [W0 * 0.68, H0 * 0.12], [W0 * 0.69, H0 * 0.44], H0);
+    logo(g, W0 * 0.32, H0 * 0.42, H0 * 0.2, true);
+  }
+  document.title = 'done';
+});
+</script>

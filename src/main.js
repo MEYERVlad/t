@@ -95,6 +95,7 @@
   }
 
   OM.toTitle = showTitle;
+  OM.toggleMenu = (on) => toggleMenu(on);
 
   window.addEventListener('DOMContentLoaded', () => {
     OM.boot();
