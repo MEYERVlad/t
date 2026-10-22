@@ -1,4 +1,4 @@
-#include "UI/LaptopWidget.h"
+﻿#include "UI/LaptopWidget.h"
 
 #include "Blueprint/WidgetTree.h"
 #include "Case/CaseStateSubsystem.h"
@@ -439,7 +439,7 @@ void ULaptopWidget::BuildBoardApp()
 	{
 		const FCaseLink& L = Links[i];
 		UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
-		const FText LinkText = FText::Format(FText::FromString(TEXT("{0}  —  {1}  —  {2}")), EvidenceTitle(L.A), LinkTypeName(L.Type), EvidenceTitle(L.B));
+		const FText LinkText = FText::Format(FText::FromString(TEXT("{0}  -  {1}  -  {2}")), EvidenceTitle(L.A), LinkTypeName(L.Type), EvidenceTitle(L.B));
 		if (UHorizontalBoxSlot* S = Row->AddChildToHorizontalBox(MakeText(LinkText, 20, BylaUI::Text)))
 		{
 			S->SetSize(FSlateChildSize(ESlateSizeRule::Fill));

@@ -1,4 +1,4 @@
-#include "Gameplay/DetectiveCharacter.h"
+﻿#include "Gameplay/DetectiveCharacter.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"

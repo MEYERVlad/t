@@ -1,4 +1,4 @@
-#include "Case/CaseStateSubsystem.h"
+﻿#include "Case/CaseStateSubsystem.h"
 
 #include "Case/CaseSaveGame.h"
 #include "Dom/JsonObject.h"
@@ -31,12 +31,12 @@ namespace CaseData
 		const FString Path = DataPath(File);
 		if (!FFileHelper::LoadFileToString(Json, *Path))
 		{
-			UE_LOG(LogCase, Error, TEXT("Не удалось прочитать %s"), *Path);
+			UE_LOG(LogCase, Error, TEXT("Cannot read case data file %s"), *Path);
 			return;
 		}
 		if (!FJsonObjectConverter::JsonArrayStringToUStruct(Json, &Out, 0, 0))
 		{
-			UE_LOG(LogCase, Error, TEXT("Ошибка JSON в %s"), *Path);
+			UE_LOG(LogCase, Error, TEXT("JSON error in %s"), *Path);
 		}
 	}
 }
@@ -91,7 +91,7 @@ void UCaseStateSubsystem::LoadData()
 		}
 	}
 
-	UE_LOG(LogCase, Log, TEXT("Дело загружено: улик %d, постов %d, версий %d, решений %d, предметов %d, строк UI %d"),
+	UE_LOG(LogCase, Log, TEXT("Case loaded: evidence %d, feed %d, hypotheses %d, decisions %d, objects %d, ui strings %d"),
 		Evidence.Num(), FeedItems.Num(), Hypotheses.Num(), Decisions.Num(), Objects.Num(), UIStrings.Num());
 }
 
@@ -140,7 +140,7 @@ void UCaseStateSubsystem::AddEvidence(FName Id)
 	}
 	if (!Evidence.Contains(Id))
 	{
-		UE_LOG(LogCase, Warning, TEXT("Неизвестная улика: %s"), *Id.ToString());
+		UE_LOG(LogCase, Warning, TEXT("Unknown evidence: %s"), *Id.ToString());
 		return;
 	}
 	KnownEvidence.Add(Id);
@@ -155,7 +155,7 @@ void UCaseStateSubsystem::SetFlag(FName Flag)
 		return;
 	}
 	Flags.Add(Flag);
-	UE_LOG(LogCase, Log, TEXT("Флаг: %s"), *Flag.ToString());
+	UE_LOG(LogCase, Log, TEXT("Flag set: %s"), *Flag.ToString());
 	ScheduleFeedForFlag(Flag);
 	MarkChanged();
 }
@@ -377,7 +377,7 @@ bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage)
 	const FCaseObject* O = Objects.Find(ObjectId);
 	if (!O)
 	{
-		UE_LOG(LogCase, Warning, TEXT("Неизвестный предмет: %s"), *ObjectId.ToString());
+		UE_LOG(LogCase, Warning, TEXT("Unknown object: %s"), *ObjectId.ToString());
 		return false;
 	}
 	if (!HasFlag(O->RequiresFlag))
