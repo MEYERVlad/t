@@ -1,0 +1,193 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "CaseTypes.generated.h"
+
+// Все структуры читаются из JSON в Content/Data/Case/.
+// Ключи JSON совпадают с именами полей (регистр не важен).
+
+/** Улика / карточка на доске: человек, документ, место, пост, факт. */
+USTRUCT(BlueprintType)
+struct FCaseEvidence
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	/** person, document, place, post, fact, statement */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Kind;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Title;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Description;
+
+	/** Известна с начала игры. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	bool bStartsKnown = false;
+};
+
+/** Связь между двумя карточками на доске «СЛЕД». Направление не важно. */
+USTRUCT(BlueprintType)
+struct FCaseLink
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName A;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName B;
+
+	/** points_to, contradicts, alibi, wrote, was_at, owns */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Type;
+
+	bool Matches(const FCaseLink& Other) const
+	{
+		return Type == Other.Type
+			&& ((A == Other.A && B == Other.B) || (A == Other.B && B == Other.A));
+	}
+};
+
+/** Пост в «Круге» или письмо в почте. Публикуется через DelaySeconds после флага TriggerFlag. */
+USTRUCT(BlueprintType)
+struct FCaseFeedItem
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	/** krug или mail */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Channel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Author;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FString DateLabel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName TriggerFlag;
+
+	/** Если задан и не выставлен к моменту публикации — пост не выходит. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName RequiresFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	float DelaySeconds = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> GrantsEvidence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName SetsFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	int32 TrustDelta = 0;
+};
+
+/** Версия, которую можно доложить с доски «СЛЕД». */
+USTRUCT(BlueprintType)
+struct FCaseHypothesis
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Title;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseLink> Links;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName RequiresFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName SetsFlag;
+
+	/** Ложная, но логически цельная версия: принимается, последствия приходят позже. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	bool bTrap = false;
+};
+
+USTRUCT(BlueprintType)
+struct FCaseDecisionOption
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Label;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName SetsFlag;
+};
+
+/** Решение игрока (в т.ч. точка невозврата и будущее голосование чата). */
+USTRUCT(BlueprintType)
+struct FCaseDecision
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Prompt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Description;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName RequiresFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	bool bPointOfNoReturn = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseDecisionOption> Options;
+};
+
+/** Предмет в мире, с которым можно взаимодействовать (папка, телефон, распечатка). */
+USTRUCT(BlueprintType)
+struct FCaseObject
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Prompt;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText InspectText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> EvidenceIds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName SetsFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName RequiresFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText LockedMessage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText DoneMessage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	bool bOneShot = true;
+};

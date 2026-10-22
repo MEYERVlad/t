@@ -1,0 +1,472 @@
+#include "Case/CaseStateSubsystem.h"
+
+#include "Case/CaseSaveGame.h"
+#include "Dom/JsonObject.h"
+#include "Engine/GameInstance.h"
+#include "JsonObjectConverter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "TimerManager.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogCase, Log, All);
+
+namespace CaseData
+{
+	static const TCHAR* SaveSlot = TEXT("case_autosave");
+	static const FName StartFlag(TEXT("start"));
+	static constexpr int32 WrongReportPenalty = 10;
+
+	static FString DataPath(const TCHAR* File)
+	{
+		return FPaths::ProjectContentDir() / TEXT("Data/Case") / File;
+	}
+
+	template <typename T>
+	static void LoadArray(const TCHAR* File, TArray<T>& Out)
+	{
+		FString Json;
+		const FString Path = DataPath(File);
+		if (!FFileHelper::LoadFileToString(Json, *Path))
+		{
+			UE_LOG(LogCase, Error, TEXT("Не удалось прочитать %s"), *Path);
+			return;
+		}
+		if (!FJsonObjectConverter::JsonArrayStringToUStruct(Json, &Out, 0, 0))
+		{
+			UE_LOG(LogCase, Error, TEXT("Ошибка JSON в %s"), *Path);
+		}
+	}
+}
+
+void UCaseStateSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	LoadData();
+}
+
+void UCaseStateSubsystem::Deinitialize()
+{
+	ClearTimers();
+	Super::Deinitialize();
+}
+
+void UCaseStateSubsystem::LoadData()
+{
+	TArray<FCaseEvidence> EvidenceList;
+	CaseData::LoadArray(TEXT("evidence.json"), EvidenceList);
+	for (const FCaseEvidence& E : EvidenceList)
+	{
+		Evidence.Add(E.Id, E);
+	}
+
+	CaseData::LoadArray(TEXT("feed.json"), FeedItems);
+	CaseData::LoadArray(TEXT("hypotheses.json"), Hypotheses);
+	CaseData::LoadArray(TEXT("decisions.json"), Decisions);
+
+	TArray<FCaseObject> ObjectList;
+	CaseData::LoadArray(TEXT("objects.json"), ObjectList);
+	for (const FCaseObject& O : ObjectList)
+	{
+		Objects.Add(O.Id, O);
+	}
+
+	FString Json;
+	if (FFileHelper::LoadFileToString(Json, *CaseData::DataPath(TEXT("ui_strings.json"))))
+	{
+		TSharedPtr<FJsonObject> Root;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Json);
+		if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+		{
+			for (const auto& Pair : Root->Values)
+			{
+				FString Value;
+				if (Pair.Value.IsValid() && Pair.Value->TryGetString(Value))
+				{
+					UIStrings.Add(FName(*Pair.Key), FText::FromString(Value));
+				}
+			}
+		}
+	}
+
+	UE_LOG(LogCase, Log, TEXT("Дело загружено: улик %d, постов %d, версий %d, решений %d, предметов %d, строк UI %d"),
+		Evidence.Num(), FeedItems.Num(), Hypotheses.Num(), Decisions.Num(), Objects.Num(), UIStrings.Num());
+}
+
+FText UCaseStateSubsystem::UI(FName Key) const
+{
+	if (const FText* Found = UIStrings.Find(Key))
+	{
+		return *Found;
+	}
+	return FText::FromName(Key);
+}
+
+void UCaseStateSubsystem::StartNewCase()
+{
+	ClearTimers();
+	KnownEvidence.Reset();
+	Flags.Reset();
+	PublishedFeed.Reset();
+	ScheduledFeed.Reset();
+	Links.Reset();
+	ConfirmedHypotheses.Reset();
+	DecidedDecisions.Reset();
+	UsedObjects.Reset();
+	Trust = 60;
+	bLinksChangedSinceReport = true;
+
+	for (const auto& Pair : Evidence)
+	{
+		if (Pair.Value.bStartsKnown)
+		{
+			KnownEvidence.Add(Pair.Key);
+		}
+	}
+
+	SetFlag(CaseData::StartFlag);
+	MarkChanged();
+}
+
+// ---------------------------------------------------------------- Улики и флаги
+
+void UCaseStateSubsystem::AddEvidence(FName Id)
+{
+	if (Id.IsNone() || KnownEvidence.Contains(Id))
+	{
+		return;
+	}
+	if (!Evidence.Contains(Id))
+	{
+		UE_LOG(LogCase, Warning, TEXT("Неизвестная улика: %s"), *Id.ToString());
+		return;
+	}
+	KnownEvidence.Add(Id);
+	OnEvidenceAdded.Broadcast(Id);
+	MarkChanged();
+}
+
+void UCaseStateSubsystem::SetFlag(FName Flag)
+{
+	if (Flag.IsNone() || Flags.Contains(Flag))
+	{
+		return;
+	}
+	Flags.Add(Flag);
+	UE_LOG(LogCase, Log, TEXT("Флаг: %s"), *Flag.ToString());
+	ScheduleFeedForFlag(Flag);
+	MarkChanged();
+}
+
+void UCaseStateSubsystem::ChangeTrust(int32 Delta)
+{
+	if (Delta == 0)
+	{
+		return;
+	}
+	Trust = FMath::Clamp(Trust + Delta, 0, 100);
+	MarkChanged();
+}
+
+// ---------------------------------------------------------------- Лента
+
+void UCaseStateSubsystem::ScheduleFeedForFlag(FName Flag)
+{
+	UGameInstance* GI = GetGameInstance();
+	for (const FCaseFeedItem& Item : FeedItems)
+	{
+		if (Item.TriggerFlag != Flag || ScheduledFeed.Contains(Item.Id) || PublishedFeed.Contains(Item.Id))
+		{
+			continue;
+		}
+		ScheduledFeed.Add(Item.Id);
+
+		if (Item.DelaySeconds <= 0.f || !GI)
+		{
+			PublishFeedItem(Item.Id);
+		}
+		else
+		{
+			FTimerHandle Handle;
+			GI->GetTimerManager().SetTimer(Handle,
+				FTimerDelegate::CreateUObject(this, &UCaseStateSubsystem::PublishFeedItem, Item.Id),
+				Item.DelaySeconds, false);
+			FeedTimers.Add(Handle);
+		}
+	}
+}
+
+void UCaseStateSubsystem::PublishFeedItem(FName Id)
+{
+	const FCaseFeedItem* Item = FeedItems.FindByPredicate([Id](const FCaseFeedItem& I) { return I.Id == Id; });
+	if (!Item || PublishedFeed.Contains(Id) || !HasFlag(Item->RequiresFlag))
+	{
+		return;
+	}
+
+	PublishedFeed.Add(Id);
+	for (const FName& E : Item->GrantsEvidence)
+	{
+		AddEvidence(E);
+	}
+	if (Item->TrustDelta != 0)
+	{
+		ChangeTrust(Item->TrustDelta);
+	}
+	OnFeedPublished.Broadcast(Id);
+	SetFlag(Item->SetsFlag);
+	MarkChanged();
+}
+
+TArray<const FCaseFeedItem*> UCaseStateSubsystem::GetPublishedFeed(FName Channel) const
+{
+	TArray<const FCaseFeedItem*> Result;
+	for (int32 i = PublishedFeed.Num() - 1; i >= 0; --i)
+	{
+		const FName Id = PublishedFeed[i];
+		const FCaseFeedItem* Item = FeedItems.FindByPredicate([Id](const FCaseFeedItem& I) { return I.Id == Id; });
+		if (Item && Item->Channel == Channel)
+		{
+			Result.Add(Item);
+		}
+	}
+	return Result;
+}
+
+// ---------------------------------------------------------------- Доска «СЛЕД»
+
+void UCaseStateSubsystem::AddLink(FName A, FName B, FName Type)
+{
+	if (A.IsNone() || B.IsNone() || A == B || Type.IsNone())
+	{
+		return;
+	}
+	FCaseLink NewLink;
+	NewLink.A = A;
+	NewLink.B = B;
+	NewLink.Type = Type;
+	for (const FCaseLink& L : Links)
+	{
+		if (L.Matches(NewLink))
+		{
+			return;
+		}
+	}
+	Links.Add(NewLink);
+	bLinksChangedSinceReport = true;
+	MarkChanged();
+}
+
+void UCaseStateSubsystem::RemoveLink(int32 Index)
+{
+	if (Links.IsValidIndex(Index))
+	{
+		Links.RemoveAt(Index);
+		bLinksChangedSinceReport = true;
+		MarkChanged();
+	}
+}
+
+FCaseReportResult UCaseStateSubsystem::ReportHypothesis()
+{
+	FCaseReportResult Result;
+
+	if (Links.Num() == 0)
+	{
+		Result.Message = UI(TEXT("report_need_links"));
+		return Result;
+	}
+	if (!bLinksChangedSinceReport)
+	{
+		Result.Message = UI(TEXT("report_nothing_new"));
+		return Result;
+	}
+	bLinksChangedSinceReport = false;
+
+	for (const FCaseHypothesis& H : Hypotheses)
+	{
+		if (ConfirmedHypotheses.Contains(H.Id) || !HasFlag(H.RequiresFlag) || H.Links.Num() == 0)
+		{
+			continue;
+		}
+
+		bool bAllFound = true;
+		for (const FCaseLink& Required : H.Links)
+		{
+			const bool bFound = Links.ContainsByPredicate([&Required](const FCaseLink& L) { return L.Matches(Required); });
+			if (!bFound)
+			{
+				bAllFound = false;
+				break;
+			}
+		}
+
+		if (bAllFound)
+		{
+			ConfirmedHypotheses.Add(H.Id);
+			// Ловушки принимаются так же, как верные версии: игрок узнает об ошибке позже.
+			SetFlag(H.SetsFlag);
+			Result.bAccepted = true;
+			Result.Message = FText::Format(UI(TEXT("report_ok")), H.Title);
+			MarkChanged();
+			return Result;
+		}
+	}
+
+	ChangeTrust(-CaseData::WrongReportPenalty);
+	Result.Message = UI(TEXT("report_fail"));
+	return Result;
+}
+
+TArray<const FCaseHypothesis*> UCaseStateSubsystem::GetConfirmedHypotheses() const
+{
+	TArray<const FCaseHypothesis*> Result;
+	for (const FName& Id : ConfirmedHypotheses)
+	{
+		if (const FCaseHypothesis* H = Hypotheses.FindByPredicate([Id](const FCaseHypothesis& X) { return X.Id == Id; }))
+		{
+			Result.Add(H);
+		}
+	}
+	return Result;
+}
+
+// ---------------------------------------------------------------- Решения
+
+TArray<const FCaseDecision*> UCaseStateSubsystem::GetAvailableDecisions() const
+{
+	TArray<const FCaseDecision*> Result;
+	for (const FCaseDecision& D : Decisions)
+	{
+		if (!DecidedDecisions.Contains(D.Id) && HasFlag(D.RequiresFlag))
+		{
+			Result.Add(&D);
+		}
+	}
+	return Result;
+}
+
+void UCaseStateSubsystem::ChooseDecision(FName DecisionId, int32 OptionIndex)
+{
+	const FCaseDecision* D = Decisions.FindByPredicate([DecisionId](const FCaseDecision& X) { return X.Id == DecisionId; });
+	if (!D || DecidedDecisions.Contains(DecisionId) || !D->Options.IsValidIndex(OptionIndex))
+	{
+		return;
+	}
+	DecidedDecisions.Add(DecisionId);
+	SetFlag(FName(*FString::Printf(TEXT("decided_%s"), *DecisionId.ToString())));
+	SetFlag(D->Options[OptionIndex].SetsFlag);
+	MarkChanged();
+}
+
+// ---------------------------------------------------------------- Предметы
+
+FText UCaseStateSubsystem::GetObjectPrompt(FName ObjectId) const
+{
+	if (const FCaseObject* O = Objects.Find(ObjectId))
+	{
+		return O->Prompt;
+	}
+	return FText::FromName(ObjectId);
+}
+
+bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage)
+{
+	const FCaseObject* O = Objects.Find(ObjectId);
+	if (!O)
+	{
+		UE_LOG(LogCase, Warning, TEXT("Неизвестный предмет: %s"), *ObjectId.ToString());
+		return false;
+	}
+	if (!HasFlag(O->RequiresFlag))
+	{
+		OutMessage = O->LockedMessage;
+		return false;
+	}
+	if (O->bOneShot && UsedObjects.Contains(ObjectId))
+	{
+		OutMessage = O->DoneMessage.IsEmpty() ? O->InspectText : O->DoneMessage;
+		return false;
+	}
+
+	UsedObjects.Add(ObjectId);
+	OutMessage = O->InspectText;
+	for (const FName& E : O->EvidenceIds)
+	{
+		AddEvidence(E);
+	}
+	SetFlag(O->SetsFlag);
+	MarkChanged();
+	return true;
+}
+
+// ---------------------------------------------------------------- Служебное
+
+void UCaseStateSubsystem::ClearTimers()
+{
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		for (FTimerHandle& Handle : FeedTimers)
+		{
+			GI->GetTimerManager().ClearTimer(Handle);
+		}
+	}
+	FeedTimers.Reset();
+}
+
+void UCaseStateSubsystem::MarkChanged()
+{
+	OnCaseChanged.Broadcast();
+	SaveCase();
+}
+
+bool UCaseStateSubsystem::SaveCase() const
+{
+	UCaseSaveGame* Save = Cast<UCaseSaveGame>(UGameplayStatics::CreateSaveGameObject(UCaseSaveGame::StaticClass()));
+	if (!Save)
+	{
+		return false;
+	}
+	Save->KnownEvidence = KnownEvidence;
+	Save->Flags = Flags.Array();
+	Save->PublishedFeed = PublishedFeed;
+	Save->Links = Links;
+	Save->ConfirmedHypotheses = ConfirmedHypotheses;
+	Save->DecidedDecisions = DecidedDecisions;
+	Save->UsedObjects = UsedObjects.Array();
+	Save->Trust = Trust;
+	return UGameplayStatics::SaveGameToSlot(Save, CaseData::SaveSlot, 0);
+}
+
+bool UCaseStateSubsystem::LoadCase()
+{
+	UCaseSaveGame* Save = Cast<UCaseSaveGame>(UGameplayStatics::LoadGameFromSlot(CaseData::SaveSlot, 0));
+	if (!Save)
+	{
+		return false;
+	}
+	ClearTimers();
+	KnownEvidence = Save->KnownEvidence;
+	Flags.Reset();
+	Flags.Append(Save->Flags);
+	PublishedFeed = Save->PublishedFeed;
+	ScheduledFeed.Reset();
+	ScheduledFeed.Append(Save->PublishedFeed);
+	Links = Save->Links;
+	ConfirmedHypotheses = Save->ConfirmedHypotheses;
+	DecidedDecisions = Save->DecidedDecisions;
+	UsedObjects.Reset();
+	UsedObjects.Append(Save->UsedObjects);
+	Trust = Save->Trust;
+	bLinksChangedSinceReport = true;
+
+	// Посты, которые ждали таймера в момент сохранения, планируем заново.
+	for (const FName& Flag : Save->Flags)
+	{
+		ScheduleFeedForFlag(Flag);
+	}
+	OnCaseChanged.Broadcast();
+	return true;
+}

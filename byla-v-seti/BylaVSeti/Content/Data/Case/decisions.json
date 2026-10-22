@@ -1,0 +1,13 @@
+[
+	{
+		"id": "artem_fate",
+		"prompt": "Что делать с Артёмом Лаптевым?",
+		"description": "У вас есть 14 попыток взлома с его IP, его угрозы на форуме и мотив. Гранин ждёт результат. Решение нельзя будет изменить.",
+		"requiresFlag": "artem_interrogated",
+		"bPointOfNoReturn": true,
+		"options": [
+			{ "label": "Задержать по ст. 272 УК РФ (неправомерный доступ)", "setsFlag": "artem_arrested" },
+			{ "label": "Отпустить под подписку о невыезде", "setsFlag": "artem_released" }
+		]
+	}
+]

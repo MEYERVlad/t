@@ -1,0 +1,39 @@
+[
+	{
+		"id": "hyp_volna",
+		"title": "«Алина» указывает на лодочную станцию «Волна» — место, которого нет в материалах дела.",
+		"links": [
+			{ "a": "post_03", "b": "place_volna", "type": "points_to" },
+			{ "a": "place_volna", "b": "case_verdict", "type": "contradicts" }
+		],
+		"setsFlag": "volna_noted"
+	},
+	{
+		"id": "hyp_artem_trap",
+		"title": "Страницу Алины ведёт Артём Лаптев, чтобы вытащить брата.",
+		"links": [
+			{ "a": "login_2020", "b": "person_artem", "type": "points_to" },
+			{ "a": "person_artem", "b": "post_01", "type": "wrote" }
+		],
+		"setsFlag": "theory_artem",
+		"bTrap": true
+	},
+	{
+		"id": "hyp_not_artem",
+		"title": "Страницу ведёт не Артём: пост вышел, пока он сидел на допросе, а его VPN ведёт в Хельсинки, не в Амстердам.",
+		"links": [
+			{ "a": "post_04", "b": "person_artem", "type": "alibi" },
+			{ "a": "artem_statement", "b": "login_2026", "type": "contradicts" }
+		],
+		"requiresFlag": "post_04_published",
+		"setsFlag": "artem_cleared"
+	},
+	{
+		"id": "hyp_token",
+		"title": "Тот, кто ведёт страницу, получил доступ в октябре 2016 года — во время следствия. Токен сессии выдан 20.10.2016.",
+		"links": [
+			{ "a": "login_2026", "b": "case_verdict", "type": "points_to" }
+		],
+		"setsFlag": "token_noted"
+	}
+]
