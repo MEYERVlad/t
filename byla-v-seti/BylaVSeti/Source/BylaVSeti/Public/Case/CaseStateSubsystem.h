@@ -12,6 +12,14 @@ struct FCaseReportResult
 	FText Message;
 };
 
+/** Итог предъявления улики на допросе. */
+struct FCasePresentResult
+{
+	bool bCorrect = false;
+	bool bFinished = false;
+	FText Reaction;
+};
+
 /**
  * Сердце расследования: данные дела (из JSON) и состояние игрока.
  * Улики, флаги, доверие начальства, посты по таймерам, доска «СЛЕД», решения, сохранение.
@@ -60,11 +68,15 @@ public:
 	// --- Лента и почта ---
 	/** Опубликованные записи канала, новые первыми. */
 	TArray<const FCaseFeedItem*> GetPublishedFeed(FName Channel) const;
+	const FCaseFeedItem* FindFeedItem(FName Id) const;
 
 	// --- Доска «СЛЕД» ---
 	void AddLink(FName A, FName B, FName Type);
 	void RemoveLink(int32 Index);
 	const TArray<FCaseLink>& GetLinks() const { return Links; }
+	/** Позиция карточки на доске (если игрок не двигал — место по сетке). */
+	FVector2D GetCardPosition(FName Id) const;
+	void SetCardPosition(FName Id, const FVector2D& Position);
 	FCaseReportResult ReportHypothesis();
 	TArray<const FCaseHypothesis*> GetConfirmedHypotheses() const;
 
@@ -74,8 +86,19 @@ public:
 
 	// --- Предметы в мире ---
 	FText GetObjectPrompt(FName ObjectId) const;
-	/** Возвращает true, если предмет сработал. В OutMessage — текст для игрока. */
-	bool UseObject(FName ObjectId, FText& OutMessage);
+	/**
+	 * Возвращает true, если предмет сработал. В OutMessage — текст для игрока.
+	 * Если предмет открывает допрос, его Id будет в OutInterrogation.
+	 */
+	bool UseObject(FName ObjectId, FText& OutMessage, FName& OutInterrogation);
+
+	// --- Допросы ---
+	const FCaseInterrogation* FindInterrogation(FName Id) const;
+	/** Показания, которые сейчас видны игроку (с учётом RequiresStatement). */
+	TArray<const FCaseStatement*> GetVisibleStatements(FName InterrogationId) const;
+	bool IsStatementBroken(FName InterrogationId, FName StatementId) const;
+	bool IsInterrogationFinished(FName InterrogationId) const { return FinishedInterrogations.Contains(InterrogationId); }
+	FCasePresentResult PresentEvidence(FName InterrogationId, FName StatementId, FName EvidenceId);
 
 private:
 	void LoadData();
@@ -83,6 +106,7 @@ private:
 	void PublishFeedItem(FName Id);
 	void ClearTimers();
 	void MarkChanged();
+	static FName StatementKey(FName InterrogationId, FName StatementId);
 
 	// Данные дела
 	TMap<FName, FCaseEvidence> Evidence;
@@ -90,6 +114,7 @@ private:
 	TArray<FCaseHypothesis> Hypotheses;
 	TArray<FCaseDecision> Decisions;
 	TMap<FName, FCaseObject> Objects;
+	TArray<FCaseInterrogation> Interrogations;
 	TMap<FName, FText> UIStrings;
 
 	// Состояние игрока
@@ -101,6 +126,9 @@ private:
 	TArray<FName> ConfirmedHypotheses;
 	TArray<FName> DecidedDecisions;
 	TSet<FName> UsedObjects;
+	TSet<FName> BrokenStatements;
+	TSet<FName> FinishedInterrogations;
+	TMap<FName, FVector2D> CardPositions;
 	int32 Trust = 60;
 	bool bLinksChangedSinceReport = true;
 

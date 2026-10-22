@@ -10,7 +10,10 @@
 		"id": "login_printout",
 		"prompt": "Распечатка журнала входов («Круг»)",
 		"inspectText": "Два интересных места: попытки взлома в 2020-м — и входы этой осенью без пароля, по старому токену, через VPN.",
-		"evidenceIds": ["login_2020", "login_2026"],
+		"evidenceIds": [
+			"login_2020",
+			"login_2026"
+		],
 		"setsFlag": "login_log_read",
 		"doneMessage": "Распечатка уже изучена."
 	},
@@ -18,7 +21,10 @@
 		"id": "forum_printout",
 		"prompt": "Распечатка с форума «Северогорск онлайн»",
 		"inspectText": "Кто-то из оперов оставил на тумбочке распечатку. Артём Лаптев, 2021 год: «Вытащу брата любой ценой».",
-		"evidenceIds": ["person_artem", "artem_forum"],
+		"evidenceIds": [
+			"person_artem",
+			"artem_forum"
+		],
 		"setsFlag": "forum_read",
 		"doneMessage": "Распечатка уже изучена."
 	},
@@ -26,7 +32,9 @@
 		"id": "desk_phone",
 		"prompt": "Рабочий телефон: вызвать Артёма Лаптева",
 		"inspectText": "«Артём Андреевич? Следователь Ветров. Подъезжайте в отдел, разговор есть». Пауза. «Это про Дениса? Еду».",
-		"evidenceIds": ["person_artem"],
+		"evidenceIds": [
+			"person_artem"
+		],
 		"setsFlag": "artem_called",
 		"requiresFlag": "login_log_read",
 		"lockedMessage": "Сначала разберитесь, кто заходил на страницу Алины. Распечатка журнала входов где-то на столе.",
@@ -35,11 +43,9 @@
 	{
 		"id": "interrogation_artem",
 		"prompt": "Допросить Артёма Лаптева",
-		"inspectText": "Артём не смотрит в глаза, но отвечает сразу. «Да, в двадцатом я пытался зайти. С тех пор не лез». Кладёт телефон на стол экраном вверх: «Смотрите что хотите».",
-		"evidenceIds": ["artem_statement"],
-		"setsFlag": "artem_interrogated",
 		"requiresFlag": "artem_called",
 		"lockedMessage": "В допросной пусто. Артёма нужно сначала вызвать — рабочий телефон у вас на столе.",
-		"doneMessage": "Артём ждёт решения. Решение — в ноутбуке, раздел «Решения»."
+		"interrogationId": "artem",
+		"bOneShot": false
 	}
 ]

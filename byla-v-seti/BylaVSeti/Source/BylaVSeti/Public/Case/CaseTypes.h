@@ -190,4 +190,93 @@ struct FCaseObject
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
 	bool bOneShot = true;
+
+	/** Если задан — предмет открывает допрос с этим Id (interrogations.json). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName InterrogationId;
+};
+
+/** Одно показание на допросе. Его можно опровергнуть уликой ContradictedBy. */
+USTRUCT(BlueprintType)
+struct FCaseStatement
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+
+	/** Улика, которая опровергает показание. Пусто — показание правдивое. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName ContradictedBy;
+
+	/** Что говорит персонаж, когда показание опровергнуто. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Reaction;
+
+	/** Реакция на неверную улику (если пусто — общая реакция допроса). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText WrongReaction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> GrantsEvidence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName SetsFlag;
+
+	/** Показание появляется только после того, как опровергнуто это. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName RequiresStatement;
+};
+
+/** Реакция персонажа на пост или письмо, пришедшее прямо во время допроса. */
+USTRUCT(BlueprintType)
+struct FCaseLiveReaction
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName FeedId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+};
+
+USTRUCT(BlueprintType)
+struct FCaseInterrogation
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Person;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Intro;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseStatement> Statements;
+
+	/** Допрос завершён, когда опровергнуты все эти показания. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> RequiredStatements;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName FinishFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> FinishEvidence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText FinishText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText WrongReaction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseLiveReaction> LiveReactions;
 };

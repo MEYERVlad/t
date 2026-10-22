@@ -3,6 +3,7 @@
 #include "Case/CaseStateSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "UI/GameHudWidget.h"
+#include "UI/InterrogationWidget.h"
 #include "UI/LaptopWidget.h"
 
 UCaseStateSubsystem* ADetectivePlayerController::GetCase() const
@@ -56,19 +57,30 @@ void ADetectivePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 
 void ADetectivePlayerController::OpenLaptop()
 {
-	if (Laptop)
+	OpenPanel(CreateWidget<ULaptopWidget>(this, ULaptopWidget::StaticClass()));
+}
+
+void ADetectivePlayerController::OpenInterrogation(FName InterrogationId)
+{
+	UInterrogationWidget* Widget = CreateWidget<UInterrogationWidget>(this, UInterrogationWidget::StaticClass());
+	if (Widget)
+	{
+		Widget->SetInterrogation(InterrogationId);
+	}
+	OpenPanel(Widget);
+}
+
+void ADetectivePlayerController::OpenPanel(UBylaPanelWidget* Panel)
+{
+	if (ActivePanel || !Panel)
 	{
 		return;
 	}
-	Laptop = CreateWidget<ULaptopWidget>(this, ULaptopWidget::StaticClass());
-	if (!Laptop)
-	{
-		return;
-	}
-	Laptop->AddToViewport(10);
+	ActivePanel = Panel;
+	ActivePanel->AddToViewport(10);
 
 	FInputModeUIOnly Mode;
-	Mode.SetWidgetToFocus(Laptop->TakeWidget());
+	Mode.SetWidgetToFocus(ActivePanel->TakeWidget());
 	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetInputMode(Mode);
 	bShowMouseCursor = true;
@@ -76,14 +88,14 @@ void ADetectivePlayerController::OpenLaptop()
 	SetInteractionPrompt(FText::GetEmpty());
 }
 
-void ADetectivePlayerController::CloseLaptop()
+void ADetectivePlayerController::ClosePanel()
 {
-	if (!Laptop)
+	if (!ActivePanel)
 	{
 		return;
 	}
-	Laptop->RemoveFromParent();
-	Laptop = nullptr;
+	ActivePanel->RemoveFromParent();
+	ActivePanel = nullptr;
 
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
@@ -101,7 +113,7 @@ void ADetectivePlayerController::SetInteractionPrompt(const FText& Prompt)
 {
 	if (Hud)
 	{
-		Hud->SetPrompt(Laptop ? FText::GetEmpty() : Prompt);
+		Hud->SetPrompt(ActivePanel ? FText::GetEmpty() : Prompt);
 	}
 }
 

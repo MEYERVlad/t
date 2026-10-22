@@ -4,8 +4,8 @@
 #include "GameFramework/PlayerController.h"
 #include "DetectivePlayerController.generated.h"
 
+class UBylaPanelWidget;
 class UGameHudWidget;
-class ULaptopWidget;
 class UCaseStateSubsystem;
 
 /** Управляет интерфейсом: HUD, ноутбук, всплывающие уведомления. */
@@ -16,8 +16,10 @@ class BYLAVSETI_API ADetectivePlayerController : public APlayerController
 
 public:
 	void OpenLaptop();
-	void CloseLaptop();
-	bool IsLaptopOpen() const { return Laptop != nullptr; }
+	void OpenInterrogation(FName InterrogationId);
+	/** Закрывает ноутбук или допрос. */
+	void ClosePanel();
+	bool IsPanelOpen() const { return ActivePanel != nullptr; }
 
 	void ShowToast(const FText& Message);
 	void SetInteractionPrompt(const FText& Prompt);
@@ -28,6 +30,7 @@ protected:
 
 private:
 	UCaseStateSubsystem* GetCase() const;
+	void OpenPanel(UBylaPanelWidget* Panel);
 	void HandleEvidenceAdded(FName Id);
 	void HandleFeedPublished(FName Id);
 	void HandleCaseChanged();
@@ -36,7 +39,7 @@ private:
 	TObjectPtr<UGameHudWidget> Hud;
 
 	UPROPERTY(Transient)
-	TObjectPtr<ULaptopWidget> Laptop;
+	TObjectPtr<UBylaPanelWidget> ActivePanel;
 
 	FDelegateHandle EvidenceHandle;
 	FDelegateHandle FeedHandle;

@@ -18,6 +18,12 @@ namespace CaseData
 	static const TCHAR* SaveSlot = TEXT("case_autosave");
 	static const FName StartFlag(TEXT("start"));
 	static constexpr int32 WrongReportPenalty = 10;
+	static constexpr int32 WrongPresentPenalty = 5;
+
+	// Сетка карточек на доске по умолчанию.
+	static constexpr float CardGridX = 250.f;
+	static constexpr float CardGridY = 112.f;
+	static constexpr int32 CardColumns = 4;
 
 	static FString DataPath(const TCHAR* File)
 	{
@@ -91,8 +97,10 @@ void UCaseStateSubsystem::LoadData()
 		}
 	}
 
-	UE_LOG(LogCase, Log, TEXT("Case loaded: evidence %d, feed %d, hypotheses %d, decisions %d, objects %d, ui strings %d"),
-		Evidence.Num(), FeedItems.Num(), Hypotheses.Num(), Decisions.Num(), Objects.Num(), UIStrings.Num());
+	CaseData::LoadArray(TEXT("interrogations.json"), Interrogations);
+
+	UE_LOG(LogCase, Log, TEXT("Case loaded: evidence %d, feed %d, hypotheses %d, decisions %d, objects %d, interrogations %d, ui strings %d"),
+		Evidence.Num(), FeedItems.Num(), Hypotheses.Num(), Decisions.Num(), Objects.Num(), Interrogations.Num(), UIStrings.Num());
 }
 
 FText UCaseStateSubsystem::UI(FName Key) const
@@ -115,6 +123,9 @@ void UCaseStateSubsystem::StartNewCase()
 	ConfirmedHypotheses.Reset();
 	DecidedDecisions.Reset();
 	UsedObjects.Reset();
+	BrokenStatements.Reset();
+	FinishedInterrogations.Reset();
+	CardPositions.Reset();
 	Trust = 60;
 	bLinksChangedSinceReport = true;
 
@@ -220,6 +231,11 @@ void UCaseStateSubsystem::PublishFeedItem(FName Id)
 	MarkChanged();
 }
 
+const FCaseFeedItem* UCaseStateSubsystem::FindFeedItem(FName Id) const
+{
+	return FeedItems.FindByPredicate([Id](const FCaseFeedItem& I) { return I.Id == Id; });
+}
+
 TArray<const FCaseFeedItem*> UCaseStateSubsystem::GetPublishedFeed(FName Channel) const
 {
 	TArray<const FCaseFeedItem*> Result;
@@ -267,6 +283,24 @@ void UCaseStateSubsystem::RemoveLink(int32 Index)
 		bLinksChangedSinceReport = true;
 		MarkChanged();
 	}
+}
+
+FVector2D UCaseStateSubsystem::GetCardPosition(FName Id) const
+{
+	if (const FVector2D* Found = CardPositions.Find(Id))
+	{
+		return *Found;
+	}
+	const int32 Index = FMath::Max(0, KnownEvidence.IndexOfByKey(Id));
+	return FVector2D(
+		20.f + (Index % CaseData::CardColumns) * CaseData::CardGridX,
+		24.f + (Index / CaseData::CardColumns) * CaseData::CardGridY);
+}
+
+void UCaseStateSubsystem::SetCardPosition(FName Id, const FVector2D& Position)
+{
+	CardPositions.Add(Id, Position);
+	MarkChanged();
 }
 
 FCaseReportResult UCaseStateSubsystem::ReportHypothesis()
@@ -372,8 +406,9 @@ FText UCaseStateSubsystem::GetObjectPrompt(FName ObjectId) const
 	return FText::FromName(ObjectId);
 }
 
-bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage)
+bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage, FName& OutInterrogation)
 {
+	OutInterrogation = NAME_None;
 	const FCaseObject* O = Objects.Find(ObjectId);
 	if (!O)
 	{
@@ -384,6 +419,12 @@ bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage)
 	{
 		OutMessage = O->LockedMessage;
 		return false;
+	}
+	if (!O->InterrogationId.IsNone())
+	{
+		OutInterrogation = O->InterrogationId;
+		UsedObjects.Add(ObjectId);
+		return true;
 	}
 	if (O->bOneShot && UsedObjects.Contains(ObjectId))
 	{
@@ -400,6 +441,89 @@ bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage)
 	SetFlag(O->SetsFlag);
 	MarkChanged();
 	return true;
+}
+
+// ---------------------------------------------------------------- Допросы
+
+FName UCaseStateSubsystem::StatementKey(FName InterrogationId, FName StatementId)
+{
+	return FName(*FString::Printf(TEXT("%s.%s"), *InterrogationId.ToString(), *StatementId.ToString()));
+}
+
+const FCaseInterrogation* UCaseStateSubsystem::FindInterrogation(FName Id) const
+{
+	return Interrogations.FindByPredicate([Id](const FCaseInterrogation& I) { return I.Id == Id; });
+}
+
+bool UCaseStateSubsystem::IsStatementBroken(FName InterrogationId, FName StatementId) const
+{
+	return BrokenStatements.Contains(StatementKey(InterrogationId, StatementId));
+}
+
+TArray<const FCaseStatement*> UCaseStateSubsystem::GetVisibleStatements(FName InterrogationId) const
+{
+	TArray<const FCaseStatement*> Result;
+	if (const FCaseInterrogation* I = FindInterrogation(InterrogationId))
+	{
+		for (const FCaseStatement& S : I->Statements)
+		{
+			if (S.RequiresStatement.IsNone() || IsStatementBroken(InterrogationId, S.RequiresStatement))
+			{
+				Result.Add(&S);
+			}
+		}
+	}
+	return Result;
+}
+
+FCasePresentResult UCaseStateSubsystem::PresentEvidence(FName InterrogationId, FName StatementId, FName EvidenceId)
+{
+	FCasePresentResult Result;
+	const FCaseInterrogation* I = FindInterrogation(InterrogationId);
+	if (!I)
+	{
+		return Result;
+	}
+	const FCaseStatement* S = I->Statements.FindByPredicate([StatementId](const FCaseStatement& X) { return X.Id == StatementId; });
+	if (!S || IsStatementBroken(InterrogationId, StatementId))
+	{
+		return Result;
+	}
+
+	if (!S->ContradictedBy.IsNone() && S->ContradictedBy == EvidenceId)
+	{
+		BrokenStatements.Add(StatementKey(InterrogationId, StatementId));
+		Result.bCorrect = true;
+		Result.Reaction = S->Reaction;
+		for (const FName& E : S->GrantsEvidence)
+		{
+			AddEvidence(E);
+		}
+		SetFlag(S->SetsFlag);
+
+		// Все ключевые показания опровергнуты — допрос завершён.
+		bool bAllBroken = I->RequiredStatements.Num() > 0;
+		for (const FName& Required : I->RequiredStatements)
+		{
+			bAllBroken &= IsStatementBroken(InterrogationId, Required);
+		}
+		if (bAllBroken && !FinishedInterrogations.Contains(InterrogationId))
+		{
+			FinishedInterrogations.Add(InterrogationId);
+			for (const FName& E : I->FinishEvidence)
+			{
+				AddEvidence(E);
+			}
+			SetFlag(I->FinishFlag);
+			Result.bFinished = true;
+		}
+		MarkChanged();
+		return Result;
+	}
+
+	ChangeTrust(-CaseData::WrongPresentPenalty);
+	Result.Reaction = S->WrongReaction.IsEmpty() ? I->WrongReaction : S->WrongReaction;
+	return Result;
 }
 
 // ---------------------------------------------------------------- Служебное
@@ -436,6 +560,9 @@ bool UCaseStateSubsystem::SaveCase() const
 	Save->ConfirmedHypotheses = ConfirmedHypotheses;
 	Save->DecidedDecisions = DecidedDecisions;
 	Save->UsedObjects = UsedObjects.Array();
+	Save->BrokenStatements = BrokenStatements.Array();
+	Save->FinishedInterrogations = FinishedInterrogations.Array();
+	Save->CardPositions = CardPositions;
 	Save->Trust = Trust;
 	return UGameplayStatics::SaveGameToSlot(Save, CaseData::SaveSlot, 0);
 }
@@ -459,6 +586,11 @@ bool UCaseStateSubsystem::LoadCase()
 	DecidedDecisions = Save->DecidedDecisions;
 	UsedObjects.Reset();
 	UsedObjects.Append(Save->UsedObjects);
+	BrokenStatements.Reset();
+	BrokenStatements.Append(Save->BrokenStatements);
+	FinishedInterrogations.Reset();
+	FinishedInterrogations.Append(Save->FinishedInterrogations);
+	CardPositions = Save->CardPositions;
 	Trust = Save->Trust;
 	bLinksChangedSinceReport = true;
 

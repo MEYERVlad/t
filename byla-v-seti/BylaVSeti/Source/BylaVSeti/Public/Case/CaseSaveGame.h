@@ -33,5 +33,14 @@ public:
 	TArray<FName> UsedObjects;
 
 	UPROPERTY()
+	TArray<FName> BrokenStatements;
+
+	UPROPERTY()
+	TArray<FName> FinishedInterrogations;
+
+	UPROPERTY()
+	TMap<FName, FVector2D> CardPositions;
+
+	UPROPERTY()
 	int32 Trust = 60;
 };

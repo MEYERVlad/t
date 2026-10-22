@@ -17,7 +17,8 @@ public class BylaVSeti : ModuleRules
 			"Slate",
 			"SlateCore",
 			"Json",
-			"JsonUtilities"
+			"JsonUtilities",
+			"WebSockets"
 		});
 	}
 }

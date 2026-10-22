@@ -20,6 +20,7 @@ feed = load("feed.json")
 hyps = load("hypotheses.json")
 decisions = load("decisions.json")
 objects = load("objects.json")
+interrogations = {i["id"]: i for i in load("interrogations.json")}
 load("ui_strings.json")
 
 errors = []
@@ -40,6 +41,22 @@ for h in hyps:
 for o in objects:
     for e in o.get("evidenceIds", []):
         check_ev(f"object/{o['id']}", e)
+    if o.get("interrogationId") and o["interrogationId"] not in interrogations:
+        errors.append(f"object/{o['id']}: неизвестный допрос '{o['interrogationId']}'")
+for iid, i in interrogations.items():
+    ids = {st["id"] for st in i["statements"]}
+    for st in i["statements"]:
+        if st.get("contradictedBy"):
+            check_ev(f"interrogation/{iid}/{st['id']}", st["contradictedBy"])
+        for e in st.get("grantsEvidence", []):
+            check_ev(f"interrogation/{iid}/{st['id']}", e)
+        if st.get("requiresStatement") and st["requiresStatement"] not in ids:
+            errors.append(f"interrogation/{iid}/{st['id']}: неизвестное показание '{st['requiresStatement']}'")
+    for r in i.get("requiredStatements", []):
+        if r not in ids:
+            errors.append(f"interrogation/{iid}: requiredStatements содержит неизвестное '{r}'")
+    for e in i.get("finishEvidence", []):
+        check_ev(f"interrogation/{iid}", e)
 
 # Достижимость флагов: повторяем, пока множество растёт.
 flags = {"start"}
@@ -62,6 +79,16 @@ while True:
         req = h.get("requiresFlag") or ""
         if (not req or req in flags) and h.get("setsFlag"):
             flags.add(h["setsFlag"])
+    for o in objects:
+        req = o.get("requiresFlag") or ""
+        iid = o.get("interrogationId")
+        if iid and (not req or req in flags):
+            i = interrogations[iid]
+            for st in i["statements"]:
+                if st.get("contradictedBy") and st.get("setsFlag"):
+                    flags.add(st["setsFlag"])
+            if i.get("finishFlag"):
+                flags.add(i["finishFlag"])
     for d in decisions:
         req = d.get("requiresFlag") or ""
         if not req or req in flags:
@@ -91,4 +118,4 @@ if errors:
     sys.exit(1)
 
 print(f"OK: улик {len(evidence)}, постов {len(feed)}, версий {len(hyps)}, "
-      f"решений {len(decisions)}, предметов {len(objects)}, достижимых флагов {len(flags)}")
+      f"решений {len(decisions)}, предметов {len(objects)}, допросов {len(interrogations)}, достижимых флагов {len(flags)}")

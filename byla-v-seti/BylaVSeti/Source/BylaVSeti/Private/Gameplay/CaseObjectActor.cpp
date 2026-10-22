@@ -27,10 +27,18 @@ void ACaseObjectActor::Interact(ADetectiveCharacter* Detective)
 	}
 
 	FText Message;
-	Case->UseObject(ObjectId, Message);
+	FName InterrogationId;
+	Case->UseObject(ObjectId, Message, InterrogationId);
 
 	if (ADetectivePlayerController* PC = Cast<ADetectivePlayerController>(Detective->GetController()))
 	{
-		PC->ShowToast(Message);
+		if (!InterrogationId.IsNone())
+		{
+			PC->OpenInterrogation(InterrogationId);
+		}
+		else
+		{
+			PC->ShowToast(Message);
+		}
 	}
 }

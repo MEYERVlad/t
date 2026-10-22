@@ -16,7 +16,9 @@
 		"text": "[фото: ночная набережная, фонари в тумане]\n10 лет. Я всё ещё здесь.",
 		"triggerFlag": "start",
 		"delaySeconds": 0,
-		"grantsEvidence": ["post_01"]
+		"grantsEvidence": [
+			"post_01"
+		]
 	},
 	{
 		"id": "krug_post_02",
@@ -26,7 +28,9 @@
 		"text": "Она мне написала. Моя девочка написала мне «Мама, это не он». Я десять лет это знала. Полиция, вы слышите?",
 		"triggerFlag": "start",
 		"delaySeconds": 0,
-		"grantsEvidence": ["post_02"]
+		"grantsEvidence": [
+			"post_02"
+		]
 	},
 	{
 		"id": "krug_post_03",
@@ -36,7 +40,10 @@
 		"text": "[фото: лодочная станция «Волна», новая синяя вывеска]\n22:00",
 		"triggerFlag": "start",
 		"delaySeconds": 0,
-		"grantsEvidence": ["post_03", "place_volna"]
+		"grantsEvidence": [
+			"post_03",
+			"place_volna"
+		]
 	},
 	{
 		"id": "krug_fitness",
@@ -46,7 +53,9 @@
 		"text": "Алина прошла 10 000 шагов! Так держать!\n(автоматическая публикация приложения «ФитПульс»)",
 		"triggerFlag": "start",
 		"delaySeconds": 75,
-		"grantsEvidence": ["fitness_steps"]
+		"grantsEvidence": [
+			"fitness_steps"
+		]
 	},
 	{
 		"id": "mail_krug_reply",
@@ -63,9 +72,11 @@
 		"author": "Алина Соколова",
 		"dateLabel": "сейчас",
 		"text": "Ты спрашиваешь не того.",
-		"triggerFlag": "artem_interrogated",
-		"delaySeconds": 25,
-		"grantsEvidence": ["post_04"],
+		"triggerFlag": "artem_admitted",
+		"delaySeconds": 20,
+		"grantsEvidence": [
+			"post_04"
+		],
 		"setsFlag": "post_04_published"
 	},
 	{
@@ -106,7 +117,9 @@
 		"text": "[фото 2016 года: швартовая тумба, бурые пятна, масштабная линейка]\nОни это видели.",
 		"triggerFlag": "artem_released",
 		"delaySeconds": 30,
-		"grantsEvidence": ["photo_14"],
+		"grantsEvidence": [
+			"photo_14"
+		],
 		"setsFlag": "photo_14_published"
 	},
 	{
