@@ -21,6 +21,7 @@ hyps = load("hypotheses.json")
 decisions = load("decisions.json")
 objects = load("objects.json")
 interrogations = {i["id"]: i for i in load("interrogations.json")}
+endings = load("endings.json")
 load("ui_strings.json")
 
 errors = []
@@ -116,6 +117,13 @@ for d in decisions:
     if req and req not in flags:
         errors.append(f"decision/{d['id']}: требует недостижимый флаг '{req}'")
 
+for e in endings:
+    for f in [e.get("triggerFlag")] + e.get("requiresAll", []):
+        if f and f not in flags:
+            errors.append(f"ending/{e['id']}: флаг '{f}' недостижим")
+    if e.get("scoreInterrogation") and e["scoreInterrogation"] not in interrogations:
+        errors.append(f"ending/{e['id']}: неизвестный допрос '{e['scoreInterrogation']}'")
+
 if errors:
     print("ОШИБКИ:")
     for e in errors:
@@ -123,4 +131,4 @@ if errors:
     sys.exit(1)
 
 print(f"OK: улик {len(evidence)}, постов {len(feed)}, версий {len(hyps)}, "
-      f"решений {len(decisions)}, предметов {len(objects)}, допросов {len(interrogations)}, достижимых флагов {len(flags)}")
+      f"решений {len(decisions)}, предметов {len(objects)}, допросов {len(interrogations)}, концовок {len(endings)}, достижимых флагов {len(flags)}")

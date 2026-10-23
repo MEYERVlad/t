@@ -1,6 +1,8 @@
 """Строит серые коробки новых локаций:
   - L_LabArchive: архив ЭКЦ в подвале отдела;
-  - L_Prichal:    кафе «Причал».
+  - L_Prichal:    кафе «Причал»;
+  - L_Dacha:      дача «Рассвет», участок 47;
+  - L_Court:      зал районного суда.
 
 Запуск в редакторе Unreal: Tools -> Execute Python Script... -> выбрать этот файл.
 Можно запускать повторно: удаляет только свои объекты (метка GEN_).
@@ -129,6 +131,8 @@ def build_prichal():
     case_object("Maltsev", "maltsev", (700, 525, 85), (50, 50, 170), CYLINDER)
     case_object("CashJournal", "cash_journal", (560, 470, 112), (25, 32, 3))
     case_object("Kira", "kira", (75, 510, 70), (45, 45, 140), CYLINDER)
+    case_object("Svetlana", "svetlana", (420, 330, 82), (45, 45, 164), CYLINDER)
+    case_object("Kulik", "kulik", (420, 470 - 60, 80), (50, 50, 160), CYLINDER)
 
     point_light("Light_1", (250, 200, 290))
     point_light("Light_2", (650, 200, 290))
@@ -140,9 +144,78 @@ def build_prichal():
     unreal.log("[build_locations] Кафе готово.")
 
 
+def build_dacha():
+    open_or_create_map("/Game/Maps/L_Dacha")
+    # Двор участка без потолка: земля, забор, домик, сарай.
+    box("Ground", (500, 500, -5), (1200, 1200, 10))
+    for i, (c, sz) in enumerate((((500, -95, 75), (1200, 10, 150)), ((500, 1095, 75), (1200, 10, 150)),
+                                 ((-95, 500, 75), (10, 1200, 150)), ((1095, 500, 75), (10, 1200, 150)))):
+        box(f"Fence_{i}", c, sz, "Fence")
+
+    # Домик (закрытый, просто объём)
+    box("House", (250, 800, 175), (400, 350, 350), "Buildings")
+    box("HouseRoof", (250, 800, 380), (440, 390, 60), "Buildings")
+
+    # Сарай: три стены и крыша, внутри — пол, под которым всё и было
+    box("Shed_Back", (800, 900, 125), (300, 15, 250), "Shed")
+    box("Shed_Left", (650, 800, 125), (15, 200, 250), "Shed")
+    box("Shed_Right", (950, 800, 125), (15, 200, 250), "Shed")
+    box("Shed_Roof", (800, 800, 260), (330, 230, 20), "Shed")
+    case_object("ShedFloorFound", "dacha_shed_found", (800, 810, 3), (260, 160, 6))
+    case_object("ShedFloorEmpty", "dacha_shed_empty", (800, 810, 4), (260, 160, 6))
+
+    box("OldCar", (400, 300, 70), (420, 180, 140), "Props")
+    box("Barrel", (980, 550, 45), (60, 60, 90), "Props", CYLINDER)
+
+    case_object("Gate", "dacha_exit", (500, -85, 100), (160, 8, 200))
+
+    # Светает: несколько ярких точек вместо солнца (серую коробку освещаем просто)
+    point_light("Light_Yard_1", (500, 400, 400), 1600.0)
+    point_light("Light_Yard_2", (800, 750, 230), 700.0)
+    point_light("Light_Yard_3", (200, 200, 400), 1200.0)
+
+    player_start((500, 60, 100), 90)
+    levels.save_current_level()
+    unreal.log("[build_locations] Дача готова.")
+
+
+def build_court():
+    open_or_create_map("/Game/Maps/L_Court")
+    H = 450
+    room("Court", 0, 1000, 0, 1400, H)
+
+    # Подиум судьи у северной стены
+    box("JudgePodium", (500, 1250, 60), (500, 150, 120), "Furniture")
+    box("JudgeDesk", (500, 1200, 135), (400, 40, 30), "Furniture")
+    case_object("Judge", "judge", (500, 1290, 200), (55, 55, 160), CYLINDER)
+
+    # Трибуна для выступления, столы сторон, экран видеосвязи с колонией
+    box("Tribune", (500, 850, 55), (100, 60, 110), "Furniture")
+    box("ProsecutorTable", (250, 950, 37.5), (220, 80, 75), "Furniture")
+    box("DefenceTable", (750, 950, 37.5), (220, 80, 75), "Furniture")
+    box("VideoScreen", (960, 1000, 220), (10, 220, 130), "Furniture")
+
+    # Ряды для публики
+    for r in range(4):
+        box(f"Bench_L_{r}", (250, 200 + r * 120, 22.5), (320, 50, 45), "Benches")
+        box(f"Bench_R_{r}", (750, 200 + r * 120, 22.5), (320, 50, 45), "Benches")
+
+    case_object("CourtDoor", "court_exit", (500, 8, 110), (140, 8, 220))
+
+    point_light("Light_1", (500, 1100, 420), 1200.0)
+    point_light("Light_2", (500, 600, 420), 1200.0)
+    point_light("Light_3", (500, 250, 420), 900.0)
+
+    player_start((500, 700, 100), 90)
+    levels.save_current_level()
+    unreal.log("[build_locations] Суд готов.")
+
+
 if CASE_OBJECT is None:
     unreal.log_error("[build_locations] Классы проекта не найдены. Сначала соберите C++ (см. INSTALL.md).")
 else:
     build_archive()
     build_prichal()
+    build_dacha()
+    build_court()
     unreal.log("[build_locations] Готово. Откройте Maps/L_Office и нажмите Play.")

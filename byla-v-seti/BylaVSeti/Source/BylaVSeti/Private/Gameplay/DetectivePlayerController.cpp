@@ -2,6 +2,8 @@
 
 #include "Case/CaseStateSubsystem.h"
 #include "Engine/GameInstance.h"
+#include "TimerManager.h"
+#include "UI/EndingWidget.h"
 #include "UI/GameHudWidget.h"
 #include "UI/InterrogationWidget.h"
 #include "UI/LaptopWidget.h"
@@ -54,6 +56,7 @@ void ADetectivePlayerController::BeginPlay()
 		EvidenceHandle = Case->OnEvidenceAdded.AddUObject(this, &ADetectivePlayerController::HandleEvidenceAdded);
 		FeedHandle = Case->OnFeedPublished.AddUObject(this, &ADetectivePlayerController::HandleFeedPublished);
 		ChangedHandle = Case->OnCaseChanged.AddUObject(this, &ADetectivePlayerController::HandleCaseChanged);
+		EndingHandle = Case->OnEndingReached.AddUObject(this, &ADetectivePlayerController::HandleEndingReached);
 		HandleCaseChanged();
 		ShowToast(Greeting);
 	}
@@ -69,6 +72,7 @@ void ADetectivePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 		Case->OnEvidenceAdded.Remove(EvidenceHandle);
 		Case->OnFeedPublished.Remove(FeedHandle);
 		Case->OnCaseChanged.Remove(ChangedHandle);
+		Case->OnEndingReached.Remove(EndingHandle);
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -86,6 +90,26 @@ void ADetectivePlayerController::OpenInterrogation(FName InterrogationId)
 		Widget->SetInterrogation(InterrogationId);
 	}
 	OpenPanel(Widget);
+}
+
+void ADetectivePlayerController::OpenEnding(FName EndingId)
+{
+	UEndingWidget* Widget = CreateWidget<UEndingWidget>(this, UEndingWidget::StaticClass());
+	if (Widget)
+	{
+		Widget->SetEnding(EndingId);
+	}
+	OpenPanel(Widget);
+}
+
+void ADetectivePlayerController::HandleEndingReached(FName EndingId)
+{
+	// Концовка обычно наступает по клику в ноутбуке: закрываем его на следующем кадре, не внутри обработчика.
+	GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this, EndingId]()
+	{
+		ClosePanel();
+		OpenEnding(EndingId);
+	}));
 }
 
 void ADetectivePlayerController::OpenPanel(UBylaPanelWidget* Panel)

@@ -208,6 +208,40 @@ struct FCaseObject
 	FName ShowFlag;
 };
 
+/**
+ * Концовка. Проверяется, когда выставлен TriggerFlag; срабатывает первая подходящая по порядку в endings.json.
+ * Очки — число опровергнутых показаний в допросе ScoreInterrogation (вопросы суда).
+ */
+USTRUCT(BlueprintType)
+struct FCaseEnding
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Title;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName TriggerFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> RequiresAll;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> RequiresNone;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName ScoreInterrogation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	int32 MinScore = 0;
+};
+
 /** Одно показание на допросе. Его можно опровергнуть уликой ContradictedBy. */
 USTRUCT(BlueprintType)
 struct FCaseStatement

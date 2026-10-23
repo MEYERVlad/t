@@ -209,5 +209,77 @@
 		],
 		"requiresFlag": "kira_report_received",
 		"setsFlag": "o_meeting"
+	},
+	{
+		"id": "hyp_bmw",
+		"title": "BMW «О.» и BMW, сбившая Мишу Ершова, — одна машина: наутро после ДТП Алина тайком сфотографировала её разбитую фару.",
+		"links": [
+			{
+				"a": "photo_bmw",
+				"b": "ershov_case",
+				"type": "points_to"
+			},
+			{
+				"a": "svetlana_bmw",
+				"b": "photo_bmw",
+				"type": "points_to"
+			}
+		],
+		"requiresFlag": "mentor_phase",
+		"setsFlag": "bmw_linked"
+	},
+	{
+		"id": "hyp_oleg",
+		"title": "«О.» — Олег Гранин, сын майора. Это его чёрный BMW, это ему Алина в 21:31 назначила встречу на «Волне».",
+		"links": [
+			{
+				"a": "registry_bmw",
+				"b": "person_oleg",
+				"type": "owns"
+			},
+			{
+				"a": "svetlana_bmw",
+				"b": "person_oleg",
+				"type": "points_to"
+			}
+		],
+		"requiresFlag": "bmw_linked",
+		"setsFlag": "oleg_suspect"
+	},
+	{
+		"id": "hyp_cover",
+		"title": "Гранин закрыл дело Ершова «водитель не установлен», хотя машина его сына была разбита наутро после ДТП. Он прикрывает сына с августа 2016 года.",
+		"links": [
+			{
+				"a": "ershov_case",
+				"b": "person_granin",
+				"type": "wrote"
+			},
+			{
+				"a": "registry_bmw",
+				"b": "ershov_case",
+				"type": "contradicts"
+			}
+		],
+		"requiresFlag": "bmw_linked",
+		"setsFlag": "cover_motive"
+	},
+	{
+		"id": "hyp_planted",
+		"title": "Телефон Алины в гараж Дениса подбросил Гранин: понятые — его платные осведомители, и один из них это подтвердил.",
+		"links": [
+			{
+				"a": "kulik_statement",
+				"b": "person_granin",
+				"type": "points_to"
+			},
+			{
+				"a": "informant_payments",
+				"b": "person_granin",
+				"type": "owns"
+			}
+		],
+		"requiresFlag": "kulik_talked",
+		"setsFlag": "phone_planted"
 	}
 ]

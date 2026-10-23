@@ -42,5 +42,8 @@ public:
 	TMap<FName, FVector2D> CardPositions;
 
 	UPROPERTY()
+	FName ReachedEnding;
+
+	UPROPERTY()
 	int32 Trust = 60;
 };

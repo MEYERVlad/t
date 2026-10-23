@@ -98,6 +98,7 @@ void UCaseStateSubsystem::LoadData()
 	}
 
 	CaseData::LoadArray(TEXT("interrogations.json"), Interrogations);
+	CaseData::LoadArray(TEXT("endings.json"), Endings);
 
 	UE_LOG(LogCase, Log, TEXT("Case loaded: evidence %d, feed %d, hypotheses %d, decisions %d, objects %d, interrogations %d, ui strings %d"),
 		Evidence.Num(), FeedItems.Num(), Hypotheses.Num(), Decisions.Num(), Objects.Num(), Interrogations.Num(), UIStrings.Num());
@@ -126,6 +127,7 @@ void UCaseStateSubsystem::StartNewCase()
 	BrokenStatements.Reset();
 	FinishedInterrogations.Reset();
 	CardPositions.Reset();
+	ReachedEnding = NAME_None;
 	Trust = 60;
 	bLinksChangedSinceReport = true;
 
@@ -168,6 +170,7 @@ void UCaseStateSubsystem::SetFlag(FName Flag)
 	Flags.Add(Flag);
 	UE_LOG(LogCase, Log, TEXT("Flag set: %s"), *Flag.ToString());
 	ScheduleFeedForFlag(Flag);
+	CheckEndings(Flag);
 	MarkChanged();
 }
 
@@ -545,6 +548,67 @@ FCasePresentResult UCaseStateSubsystem::PresentEvidence(FName InterrogationId, F
 	return Result;
 }
 
+int32 UCaseStateSubsystem::CountBrokenStatements(FName InterrogationId) const
+{
+	int32 Count = 0;
+	if (const FCaseInterrogation* I = FindInterrogation(InterrogationId))
+	{
+		for (const FCaseStatement& S : I->Statements)
+		{
+			Count += IsStatementBroken(InterrogationId, S.Id) ? 1 : 0;
+		}
+	}
+	return Count;
+}
+
+int32 UCaseStateSubsystem::CountStatements(FName InterrogationId) const
+{
+	const FCaseInterrogation* I = FindInterrogation(InterrogationId);
+	return I ? I->Statements.Num() : 0;
+}
+
+// ---------------------------------------------------------------- Концовки
+
+const FCaseEnding* UCaseStateSubsystem::FindEnding(FName Id) const
+{
+	return Endings.FindByPredicate([Id](const FCaseEnding& E) { return E.Id == Id; });
+}
+
+void UCaseStateSubsystem::CheckEndings(FName Flag)
+{
+	if (!ReachedEnding.IsNone())
+	{
+		return;
+	}
+	for (const FCaseEnding& E : Endings)
+	{
+		if (E.TriggerFlag != Flag)
+		{
+			continue;
+		}
+		bool bMatch = true;
+		for (const FName& F : E.RequiresAll)
+		{
+			bMatch &= Flags.Contains(F);
+		}
+		for (const FName& F : E.RequiresNone)
+		{
+			bMatch &= !Flags.Contains(F);
+		}
+		if (!E.ScoreInterrogation.IsNone())
+		{
+			bMatch &= CountBrokenStatements(E.ScoreInterrogation) >= E.MinScore;
+		}
+		if (bMatch)
+		{
+			ReachedEnding = E.Id;
+			UE_LOG(LogCase, Log, TEXT("Ending reached: %s"), *E.Id.ToString());
+			OnEndingReached.Broadcast(E.Id);
+			return;
+		}
+	}
+}
+
 // ---------------------------------------------------------------- Служебное
 
 void UCaseStateSubsystem::ClearTimers()
@@ -582,6 +646,7 @@ bool UCaseStateSubsystem::SaveCase() const
 	Save->BrokenStatements = BrokenStatements.Array();
 	Save->FinishedInterrogations = FinishedInterrogations.Array();
 	Save->CardPositions = CardPositions;
+	Save->ReachedEnding = ReachedEnding;
 	Save->Trust = Trust;
 	return UGameplayStatics::SaveGameToSlot(Save, CaseData::SaveSlot, 0);
 }
@@ -610,6 +675,7 @@ bool UCaseStateSubsystem::LoadCase()
 	FinishedInterrogations.Reset();
 	FinishedInterrogations.Append(Save->FinishedInterrogations);
 	CardPositions = Save->CardPositions;
+	ReachedEnding = Save->ReachedEnding;
 	Trust = Save->Trust;
 	bLinksChangedSinceReport = true;
 

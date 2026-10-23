@@ -111,9 +111,12 @@ def build():
     # --- Акт 2: второй том дела на полке и ключи от машины на стене у двери
     box("Shelf", (40, 400, 45), (60, 100, 90), "Office/Furniture")
     case_object("CaseVolume2", "case_volume_2", (40, 400, 94), (30, 22, 8))
-    box("KeyBoard", (4, 300, 140), (6, 50, 40), "Office/Furniture")
-    case_object("CarKeys", "car_keys", (10, 288, 140), (6, 14, 10))
-    case_object("CarKeysPrichal", "car_keys_prichal", (10, 312, 140), (6, 14, 10))
+    # Доска с ключами: каждая связка — своя поездка.
+    box("KeyBoard", (4, 300, 140), (6, 110, 40), "Office/Furniture")
+    case_object("CarKeys", "car_keys", (10, 260, 140), (6, 14, 10))
+    case_object("CarKeysPrichal", "car_keys_prichal", (10, 286, 140), (6, 14, 10))
+    case_object("CarKeysDacha", "car_keys_dacha", (10, 314, 140), (6, 14, 10))
+    case_object("CarKeysCourt", "car_keys_court", (10, 340, 140), (6, 14, 10))
 
     # --- Дверь в подвал (архив ЭКЦ) в южной стене
     case_object("ArchiveDoor", "archive_door", (450, 4, 102), (90, 6, 205))

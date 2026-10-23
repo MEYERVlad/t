@@ -39,6 +39,8 @@ public:
 	FOnCaseId OnFeedPublished;
 	/** Любое изменение состояния (для перерисовки интерфейса). */
 	FOnCaseChanged OnCaseChanged;
+	/** Игра дошла до концовки. */
+	FOnCaseId OnEndingReached;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -102,10 +104,17 @@ public:
 	bool IsStatementBroken(FName InterrogationId, FName StatementId) const;
 	bool IsInterrogationFinished(FName InterrogationId) const { return FinishedInterrogations.Contains(InterrogationId); }
 	FCasePresentResult PresentEvidence(FName InterrogationId, FName StatementId, FName EvidenceId);
+	int32 CountBrokenStatements(FName InterrogationId) const;
+	int32 CountStatements(FName InterrogationId) const;
+
+	// --- Концовки ---
+	FName GetReachedEnding() const { return ReachedEnding; }
+	const FCaseEnding* FindEnding(FName Id) const;
 
 private:
 	void LoadData();
 	void ScheduleFeedForFlag(FName Flag);
+	void CheckEndings(FName Flag);
 	void PublishFeedItem(FName Id);
 	void ClearTimers();
 	void MarkChanged();
@@ -118,6 +127,7 @@ private:
 	TArray<FCaseDecision> Decisions;
 	TMap<FName, FCaseObject> Objects;
 	TArray<FCaseInterrogation> Interrogations;
+	TArray<FCaseEnding> Endings;
 	TMap<FName, FText> UIStrings;
 
 	// Состояние игрока
@@ -132,6 +142,7 @@ private:
 	TSet<FName> BrokenStatements;
 	TSet<FName> FinishedInterrogations;
 	TMap<FName, FVector2D> CardPositions;
+	FName ReachedEnding;
 	int32 Trust = 60;
 	bool bLinksChangedSinceReport = true;
 

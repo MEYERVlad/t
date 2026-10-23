@@ -192,5 +192,125 @@
 		"interrogationId": "kira",
 		"showFlag": "kira_identified",
 		"bOneShot": false
+	},
+	{
+		"id": "svetlana",
+		"prompt": "Поговорить с официанткой Светой",
+		"interrogationId": "svetlana",
+		"showFlag": "mentor_phase",
+		"bOneShot": false
+	},
+	{
+		"id": "kulik",
+		"prompt": "Подсесть к мужчине с рюмкой у стойки",
+		"interrogationId": "kulik",
+		"showFlag": "mentor_phase",
+		"bOneShot": false
+	},
+	{
+		"id": "ershov_folder",
+		"prompt": "Дело о ДТП на Речной, 2016",
+		"showFlag": "mentor_phase",
+		"inspectText": "Тонкая папка. Погиб шестнадцатилетний велосипедист. Краска чёрного BMW, осколки фары. Подпись следователя: Гранин. Через месяц — «водитель не установлен».",
+		"evidenceIds": [
+			"ershov_case"
+		],
+		"doneMessage": "Дело Ершова уже изучено."
+	},
+	{
+		"id": "volume_3",
+		"prompt": "Третий том дела Лаптева: детализации",
+		"showFlag": "mentor_phase",
+		"inspectText": "Детализация Дениса за 14 октября. В 23:40 его телефон у дома, на «Заводской». А сообщение «Не ищи меня» ушло с набережной в ту же минуту.",
+		"evidenceIds": [
+			"denis_tower"
+		],
+		"doneMessage": "Третий том уже изучен."
+	},
+	{
+		"id": "informant_ledger",
+		"prompt": "Ведомость оперативных выплат, 2016",
+		"showFlag": "mentor_phase",
+		"inspectText": "Октябрь 2016-го. Кулик и Сафронов — по пять тысяч «за содействие», распорядитель Гранин. Эти же фамилии стоят под протоколом обыска гаража Лаптева.",
+		"evidenceIds": [
+			"informant_payments"
+		],
+		"doneMessage": "Ведомость уже изучена."
+	},
+	{
+		"id": "medical_card",
+		"prompt": "Медкарта Алины на серванте",
+		"showFlag": "mentor_phase",
+		"inspectText": "Ирина достала её из коробки с документами. «Рецидивирующие носовые кровотечения на фоне стресса». Алина нервничала — и у неё шла кровь носом. Всегда.",
+		"evidenceIds": [
+			"medical_record"
+		],
+		"doneMessage": "Медкарта уже изучена."
+	},
+	{
+		"id": "alina_gallery",
+		"prompt": "Открыть галерею в телефоне Алины",
+		"showFlag": "mentor_phase",
+		"inspectText": "Ирина отворачивается. Лето 2016-го: набережная, Света, Денис... И одно странное фото 22 августа: чужой двор, снятый через ветки, чёрный BMW с разбитой фарой.",
+		"evidenceIds": [
+			"photo_bmw"
+		],
+		"doneMessage": "Фото с BMW уже в деле."
+	},
+	{
+		"id": "car_keys_dacha",
+		"prompt": "Ключи от машины: СНТ «Рассвет», участок 47",
+		"travelMap": "L_Dacha",
+		"requiresFlag": "dacha_known",
+		"bOneShot": false,
+		"lockedMessage": "На дачи пока ехать незачем."
+	},
+	{
+		"id": "car_keys_court",
+		"prompt": "Ключи от машины: районный суд",
+		"travelMap": "L_Court",
+		"requiresFlag": "hearing_scheduled",
+		"bOneShot": false,
+		"lockedMessage": "Заседание суда ещё не назначено."
+	},
+	{
+		"id": "dacha_exit",
+		"prompt": "Вернуться в отдел",
+		"travelMap": "L_Office",
+		"bOneShot": false
+	},
+	{
+		"id": "court_exit",
+		"prompt": "Выйти из зала (в отдел)",
+		"travelMap": "L_Office",
+		"bOneShot": false
+	},
+	{
+		"id": "dacha_shed_found",
+		"prompt": "Сарай: вскрытый пол",
+		"showFlag": "deal_refused",
+		"inspectText": "Опергруппа поднимает доски. Белова молчит. Через сорок минут кто-то говорит: «Есть». Вы выходите на воздух. Над дачами светает. Десять лет.",
+		"evidenceIds": [
+			"dacha_found"
+		],
+		"setsFlag": "dacha_found",
+		"doneMessage": "Здесь работают эксперты."
+	},
+	{
+		"id": "dacha_shed_empty",
+		"prompt": "Сарай: пол уложен заново",
+		"showFlag": "via_granin",
+		"inspectText": "Доски лежат неровно, гвозди новые. Под полом — свежая перекопанная земля и ничего. Соседка через забор: «Ночью машина была, чёрная, большая. До утра копали».",
+		"evidenceIds": [
+			"dacha_dug"
+		],
+		"setsFlag": "dacha_empty",
+		"doneMessage": "Пусто. Кто-то успел раньше вас."
+	},
+	{
+		"id": "judge",
+		"prompt": "Выступить перед судьёй",
+		"interrogationId": "court",
+		"bOneShot": false
 	}
 ]
