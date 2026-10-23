@@ -162,8 +162,14 @@ def open_level(path):
         return False
     levels.load_level(path)
     for actor in actors.get_all_level_actors():
-        if actor.get_actor_label().startswith(DRESS):
+        label = actor.get_actor_label()
+        if label.startswith(DRESS):
             actors.destroy_actor(actor)
+        elif label.startswith(GEN) and actor.get_class().get_name() == "StaticMeshActor":
+            # Блоки, спрятанные прошлым запуском, возвращаем: их заменят заново.
+            actor.set_actor_hidden_in_game(False)
+            actor.set_actor_enable_collision(True)
+            actor.set_is_temporarily_hidden_in_editor(False)
     return True
 
 
@@ -198,6 +204,21 @@ def paint_matching(gen, rules):
 _counter = [0]
 
 
+def align(actor, x, y, bottom):
+    """Двигает актор так, чтобы центр габаритов был в (x, y), а низ — на высоте bottom."""
+    origin, extent = actor.get_actor_bounds(False)
+    loc = actor.get_actor_location()
+    actor.set_actor_location(unreal.Vector(loc.x + (x - origin.x), loc.y + (y - origin.y),
+                                           loc.z + (bottom - (origin.z - extent.z))), False, False)
+
+
+def hide_box(box):
+    """Прячет серый блок (а не удаляет), чтобы повторный запуск мог заменить его снова."""
+    box.set_actor_hidden_in_game(True)
+    box.set_actor_enable_collision(False)
+    box.set_is_temporarily_hidden_in_editor(True)
+
+
 def place(label, mesh_key, x, y, bottom, yaw=0.0, scale=(1.0, 1.0, 1.0), folder="Dressing"):
     """Ставит меш так, чтобы центр его габаритов был в (x, y), а низ — на высоте bottom."""
     m = mesh(mesh_key)
@@ -206,10 +227,7 @@ def place(label, mesh_key, x, y, bottom, yaw=0.0, scale=(1.0, 1.0, 1.0), folder=
     actor = actors.spawn_actor_from_object(m, unreal.Vector(x, y, bottom))
     actor.set_actor_rotation(unreal.Rotator(roll=0, pitch=0, yaw=yaw), False)
     actor.set_actor_scale3d(unreal.Vector(*scale))
-    origin, extent = actor.get_actor_bounds(False)
-    loc = actor.get_actor_location()
-    actor.set_actor_location(unreal.Vector(loc.x + (x - origin.x), loc.y + (y - origin.y),
-                                           loc.z + (bottom - (origin.z - extent.z))), False, False)
+    align(actor, x, y, bottom)
     _counter[0] += 1
     actor.set_actor_label(f"{DRESS}{label}_{_counter[0]}")
     actor.set_folder_path(folder)
@@ -230,17 +248,49 @@ def cube(label, center, size, material_key, folder="Dressing"):
     return actor
 
 
-def replace(gen, name, mesh_key, yaw=0.0, scale=(1.0, 1.0, 1.0)):
-    """Заменяет серый блок мешем того же места (низ — на полу блока). Блок удаляется."""
+TOPS = {}
+
+
+def replace(gen, name, mesh_key, yaw=0.0, scale=(1.0, 1.0, 1.0), fit=False):
+    """Заменяет серый блок мешем на том же месте. fit=True — подгоняет ширину и глубину под блок.
+    Предметы дела, лежавшие на блоке, поднимаются/опускаются на новую высоту поверхности."""
     box = gen.get(name)
     if box is None or mesh(mesh_key) is None:
         return None
     origin, extent = box.get_actor_bounds(False)
-    new = place(name, mesh_key, origin.x, origin.y, origin.z - extent.z, yaw, scale)
-    if new:
-        actors.destroy_actor(box)
-        gen.pop(name, None)
+    bottom, old_top = origin.z - extent.z, origin.z + extent.z
+    new = place(name, mesh_key, origin.x, origin.y, bottom, yaw, scale)
+    if not new:
+        return None
+    if fit:
+        _, e2 = new.get_actor_bounds(False)
+        fx, fy = extent.x / max(e2.x, 0.1), extent.y / max(e2.y, 0.1)
+        s0 = new.get_actor_scale3d()
+        if abs(abs(yaw) % 180 - 90) < 1:   # повёрнут на 90°: локальная X идёт вдоль мировой Y
+            fx, fy = fy, fx
+        new.set_actor_scale3d(unreal.Vector(s0.x * fx, s0.y * fy, s0.z))
+        align(new, origin.x, origin.y, bottom)
+    hide_box(box)
+
+    o2, e2 = new.get_actor_bounds(False)
+    new_top = o2.z + e2.z
+    TOPS[name] = new_top
+    delta = new_top - old_top
+    if abs(delta) > 0.5:
+        for a in actors.get_all_level_actors():
+            if a.get_class().get_name() not in ("CaseObjectActor", "LaptopActor"):
+                continue
+            ao, ae = a.get_actor_bounds(False)
+            on_top = abs((ao.z - ae.z) - old_top) < 2.5
+            inside = abs(ao.x - origin.x) <= extent.x and abs(ao.y - origin.y) <= extent.y
+            if on_top and inside:
+                loc = a.get_actor_location()
+                a.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z + delta), False, False)
     return new
+
+
+def top(name, default):
+    return TOPS.get(name, default)
 
 
 def save():
@@ -256,15 +306,17 @@ def dress_office():
     paint_matching(gen, [
         ("Interrogation_Floor", "concrete"), ("Interrogation_Ceiling", "plaster_a"), ("Interrogation_Wall", "plaster_c"),
         ("Floor", "concrete_tiles"), ("Ceiling", "plaster_a"), ("Wall", "paint2"),
-        ("Cabinet", "flat_metal"), ("KeyBoard", "flat_wood"), ("Interrogation_Table", "flat_metal_light"),
-        ("Desk", "flat_wood_dark"), ("Table", "flat_wood"), ("Shelf", "flat_wood"),
+        ("Cabinet", "painted_metal"), ("KeyBoard", "flat_wood"), ("Shelf", "flat_wood"),
     ])
+    replace(gen, "Desk", "table", fit=True)
+    replace(gen, "SideTable", "table", yaw=90, fit=True)
+    replace(gen, "Interrogation_Table", "table", fit=True)
     replace(gen, "Chair", "chair", yaw=90)
     replace(gen, "Interrogation_Chair_Player", "chair", yaw=0)
     replace(gen, "Interrogation_Chair_Suspect", "chair", yaw=180)
     place("Plant", "pot", 560, 60, 0)
-    place("Mug", "mug", 260, 425, 75)
-    place("Newspaper", "newspaper", 70, 150, 75, yaw=20)
+    place("Mug", "mug", 260, 425, top("Desk", 75))
+    place("Newspaper", "newspaper", 70, 150, top("SideTable", 75), yaw=20)
     save()
 
 
@@ -274,11 +326,13 @@ def dress_flat():
     gen = gen_actors()
     paint_matching(gen, [
         ("Floor", "epoxy"), ("Ceiling", "plaster_a"), ("Kitchen_", "plaster_b"), ("Hall_", "paint2"), ("Room_", "paint"),
-        ("Sofa", "flat_sofa"), ("Wardrobe", "flat_wood_dark"), ("Shelf", "flat_wood"), ("Table", "flat_wood"),
+        ("Sofa", "flat_sofa"), ("Wardrobe", "flat_wood_dark"), ("Shelf", "flat_wood"),
         ("Stove", "flat_enamel"), ("Fridge", "flat_enamel"),
     ])
+    replace(gen, "Table", "table", fit=True)
+    replace(gen, "KitchenTable", "table", fit=True)
     replace(gen, "Chair", "chair", yaw=90)
-    place("Mug", "mug", 125, 505, 75)
+    place("Mug", "mug", 125, 505, top("KitchenTable", 75))
     save()
 
 
@@ -289,24 +343,26 @@ def dress_archive():
     paint_matching(gen, [
         ("Floor", "concrete_tiles"), ("Ceiling", "plaster_a"), ("Wall", "plaster_c"),
         ("ShelfBox", "flat_cardboard"),
-        ("Desk", "flat_wood_dark"), ("Table", "flat_wood"),
     ])
+    replace(gen, "ClerkDesk", "table", fit=True)
+    replace(gen, "SideTable", "table", fit=True)
+    replace(gen, "ReadingTable", "table", fit=True)
     # Сплошные блоки стеллажей заменяем на каркас: стойки + полки.
     for i in range(3):
         box = gen.pop(f"Shelf_{i}", None)
         if not box:
             continue
         origin, extent = box.get_actor_bounds(False)
-        actors.destroy_actor(box)
+        hide_box(box)
         cx, cy = origin.x, origin.y
         w, l, h = extent.x * 2, extent.y * 2, extent.z * 2
         for sy in (-1, 1):
             for sx in (-1, 1):
-                cube("Upright", (cx + sx * (w / 2 - 2), cy + sy * (l / 2 - 2), h / 2), (4, 4, h), "flat_metal")
+                cube("Upright", (cx + sx * (w / 2 - 2), cy + sy * (l / 2 - 2), h / 2), (4, 4, h), "painted_metal")
         for z in (8, 70, 133, 200):
             cube("Board", (cx, cy, z - 2), (w, l, 4), "flat_metal_light")
     place("Cart", "cart", 230, 420, 0, yaw=90)
-    place("Mug", "mug", 120, 70, 75)
+    place("Mug", "mug", 120, 70, top("ClerkDesk", 75))
     save()
 
 
@@ -344,7 +400,7 @@ def dress_prichal():
     # За стойкой — полки с бутылками.
     box = gen.pop("BackShelf", None)
     if box:
-        actors.destroy_actor(box)
+        hide_box(box)
     place("Shelves1", "shelves", 550, 585, 60)
     place("Shelves2", "shelves", 750, 585, 60)
     for i, key in enumerate(("bottle1", "bottle2", "bottle3", "bottle1", "bottle2")):
@@ -375,7 +431,7 @@ def dress_dacha():
     for name in ("Fence_0", "Fence_1", "Fence_2", "Fence_3"):
         box = gen.pop(name, None)
         if box:
-            actors.destroy_actor(box)
+            hide_box(box)
     fences = ("fence_a", "fence_b", "fence_c")
     step = 205
     k = 0
@@ -416,8 +472,10 @@ def dress_court():
     gen = gen_actors()
     paint_matching(gen, [
         ("Floor", "epoxy"), ("Ceiling", "plaster_a"), ("Wall", "plaster_b"),
-        ("Judge", "flat_wood_dark"), ("Tribune", "flat_wood_dark"), ("Table", "flat_wood"), ("VideoScreen", "flat_screen"),
+        ("Judge", "flat_wood_dark"), ("Tribune", "flat_wood_dark"), ("VideoScreen", "flat_screen"),
     ])
+    replace(gen, "ProsecutorTable", "table", fit=True)
+    replace(gen, "DefenceTable", "table", fit=True)
     for r in range(4):
         replace(gen, f"Bench_L_{r}", "bench")
         replace(gen, f"Bench_R_{r}", "bench")

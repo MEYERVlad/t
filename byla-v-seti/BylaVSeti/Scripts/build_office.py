@@ -76,7 +76,7 @@ def build():
     # --- Кабинет следователя: x 0..600, y 0..500
     box("Office_Floor", (300, 250, -5), (620, 520, 10))
     box("Office_Ceiling", (300, 250, H + 5), (620, 520, 10))
-    box("Office_Wall_S", (300, -T / 2, H / 2), (640, T, H))
+    box("Office_Wall_S", (290, -T / 2, H / 2), (620, T, H))
     box("Office_Wall_N", (300, 500 + T / 2, H / 2), (640, T, H))
     box("Office_Wall_W", (-T / 2, 250, H / 2), (T, 520, H))
     # Восточная стена с дверным проёмом y 180..280 в допросную.
@@ -87,8 +87,8 @@ def build():
     # --- Допросная: x 600..1000, y 0..400
     box("Interrogation_Floor", (800, 200, -5), (420, 420, 10), "Interrogation/Geometry")
     box("Interrogation_Ceiling", (800, 200, H + 5), (420, 420, 10), "Interrogation/Geometry")
-    box("Interrogation_Wall_S", (800, -T / 2, H / 2), (420, T, H), "Interrogation/Geometry")
-    box("Interrogation_Wall_N", (800, 400 + T / 2, H / 2), (420, T, H), "Interrogation/Geometry")
+    box("Interrogation_Wall_S", (805, -T / 2, H / 2), (410, T, H), "Interrogation/Geometry")
+    box("Interrogation_Wall_N", (805, 400 + T / 2, H / 2), (410, T, H), "Interrogation/Geometry")
     box("Interrogation_Wall_E", (1000 + T / 2, 200, H / 2), (T, 420, H), "Interrogation/Geometry")
 
     # --- Мебель кабинета
