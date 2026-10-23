@@ -502,7 +502,12 @@ void ULaptopWidget::HandleAction(FName Action, FName Payload)
 		{
 			if (D->Id == Payload)
 			{
-				Twitch->StartPoll(D->Id, D->Options.Num(), PollSeconds);
+				TArray<FText> Labels;
+				for (const FCaseDecisionOption& Option : D->Options)
+				{
+					Labels.Add(Option.Label);
+				}
+				Twitch->StartPoll(D->Id, D->Prompt, Labels, PollSeconds);
 			}
 		}
 	}
@@ -512,7 +517,7 @@ void ULaptopWidget::HandleAction(FName Action, FName Payload)
 	}
 	else if (Action == ActDisconnect && Twitch)
 	{
-		Twitch->Disconnect();
+		Twitch->UserDisconnect();
 	}
 
 	MarkDirty();

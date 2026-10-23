@@ -89,8 +89,9 @@ public:
 	/**
 	 * Возвращает true, если предмет сработал. В OutMessage — текст для игрока.
 	 * Если предмет открывает допрос, его Id будет в OutInterrogation.
+	 * Если предмет — переезд на другой уровень, имя уровня будет в OutTravelMap.
 	 */
-	bool UseObject(FName ObjectId, FText& OutMessage, FName& OutInterrogation);
+	bool UseObject(FName ObjectId, FText& OutMessage, FName& OutInterrogation, FName& OutTravelMap);
 
 	// --- Допросы ---
 	const FCaseInterrogation* FindInterrogation(FName Id) const;

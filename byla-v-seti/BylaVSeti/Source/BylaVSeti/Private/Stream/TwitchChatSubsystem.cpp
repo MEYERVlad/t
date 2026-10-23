@@ -27,6 +27,23 @@ namespace TwitchChat
 	}
 }
 
+void UTwitchChatSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	// Стримеру не нужно каждый раз заходить в ноутбук: канал запоминается.
+	if (bAutoConnect && !ChannelName.IsEmpty())
+	{
+		Connect(ChannelName);
+	}
+}
+
+void UTwitchChatSubsystem::UserDisconnect()
+{
+	bAutoConnect = false;
+	SaveConfig();
+	Disconnect();
+}
+
 void UTwitchChatSubsystem::Deinitialize()
 {
 	Disconnect();
@@ -45,6 +62,7 @@ void UTwitchChatSubsystem::Connect(const FString& Channel)
 		OnChanged.Broadcast();
 		return;
 	}
+	bAutoConnect = true;
 	SaveConfig();
 
 	FWebSocketsModule& Module = FModuleManager::LoadModuleChecked<FWebSocketsModule>(TEXT("WebSockets"));
@@ -175,15 +193,18 @@ void UTwitchChatSubsystem::RecountVotes()
 	}
 }
 
-bool UTwitchChatSubsystem::StartPoll(FName PollId, int32 NumOptions, float Seconds)
+bool UTwitchChatSubsystem::StartPoll(FName PollId, const FText& Title, const TArray<FText>& Options, float Seconds)
 {
 	UGameInstance* GI = GetGameInstance();
+	const int32 NumOptions = Options.Num();
 	if (!IsConnected() || bPollRunning || NumOptions < 2 || NumOptions > 9 || !GI)
 	{
 		return false;
 	}
 	bPollRunning = true;
 	ActivePollId = PollId;
+	PollTitle = Title;
+	PollOptions = Options;
 	NumPollOptions = NumOptions;
 	Voters.Reset();
 	RecountVotes();
@@ -213,6 +234,7 @@ void UTwitchChatSubsystem::FinishPoll()
 		GI->GetTimerManager().ClearTimer(PollTickTimer);
 	}
 	PollResults.Add(ActivePollId, Counts);
+	LastFinishedPollId = ActivePollId;
 	OnChanged.Broadcast();
 }
 

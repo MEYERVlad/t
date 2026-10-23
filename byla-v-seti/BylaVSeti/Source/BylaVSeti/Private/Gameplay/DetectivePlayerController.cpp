@@ -5,6 +5,7 @@
 #include "UI/GameHudWidget.h"
 #include "UI/InterrogationWidget.h"
 #include "UI/LaptopWidget.h"
+#include "UI/PollOverlayWidget.h"
 
 UCaseStateSubsystem* ADetectivePlayerController::GetCase() const
 {
@@ -25,6 +26,12 @@ void ADetectivePlayerController::BeginPlay()
 	if (Hud)
 	{
 		Hud->AddToViewport(0);
+	}
+
+	// Голосование чата поверх всего, включая ноутбук и допрос.
+	if (UPollOverlayWidget* Poll = CreateWidget<UPollOverlayWidget>(this, UPollOverlayWidget::StaticClass()))
+	{
+		Poll->AddToViewport(50);
 	}
 
 	if (UCaseStateSubsystem* Case = GetCase())

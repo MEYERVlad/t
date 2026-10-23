@@ -406,9 +406,10 @@ FText UCaseStateSubsystem::GetObjectPrompt(FName ObjectId) const
 	return FText::FromName(ObjectId);
 }
 
-bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage, FName& OutInterrogation)
+bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage, FName& OutInterrogation, FName& OutTravelMap)
 {
 	OutInterrogation = NAME_None;
+	OutTravelMap = NAME_None;
 	const FCaseObject* O = Objects.Find(ObjectId);
 	if (!O)
 	{
@@ -424,6 +425,15 @@ bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage, FName& Ou
 	{
 		OutInterrogation = O->InterrogationId;
 		UsedObjects.Add(ObjectId);
+		return true;
+	}
+	if (!O->TravelMap.IsNone())
+	{
+		OutTravelMap = O->TravelMap;
+		OutMessage = O->InspectText;
+		UsedObjects.Add(ObjectId);
+		SetFlag(O->SetsFlag);
+		MarkChanged();
 		return true;
 	}
 	if (O->bOneShot && UsedObjects.Contains(ObjectId))

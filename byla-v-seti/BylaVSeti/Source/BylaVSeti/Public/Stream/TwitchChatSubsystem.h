@@ -29,11 +29,13 @@ public:
 	/** Подключение, новый голос, тик таймера, конец голосования. */
 	FOnTwitchChanged OnChanged;
 
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	/** Канал можно указать как "name", "#name" или ссылкой twitch.tv/name. */
+	/** Канал можно указать как "name", "#name" или ссылкой twitch.tv/name. Запоминается для автоподключения. */
 	void Connect(const FString& Channel);
-	void Disconnect();
+	/** Отключение по кнопке: автоподключение при следующем запуске выключается. */
+	void UserDisconnect();
 
 	ETwitchStatus GetStatus() const { return Status; }
 	bool IsConnected() const { return Status == ETwitchStatus::Connected; }
@@ -41,7 +43,11 @@ public:
 	const FString& GetLastError() const { return LastError; }
 
 	// --- Голосование ---
-	bool StartPoll(FName PollId, int32 NumOptions, float Seconds);
+	bool StartPoll(FName PollId, const FText& Title, const TArray<FText>& Options, float Seconds);
+	const FText& GetPollTitle() const { return PollTitle; }
+	const TArray<FText>& GetPollOptions() const { return PollOptions; }
+	/** Последнее завершённое голосование (для показа итога). */
+	FName GetLastFinishedPollId() const { return LastFinishedPollId; }
 	void StopPoll();
 	bool IsPollRunning() const { return bPollRunning; }
 	FName GetPollId() const { return ActivePollId; }
@@ -53,6 +59,7 @@ public:
 	bool GetPollResultCounts(FName PollId, TArray<int32>& OutCounts) const;
 
 private:
+	void Disconnect();
 	void HandleConnected();
 	void HandleConnectionError(const FString& Error);
 	void HandleClosed(int32 StatusCode, const FString& Reason, bool bWasClean);
@@ -64,6 +71,13 @@ private:
 
 	UPROPERTY(Config)
 	FString ChannelName;
+
+	UPROPERTY(Config)
+	bool bAutoConnect = false;
+
+	FText PollTitle;
+	TArray<FText> PollOptions;
+	FName LastFinishedPollId;
 
 	TSharedPtr<IWebSocket> Socket;
 	ETwitchStatus Status = ETwitchStatus::Off;

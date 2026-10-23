@@ -108,6 +108,12 @@ def build():
     case_object("DeskPhone", "desk_phone", (360, 425, 79), (20, 14, 8))
     case_object("ForumPrintout", "forum_printout", (60, 110, 76.5), (21, 30, 1))
 
+    # --- Акт 2: второй том дела на полке и ключи от машины на стене у двери
+    box("Shelf", (40, 400, 45), (60, 100, 90), "Office/Furniture")
+    case_object("CaseVolume2", "case_volume_2", (40, 400, 94), (30, 22, 8))
+    box("KeyBoard", (4, 300, 140), (6, 50, 40), "Office/Furniture")
+    case_object("CarKeys", "car_keys", (10, 300, 140), (6, 14, 10))
+
     # --- Допросная: стол, стулья, Артём (пока цилиндр-манекен)
     box("Interrogation_Table", (800, 200, 37.5), (140, 90, 75), "Interrogation/Furniture")
     box("Interrogation_Chair_Player", (695, 200, 22.5), (45, 45, 45), "Interrogation/Furniture")

@@ -101,15 +101,6 @@
 		"setsFlag": "account_deleted"
 	},
 	{
-		"id": "mail_end_arrested",
-		"channel": "mail",
-		"author": "Разработчики",
-		"dateLabel": "конец прототипа",
-		"text": "Вы задержали Артёма. Тот, кто вёл страницу, испугался и стёр её — вместе со всем, что собирался вам показать. Путь к правде станет длиннее.\n\nЭто конец прототипа. Спасибо, что сыграли! Расскажите, где вы застряли и что было интересно.",
-		"triggerFlag": "account_deleted",
-		"delaySeconds": 10
-	},
-	{
 		"id": "krug_photo_14",
 		"channel": "krug",
 		"author": "Алина Соколова",
@@ -123,12 +114,86 @@
 		"setsFlag": "photo_14_published"
 	},
 	{
-		"id": "mail_end_released",
+		"id": "mail_granin_arrest",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Вот это по-нашему. Оформляй Лаптева-младшего — и закрываем. Мать успокоится.",
+		"triggerFlag": "artem_arrested",
+		"delaySeconds": 6,
+		"trustDelta": 5
+	},
+	{
+		"id": "mail_granin_release",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Отпустил? Ну смотри, Ветров. Неделя. Я тебя за язык не тянул.",
+		"triggerFlag": "artem_released",
+		"delaySeconds": 6,
+		"trustDelta": -5
+	},
+	{
+		"id": "mail_fitpulse",
+		"channel": "mail",
+		"author": "ООО «ФитПульс», служба поддержки",
+		"dateLabel": "сейчас",
+		"text": "Ответ на запрос № 4480. Браслет FP-3, привязанный к учётной записи «alina.sokolova», активен и синхронизируется ежедневно. Маршрут за последние 30 дней прилагаем. Данные за прошлые годы хранятся только в приложении на привязанном телефоне.",
+		"triggerFlag": "decided_artem_fate",
+		"delaySeconds": 25,
+		"grantsEvidence": [
+			"fitness_route",
+			"address_sadovaya",
+			"cemetery_plot"
+		],
+		"setsFlag": "route_received"
+	},
+	{
+		"id": "mail_granin_alive",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Ветров, мне тут передали, что ты докладываешь, будто Соколова жива. А браслет, оказывается, мать носит. Ты в своём уме?",
+		"triggerFlag": "bracelet_found",
+		"requiresFlag": "theory_alive",
+		"delaySeconds": 6,
+		"trustDelta": -10
+	},
+	{
+		"id": "mail_granin_told",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Правильно, что сразу ко мне. Данные с браслета — сомнительные, сам понимаешь: китайская игрушка, мать его десять лет таскала. Оставь распечатку у меня, я разберусь. И не свети ею пока.",
+		"triggerFlag": "told_granin_bracelet",
+		"delaySeconds": 5,
+		"trustDelta": 5
+	},
+	{
+		"id": "krug_dont_give",
+		"channel": "krug",
+		"author": "Алина Соколова",
+		"dateLabel": "сейчас",
+		"text": "Не отдавай ему.",
+		"triggerFlag": "told_granin_bracelet",
+		"delaySeconds": 35
+	},
+	{
+		"id": "krug_right_path",
+		"channel": "krug",
+		"author": "Алина Соколова",
+		"dateLabel": "сейчас",
+		"text": "22:17. Теперь ты знаешь. Найди того, кто видел это в 2016-м.",
+		"triggerFlag": "kept_bracelet",
+		"delaySeconds": 35
+	},
+	{
+		"id": "mail_end_act2",
 		"channel": "mail",
 		"author": "Разработчики",
-		"dateLabel": "конец прототипа",
-		"text": "Вы отпустили Артёма — и «Алина» ответила снимком, которого нет в деле. Кто-то из тех, кто работал над делом в 2016 году, знает больше, чем написано в приговоре.\n\nЭто конец прототипа. Спасибо, что сыграли! Расскажите, где вы застряли и что было интересно.",
-		"triggerFlag": "photo_14_published",
-		"delaySeconds": 15
+		"dateLabel": "конец акта 2",
+		"text": "Конец второго акта «Она жива». Денис не мог убить Алину: в 22:14 он платил на заправке в 4 км оттуда, а пульс Алины остановился в 22:17. Кто-то в 2016 году знал это — и промолчал.\n\nДальше: акт 3 «Свидетель». Спасибо, что играете! Напишите, где было непонятно.",
+		"triggerFlag": "decided_report_bracelet",
+		"delaySeconds": 60
 	}
 ]

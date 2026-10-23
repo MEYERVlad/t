@@ -19,7 +19,9 @@
 				"contradictedBy": "person_artem",
 				"reaction": "Ну... разбираюсь, да. VPN у меня есть — рабочий, сервер в Хельсинки, не в Амстердаме. Хотите — смотрите роутер мастерской, логи там.",
 				"wrongReaction": "Не понимаю, к чему вы это.",
-				"grantsEvidence": ["artem_statement"]
+				"grantsEvidence": [
+					"artem_statement"
+				]
 			},
 			{
 				"id": "dont_care",
@@ -35,13 +37,67 @@
 				"wrongReaction": "Можете хоть всё дело на стол вывалить. Это не я."
 			}
 		],
-		"requiredStatements": ["never_touched", "no_vpn"],
+		"requiredStatements": [
+			"never_touched",
+			"no_vpn"
+		],
 		"finishFlag": "artem_interrogated",
 		"finishText": "Ключевые показания опровергнуты. Что делать с Артёмом — решите в ноутбуке, раздел «Решения».",
 		"liveReactions": [
 			{
 				"feedId": "krug_post_04",
 				"text": "(смотрит на свой телефон — экран тёмный, никто его не трогал) Вы же видите. Это не я. Это не я!"
+			}
+		]
+	},
+	{
+		"id": "irina",
+		"person": "Ирина Соколова",
+		"intro": "Хрущёвка на Садовой. Ирина ставит чайник, хотя вы отказались. На полке — фотография Алины и свечка. Ирина садится и натягивает рукав кофты на левое запястье.",
+		"wrongReaction": "Я не понимаю, что вы хотите мне этим сказать.",
+		"statements": [
+			{
+				"id": "not_me",
+				"text": "Я не знаю, кто пишет с её страницы. Я только читаю. Каждую ночь перечитываю.",
+				"wrongReaction": "Это не я. Я бы не смогла. Я даже пароля не знаю."
+			},
+			{
+				"id": "nothing_left",
+				"text": "Мне ничего от неё не оставили. Всё забрала полиция и так и не вернула.",
+				"contradictedBy": "alina_phone",
+				"reaction": "(долго молчит) ...Телефон вернули. В восемнадцатом. Вместе с браслетом. Я его заряжаю каждый вечер, чтобы... чтобы он не умер.",
+				"setsFlag": "phone_admitted"
+			},
+			{
+				"id": "stay_home",
+				"text": "Я никуда не хожу. Сижу дома, сил нет.",
+				"contradictedBy": "fitness_route",
+				"reaction": "(закатывает рукав — на запястье тот самый браслет) Хожу. Каждое утро. К ней на кладбище, потом в церковь. Пусть хоть шаги её... живут.",
+				"grantsEvidence": [
+					"bracelet_on_mother"
+				],
+				"setsFlag": "bracelet_found"
+			},
+			{
+				"id": "history",
+				"text": "Там в телефоне всё хранится, с самого начала. Я старое не открываю. Не могу.",
+				"requiresStatement": "stay_home",
+				"wrongReaction": "Посмотрите сами. Я не буду."
+			}
+		],
+		"requiredStatements": [
+			"nothing_left",
+			"stay_home"
+		],
+		"finishFlag": "irina_interrogated",
+		"finishEvidence": [
+			"bracelet_history_2016"
+		],
+		"finishText": "Ирина протягивает телефон: «Посмотрите сами». В приложении сохранилась вся история за 14 октября 2016 года. Новая улика — в материалах дела.",
+		"liveReactions": [
+			{
+				"feedId": "mail_fitpulse",
+				"text": "Это про браслет? Не забирайте его. Пожалуйста."
 			}
 		]
 	}

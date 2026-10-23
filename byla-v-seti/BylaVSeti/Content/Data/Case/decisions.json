@@ -6,8 +6,31 @@
 		"requiresFlag": "artem_interrogated",
 		"bPointOfNoReturn": true,
 		"options": [
-			{ "label": "Задержать по ст. 272 УК РФ (неправомерный доступ)", "setsFlag": "artem_arrested" },
-			{ "label": "Отпустить под подписку о невыезде", "setsFlag": "artem_released" }
+			{
+				"label": "Задержать по ст. 272 УК РФ (неправомерный доступ)",
+				"setsFlag": "artem_arrested"
+			},
+			{
+				"label": "Отпустить под подписку о невыезде",
+				"setsFlag": "artem_released"
+			}
+		]
+	},
+	{
+		"id": "report_bracelet",
+		"prompt": "Доложить Гранину о данных браслета?",
+		"description": "Данные браслета разрушают приговор, который Гранин считает «чистым». По уставу вы обязаны доложить начальнику. Но что-то в этом деле не так.",
+		"requiresFlag": "denis_alibi",
+		"bPointOfNoReturn": false,
+		"options": [
+			{
+				"label": "Доложить Гранину сейчас",
+				"setsFlag": "told_granin_bracelet"
+			},
+			{
+				"label": "Пока придержать у себя",
+				"setsFlag": "kept_bracelet"
+			}
 		]
 	}
 ]

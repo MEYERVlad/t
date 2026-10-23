@@ -3,8 +3,16 @@
 		"id": "hyp_volna",
 		"title": "«Алина» указывает на лодочную станцию «Волна» — место, которого нет в материалах дела.",
 		"links": [
-			{ "a": "post_03", "b": "place_volna", "type": "points_to" },
-			{ "a": "place_volna", "b": "case_verdict", "type": "contradicts" }
+			{
+				"a": "post_03",
+				"b": "place_volna",
+				"type": "points_to"
+			},
+			{
+				"a": "place_volna",
+				"b": "case_verdict",
+				"type": "contradicts"
+			}
 		],
 		"setsFlag": "volna_noted"
 	},
@@ -12,8 +20,16 @@
 		"id": "hyp_artem_trap",
 		"title": "Страницу Алины ведёт Артём Лаптев, чтобы вытащить брата.",
 		"links": [
-			{ "a": "login_2020", "b": "person_artem", "type": "points_to" },
-			{ "a": "person_artem", "b": "post_01", "type": "wrote" }
+			{
+				"a": "login_2020",
+				"b": "person_artem",
+				"type": "points_to"
+			},
+			{
+				"a": "person_artem",
+				"b": "post_01",
+				"type": "wrote"
+			}
 		],
 		"setsFlag": "theory_artem",
 		"bTrap": true
@@ -22,8 +38,16 @@
 		"id": "hyp_not_artem",
 		"title": "Страницу ведёт не Артём: пост вышел, пока он сидел на допросе, а его VPN ведёт в Хельсинки, не в Амстердам.",
 		"links": [
-			{ "a": "post_04", "b": "person_artem", "type": "alibi" },
-			{ "a": "artem_statement", "b": "login_2026", "type": "contradicts" }
+			{
+				"a": "post_04",
+				"b": "person_artem",
+				"type": "alibi"
+			},
+			{
+				"a": "artem_statement",
+				"b": "login_2026",
+				"type": "contradicts"
+			}
 		],
 		"requiresFlag": "post_04_published",
 		"setsFlag": "artem_cleared"
@@ -32,8 +56,67 @@
 		"id": "hyp_token",
 		"title": "Тот, кто ведёт страницу, получил доступ в октябре 2016 года — во время следствия. Токен сессии выдан 20.10.2016.",
 		"links": [
-			{ "a": "login_2026", "b": "case_verdict", "type": "points_to" }
+			{
+				"a": "login_2026",
+				"b": "case_verdict",
+				"type": "points_to"
+			}
 		],
 		"setsFlag": "token_noted"
+	},
+	{
+		"id": "hyp_alive_trap",
+		"title": "Алина жива: браслет каждый день ходит по городу, а её страница публикует шаги.",
+		"links": [
+			{
+				"a": "fitness_steps",
+				"b": "person_alina",
+				"type": "wrote"
+			},
+			{
+				"a": "fitness_route",
+				"b": "person_alina",
+				"type": "was_at"
+			}
+		],
+		"requiresFlag": "route_received",
+		"setsFlag": "theory_alive",
+		"bTrap": true
+	},
+	{
+		"id": "hyp_mother",
+		"title": "«Шаги Алины» — это шаги её матери: Ирина носит браслет дочери и каждое утро ходит на кладбище.",
+		"links": [
+			{
+				"a": "fitness_route",
+				"b": "person_irina",
+				"type": "was_at"
+			},
+			{
+				"a": "bracelet_on_mother",
+				"b": "fitness_steps",
+				"type": "wrote"
+			}
+		],
+		"requiresFlag": "bracelet_found",
+		"setsFlag": "mother_wears"
+	},
+	{
+		"id": "hyp_denis_alibi",
+		"title": "Денис не мог убить Алину: пульс остановился в 22:17, а в 22:14 Денис платил на АЗС в 4,2 км от набережной.",
+		"links": [
+			{
+				"a": "bracelet_history_2016",
+				"b": "case_verdict",
+				"type": "contradicts"
+			},
+			{
+				"a": "bank_statement",
+				"b": "person_denis",
+				"type": "alibi"
+			}
+		],
+		"requiresFlag": "irina_interrogated",
+		"setsFlag": "denis_alibi"
 	}
 ]

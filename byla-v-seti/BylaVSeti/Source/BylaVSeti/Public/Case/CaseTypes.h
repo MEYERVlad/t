@@ -194,6 +194,10 @@ struct FCaseObject
 	/** Если задан — предмет открывает допрос с этим Id (interrogations.json). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
 	FName InterrogationId;
+
+	/** Если задан — предмет переносит игрока на этот уровень (например, L_IrinaFlat). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName TravelMap;
 };
 
 /** Одно показание на допросе. Его можно опровергнуть уликой ContradictedBy. */

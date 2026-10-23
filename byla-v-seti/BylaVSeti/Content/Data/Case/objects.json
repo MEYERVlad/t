@@ -47,5 +47,57 @@
 		"lockedMessage": "В допросной пусто. Артёма нужно сначала вызвать — рабочий телефон у вас на столе.",
 		"interrogationId": "artem",
 		"bOneShot": false
+	},
+	{
+		"id": "case_volume_2",
+		"prompt": "Второй том дела: финансы и запросы",
+		"inspectText": "Банковские выписки, ответы операторов, справки. Всё подшито, но никто это не читал: половина страниц склеена.",
+		"evidenceIds": [
+			"bank_statement"
+		],
+		"requiresFlag": "decided_artem_fate",
+		"lockedMessage": "Сначала разберитесь с Артёмом.",
+		"doneMessage": "Второй том уже изучен."
+	},
+	{
+		"id": "car_keys",
+		"prompt": "Ключи от служебной машины: ехать на Садовую, 12",
+		"requiresFlag": "route_received",
+		"travelMap": "L_IrinaFlat",
+		"bOneShot": false,
+		"lockedMessage": "Пока ехать некуда. Ждите ответа «ФитПульса» на запрос о браслете — он придёт на почту."
+	},
+	{
+		"id": "flat_exit",
+		"prompt": "Вернуться в отдел",
+		"travelMap": "L_Office",
+		"bOneShot": false
+	},
+	{
+		"id": "alina_phone",
+		"prompt": "Телефон на зарядке",
+		"inspectText": "Старый телефон с трещиной в углу. Включён. На экране — «ФитПульс»: «Синхронизация: час назад».",
+		"evidenceIds": [
+			"alina_phone"
+		],
+		"doneMessage": "Телефон Алины. Ирина заряжает его каждый вечер."
+	},
+	{
+		"id": "alina_photo",
+		"prompt": "Фотография Алины",
+		"inspectText": "Алина смеётся на набережной, лето 2016-го. На запястье — тот самый браслет. Рядом свечка и засохшие гвоздики.",
+		"bOneShot": false
+	},
+	{
+		"id": "wall_calendar",
+		"prompt": "Календарь на стене",
+		"inspectText": "Октябрь 2016 года. 14-е обведено ручкой. Десять лет календарь никто не перелистывал.",
+		"bOneShot": false
+	},
+	{
+		"id": "irina",
+		"prompt": "Поговорить с Ириной Соколовой",
+		"interrogationId": "irina",
+		"bOneShot": false
 	}
 ]

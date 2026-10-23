@@ -1,9 +1,10 @@
-#include "Gameplay/CaseObjectActor.h"
+﻿#include "Gameplay/CaseObjectActor.h"
 
 #include "Case/CaseStateSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Gameplay/DetectiveCharacter.h"
 #include "Gameplay/DetectivePlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 FText ACaseObjectActor::GetPrompt() const
 {
@@ -28,7 +29,15 @@ void ACaseObjectActor::Interact(ADetectiveCharacter* Detective)
 
 	FText Message;
 	FName InterrogationId;
-	Case->UseObject(ObjectId, Message, InterrogationId);
+	FName TravelMap;
+	Case->UseObject(ObjectId, Message, InterrogationId, TravelMap);
+
+	if (!TravelMap.IsNone())
+	{
+		// Состояние дела живёт в GameInstance и переживает смену уровня.
+		UGameplayStatics::OpenLevel(this, TravelMap);
+		return;
+	}
 
 	if (ADetectivePlayerController* PC = Cast<ADetectivePlayerController>(Detective->GetController()))
 	{
