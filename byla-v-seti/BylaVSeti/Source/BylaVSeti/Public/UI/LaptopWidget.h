@@ -54,6 +54,7 @@ private:
 	void AddContent(UWidget* Widget, float BottomPadding = 12.f);
 
 	ELaptopApp CurrentApp = ELaptopApp::Case;
+	bool bConfirmRestart = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UBorder> ContentPanel;

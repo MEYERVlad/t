@@ -17,6 +17,7 @@
 #include "Engine/GameInstance.h"
 #include "Gameplay/DetectivePlayerController.h"
 #include "InputCoreTypes.h"
+#include "Kismet/GameplayStatics.h"
 #include "Stream/TwitchChatSubsystem.h"
 #include "UI/BoardWidget.h"
 #include "UI/UIStyle.h"
@@ -29,6 +30,8 @@ namespace
 	const FName ActPoll(TEXT("poll"));
 	const FName ActConnect(TEXT("connect"));
 	const FName ActDisconnect(TEXT("disconnect"));
+	const FName ActRestartAsk(TEXT("restart_ask"));
+	const FName ActRestart(TEXT("restart"));
 
 	constexpr float PollSeconds = 60.f;
 
@@ -454,7 +457,19 @@ void ULaptopWidget::BuildStreamApp()
 			break;
 		}
 	}
-	AddContent(MakeCard(MakeText(Status, 21, Color, true), BylaUI::Card), 12.f);
+	AddContent(MakeCard(MakeText(Status, 21, Color, true), BylaUI::Card), 32.f);
+
+	// Новая игра: двойное подтверждение, чтобы стример не стёр прохождение случайно.
+	AddContent(MakeText(UI(TEXT("restart_header")), 22, BylaUI::Text, true), 8.f);
+	AddContent(MakeText(UI(TEXT("restart_help")), 18, BylaUI::TextDim), 10.f);
+	if (bConfirmRestart)
+	{
+		AddContent(MakeButton(UI(TEXT("restart_confirm")), ActRestart, NAME_None, BylaUI::Danger), 8.f);
+	}
+	else
+	{
+		AddContent(MakeButton(UI(TEXT("restart")), ActRestartAsk, NAME_None, BylaUI::Button), 8.f);
+	}
 }
 
 // ================================================================ Действия
@@ -471,6 +486,11 @@ void ULaptopWidget::HandleAction(FName Action, FName Payload)
 			PC->ClosePanel();
 		}
 		return;
+	}
+
+	if (Action != ActRestartAsk)
+	{
+		bConfirmRestart = false;
 	}
 
 	if (Action == ActApp)
@@ -514,6 +534,16 @@ void ULaptopWidget::HandleAction(FName Action, FName Payload)
 	else if (Action == ActConnect && Twitch && ChannelInput)
 	{
 		Twitch->Connect(ChannelInput->GetText().ToString());
+	}
+	else if (Action == ActRestartAsk)
+	{
+		bConfirmRestart = true;
+	}
+	else if (Action == ActRestart && Case)
+	{
+		Case->StartNewCase();
+		UGameplayStatics::OpenLevel(this, TEXT("L_Office"));
+		return;
 	}
 	else if (Action == ActDisconnect && Twitch)
 	{

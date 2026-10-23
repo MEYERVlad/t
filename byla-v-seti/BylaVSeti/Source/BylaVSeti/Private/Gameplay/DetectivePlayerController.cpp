@@ -36,15 +36,26 @@ void ADetectivePlayerController::BeginPlay()
 
 	if (UCaseStateSubsystem* Case = GetCase())
 	{
+		// Игра идёт одним сплошным делом: при запуске продолжаем с автосохранения.
+		// При переезде между локациями дело уже идёт, и ничего не показываем.
+		FText Greeting;
 		if (!Case->HasFlag(TEXT("start")))
 		{
-			Case->StartNewCase();
+			if (Case->LoadCase())
+			{
+				Greeting = Case->UI(TEXT("toast_continue"));
+			}
+			else
+			{
+				Case->StartNewCase();
+				Greeting = Case->UI(TEXT("toast_welcome"));
+			}
 		}
 		EvidenceHandle = Case->OnEvidenceAdded.AddUObject(this, &ADetectivePlayerController::HandleEvidenceAdded);
 		FeedHandle = Case->OnFeedPublished.AddUObject(this, &ADetectivePlayerController::HandleFeedPublished);
 		ChangedHandle = Case->OnCaseChanged.AddUObject(this, &ADetectivePlayerController::HandleCaseChanged);
 		HandleCaseChanged();
-		ShowToast(Case->UI(TEXT("toast_welcome")));
+		ShowToast(Greeting);
 	}
 
 	SetInputMode(FInputModeGameOnly());
