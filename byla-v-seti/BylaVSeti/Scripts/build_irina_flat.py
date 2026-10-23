@@ -24,7 +24,7 @@ def open_or_create_map():
     if unreal.EditorAssetLibrary.does_asset_exist(MAP_PATH):
         levels.load_level(MAP_PATH)
         for actor in actors.get_all_level_actors():
-            if actor.get_actor_label().startswith(PREFIX):
+            if actor.get_actor_label().startswith((PREFIX, "DRESS_")):
                 actors.destroy_actor(actor)
     else:
         levels.new_level(MAP_PATH)

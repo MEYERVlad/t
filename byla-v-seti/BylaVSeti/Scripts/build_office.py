@@ -24,7 +24,7 @@ def open_or_create_map():
         levels.load_level(MAP_PATH)
         removed = 0
         for actor in actors.get_all_level_actors():
-            if actor.get_actor_label().startswith(PREFIX):
+            if actor.get_actor_label().startswith((PREFIX, "DRESS_")):
                 actors.destroy_actor(actor)
                 removed += 1
         unreal.log(f"[build_office] Уровень открыт, удалено старых объектов: {removed}")
