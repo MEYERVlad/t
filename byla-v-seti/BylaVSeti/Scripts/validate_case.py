@@ -22,6 +22,7 @@ decisions = load("decisions.json")
 objects = load("objects.json")
 interrogations = {i["id"]: i for i in load("interrogations.json")}
 endings = load("endings.json")
+hints = load("hints.json")
 load("ui_strings.json")
 
 errors = []
@@ -117,6 +118,10 @@ for d in decisions:
     if req and req not in flags:
         errors.append(f"decision/{d['id']}: требует недостижимый флаг '{req}'")
 
+for h in hints:
+    for f in [h.get("requiresFlag")] + h.get("doneFlags", []):
+        if f and f not in flags:
+            errors.append(f"hint/{h['id']}: флаг '{f}' недостижим")
 for e in endings:
     for f in [e.get("triggerFlag")] + e.get("requiresAll", []):
         if f and f not in flags:

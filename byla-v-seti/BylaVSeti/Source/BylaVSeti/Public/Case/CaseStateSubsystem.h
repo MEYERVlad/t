@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "HAL/PlatformTime.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Case/CaseTypes.h"
 #include "CaseStateSubsystem.generated.h"
@@ -107,6 +108,11 @@ public:
 	int32 CountBrokenStatements(FName InterrogationId) const;
 	int32 CountStatements(FName InterrogationId) const;
 
+	// --- Подсказки ---
+	const FCaseHint* GetCurrentHint() const;
+	/** Секунды с последнего продвижения по сюжету (новый флаг). */
+	double GetSecondsSinceProgress() const { return FPlatformTime::Seconds() - LastProgressTime; }
+
 	// --- Концовки ---
 	FName GetReachedEnding() const { return ReachedEnding; }
 	const FCaseEnding* FindEnding(FName Id) const;
@@ -128,6 +134,7 @@ private:
 	TMap<FName, FCaseObject> Objects;
 	TArray<FCaseInterrogation> Interrogations;
 	TArray<FCaseEnding> Endings;
+	TArray<FCaseHint> Hints;
 	TMap<FName, FText> UIStrings;
 
 	// Состояние игрока
@@ -143,6 +150,7 @@ private:
 	TSet<FName> FinishedInterrogations;
 	TMap<FName, FVector2D> CardPositions;
 	FName ReachedEnding;
+	double LastProgressTime = 0.0;
 	int32 Trust = 60;
 	bool bLinksChangedSinceReport = true;
 

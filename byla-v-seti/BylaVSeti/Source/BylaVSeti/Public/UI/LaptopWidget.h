@@ -20,6 +20,7 @@ enum class ELaptopApp : uint8
 	Mail,
 	Board,
 	Decisions,
+	Hint,
 	Stream
 };
 
@@ -51,10 +52,12 @@ private:
 	void BuildFeedApp(FName Channel);
 	void BuildDecisionsApp();
 	void BuildStreamApp();
+	void BuildHintApp();
 	void AddContent(UWidget* Widget, float BottomPadding = 12.f);
 
 	ELaptopApp CurrentApp = ELaptopApp::Case;
 	bool bConfirmRestart = false;
+	FName RevealedHint;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UBorder> ContentPanel;

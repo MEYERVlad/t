@@ -99,6 +99,8 @@ void UCaseStateSubsystem::LoadData()
 
 	CaseData::LoadArray(TEXT("interrogations.json"), Interrogations);
 	CaseData::LoadArray(TEXT("endings.json"), Endings);
+	CaseData::LoadArray(TEXT("hints.json"), Hints);
+	LastProgressTime = FPlatformTime::Seconds();
 
 	UE_LOG(LogCase, Log, TEXT("Case loaded: evidence %d, feed %d, hypotheses %d, decisions %d, objects %d, interrogations %d, ui strings %d"),
 		Evidence.Num(), FeedItems.Num(), Hypotheses.Num(), Decisions.Num(), Objects.Num(), Interrogations.Num(), UIStrings.Num());
@@ -168,6 +170,7 @@ void UCaseStateSubsystem::SetFlag(FName Flag)
 		return;
 	}
 	Flags.Add(Flag);
+	LastProgressTime = FPlatformTime::Seconds();
 	UE_LOG(LogCase, Log, TEXT("Flag set: %s"), *Flag.ToString());
 	ScheduleFeedForFlag(Flag);
 	CheckEndings(Flag);
@@ -565,6 +568,29 @@ int32 UCaseStateSubsystem::CountStatements(FName InterrogationId) const
 {
 	const FCaseInterrogation* I = FindInterrogation(InterrogationId);
 	return I ? I->Statements.Num() : 0;
+}
+
+// ---------------------------------------------------------------- Подсказки
+
+const FCaseHint* UCaseStateSubsystem::GetCurrentHint() const
+{
+	for (const FCaseHint& H : Hints)
+	{
+		if (!HasFlag(H.RequiresFlag))
+		{
+			continue;
+		}
+		bool bDone = false;
+		for (const FName& F : H.DoneFlags)
+		{
+			bDone |= Flags.Contains(F);
+		}
+		if (!bDone)
+		{
+			return &H;
+		}
+	}
+	return nullptr;
 }
 
 // ---------------------------------------------------------------- Концовки

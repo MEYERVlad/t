@@ -63,6 +63,24 @@ void ADetectivePlayerController::BeginPlay()
 
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
+
+	GetWorldTimerManager().SetTimer(StuckTimer, this, &ADetectivePlayerController::CheckStuck, 20.f, true);
+}
+
+void ADetectivePlayerController::CheckStuck()
+{
+	static constexpr double StuckSeconds = 300.0;
+	UCaseStateSubsystem* Case = GetCase();
+	if (!Case || ActivePanel || Case->GetSecondsSinceProgress() < StuckSeconds)
+	{
+		return;
+	}
+	const FCaseHint* Hint = Case->GetCurrentHint();
+	if (Hint && Hint->Id != LastNudgedHint)
+	{
+		LastNudgedHint = Hint->Id;
+		ShowToast(Case->UI(TEXT("toast_hint_nudge")));
+	}
 }
 
 void ADetectivePlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)

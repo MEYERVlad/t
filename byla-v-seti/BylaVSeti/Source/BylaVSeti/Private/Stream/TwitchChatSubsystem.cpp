@@ -37,6 +37,13 @@ void UTwitchChatSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 }
 
+void UTwitchChatSubsystem::SetFacecamCorner(int32 Corner)
+{
+	FacecamCorner = FMath::Clamp(Corner, 0, 4);
+	SaveConfig();
+	OnChanged.Broadcast();
+}
+
 void UTwitchChatSubsystem::UserDisconnect()
 {
 	bAutoConnect = false;

@@ -242,6 +242,28 @@ struct FCaseEnding
 	int32 MinScore = 0;
 };
 
+/**
+ * Подсказка «что делать дальше». Текущая — первая по порядку в hints.json,
+ * у которой выполнен RequiresFlag и не выставлен ни один из DoneFlags.
+ */
+USTRUCT(BlueprintType)
+struct FCaseHint
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName RequiresFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> DoneFlags;
+};
+
 /** Одно показание на допросе. Его можно опровергнуть уликой ContradictedBy. */
 USTRUCT(BlueprintType)
 struct FCaseStatement

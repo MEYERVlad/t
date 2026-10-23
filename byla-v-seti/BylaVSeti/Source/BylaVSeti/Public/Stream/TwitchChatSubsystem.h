@@ -42,6 +42,10 @@ public:
 	const FString& GetChannel() const { return ChannelName; }
 	const FString& GetLastError() const { return LastError; }
 
+	// --- Камера стримера: 0 — нет, 1 — слева сверху, 2 — справа сверху, 3 — слева снизу, 4 — справа снизу ---
+	int32 GetFacecamCorner() const { return FacecamCorner; }
+	void SetFacecamCorner(int32 Corner);
+
 	// --- Голосование ---
 	bool StartPoll(FName PollId, const FText& Title, const TArray<FText>& Options, float Seconds);
 	const FText& GetPollTitle() const { return PollTitle; }
@@ -74,6 +78,9 @@ private:
 
 	UPROPERTY(Config)
 	bool bAutoConnect = false;
+
+	UPROPERTY(Config)
+	int32 FacecamCorner = 0;
 
 	FText PollTitle;
 	TArray<FText> PollOptions;

@@ -8,7 +8,9 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "Stream/TwitchChatSubsystem.h"
 #include "UI/UIStyle.h"
 
 TSharedRef<SWidget> UGameHudWidget::RebuildWidget()
@@ -58,12 +60,10 @@ void UGameHudWidget::BuildLayout()
 	TrustText->SetFont(BylaUI::Font(22, true));
 	TrustText->SetColorAndOpacity(FSlateColor(BylaUI::Accent));
 	TrustText->SetShadowOffset(FVector2D(1.f, 1.f));
-	if (UCanvasPanelSlot* S = Canvas->AddChildToCanvas(TrustText))
+	TrustSlot = Canvas->AddChildToCanvas(TrustText);
+	if (TrustSlot)
 	{
-		S->SetAnchors(FAnchors(0.f, 0.f));
-		S->SetAlignment(FVector2D(0.f, 0.f));
-		S->SetAutoSize(true);
-		S->SetPosition(FVector2D(40.f, 32.f));
+		TrustSlot->SetAutoSize(true);
 	}
 
 	// Уведомления (правый верхний угол).
@@ -71,15 +71,74 @@ void UGameHudWidget::BuildLayout()
 	ToastSize->SetWidthOverride(560.f);
 	ToastBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass());
 	ToastSize->AddChild(ToastBox);
-	if (UCanvasPanelSlot* S = Canvas->AddChildToCanvas(ToastSize))
+	ToastSlot = Canvas->AddChildToCanvas(ToastSize);
+	if (ToastSlot)
 	{
-		S->SetAnchors(FAnchors(1.f, 0.f));
-		S->SetAlignment(FVector2D(1.f, 0.f));
-		S->SetAutoSize(true);
-		S->SetPosition(FVector2D(-40.f, 32.f));
+		ToastSlot->SetAutoSize(true);
 	}
 
+	ApplyFacecamLayout();
 	SetPrompt(CurrentPrompt);
+}
+
+void UGameHudWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+	const UGameInstance* GI = GetGameInstance();
+	if (UTwitchChatSubsystem* Twitch = GI ? GI->GetSubsystem<UTwitchChatSubsystem>() : nullptr)
+	{
+		TwitchHandle = Twitch->OnChanged.AddUObject(this, &UGameHudWidget::ApplyFacecamLayout);
+	}
+	ApplyFacecamLayout();
+}
+
+void UGameHudWidget::NativeDestruct()
+{
+	const UGameInstance* GI = GetGameInstance();
+	if (UTwitchChatSubsystem* Twitch = GI ? GI->GetSubsystem<UTwitchChatSubsystem>() : nullptr)
+	{
+		Twitch->OnChanged.Remove(TwitchHandle);
+	}
+	Super::NativeDestruct();
+}
+
+void UGameHudWidget::ApplyFacecamLayout()
+{
+	if (!TrustSlot || !ToastSlot)
+	{
+		return;
+	}
+	const UGameInstance* GI = GetGameInstance();
+	const UTwitchChatSubsystem* Twitch = GI ? GI->GetSubsystem<UTwitchChatSubsystem>() : nullptr;
+	const int32 Corner = Twitch ? Twitch->GetFacecamCorner() : 0;
+
+	// Доверие: слева сверху, а если там камера — слева снизу.
+	if (Corner == 1)
+	{
+		TrustSlot->SetAnchors(FAnchors(0.f, 1.f));
+		TrustSlot->SetAlignment(FVector2D(0.f, 1.f));
+		TrustSlot->SetPosition(FVector2D(40.f, -32.f));
+	}
+	else
+	{
+		TrustSlot->SetAnchors(FAnchors(0.f, 0.f));
+		TrustSlot->SetAlignment(FVector2D(0.f, 0.f));
+		TrustSlot->SetPosition(FVector2D(40.f, 32.f));
+	}
+
+	// Уведомления: справа сверху, а если там камера — справа снизу (над нижним краем).
+	if (Corner == 2)
+	{
+		ToastSlot->SetAnchors(FAnchors(1.f, 1.f));
+		ToastSlot->SetAlignment(FVector2D(1.f, 1.f));
+		ToastSlot->SetPosition(FVector2D(-40.f, -40.f));
+	}
+	else
+	{
+		ToastSlot->SetAnchors(FAnchors(1.f, 0.f));
+		ToastSlot->SetAlignment(FVector2D(1.f, 0.f));
+		ToastSlot->SetPosition(FVector2D(-40.f, 32.f));
+	}
 }
 
 void UGameHudWidget::SetPrompt(const FText& Prompt)

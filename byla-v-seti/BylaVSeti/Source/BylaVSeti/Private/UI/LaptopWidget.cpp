@@ -17,6 +17,7 @@
 #include "Engine/GameInstance.h"
 #include "Gameplay/DetectivePlayerController.h"
 #include "InputCoreTypes.h"
+#include "GameFramework/GameUserSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "Stream/TwitchChatSubsystem.h"
 #include "UI/BoardWidget.h"
@@ -30,6 +31,9 @@ namespace
 	const FName ActPoll(TEXT("poll"));
 	const FName ActConnect(TEXT("connect"));
 	const FName ActDisconnect(TEXT("disconnect"));
+	const FName ActRevealHint(TEXT("reveal_hint"));
+	const FName ActQuality(TEXT("quality"));
+	const FName ActFacecam(TEXT("facecam"));
 	const FName ActRestartAsk(TEXT("restart_ask"));
 	const FName ActRestart(TEXT("restart"));
 
@@ -47,6 +51,7 @@ namespace
 		{ ELaptopApp::Mail, TEXT("mail"), TEXT("app_mail") },
 		{ ELaptopApp::Board, TEXT("board"), TEXT("app_board") },
 		{ ELaptopApp::Decisions, TEXT("decisions"), TEXT("app_decisions") },
+		{ ELaptopApp::Hint, TEXT("hint"), TEXT("app_hint") },
 		{ ELaptopApp::Stream, TEXT("stream"), TEXT("app_stream") },
 	};
 
@@ -254,6 +259,7 @@ void ULaptopWidget::Refresh()
 	case ELaptopApp::Mail:      BuildFeedApp(TEXT("mail")); break;
 	case ELaptopApp::Decisions: BuildDecisionsApp(); break;
 	case ELaptopApp::Stream:    BuildStreamApp(); break;
+	case ELaptopApp::Hint:      BuildHintApp(); break;
 	default: break;
 	}
 }
@@ -416,6 +422,32 @@ void ULaptopWidget::BuildDecisionsApp()
 	}
 }
 
+void ULaptopWidget::BuildHintApp()
+{
+	const UCaseStateSubsystem* Case = GetCase();
+	if (!Case)
+	{
+		return;
+	}
+	AddContent(MakeText(UI(TEXT("hint_header")), 28, BylaUI::Text, true), 10.f);
+	AddContent(MakeText(UI(TEXT("hint_help")), 19, BylaUI::TextDim), 18.f);
+
+	const FCaseHint* Hint = Case->GetCurrentHint();
+	if (!Hint)
+	{
+		AddContent(MakeText(UI(TEXT("hint_none")), 21, BylaUI::TextDim));
+		return;
+	}
+	if (RevealedHint == Hint->Id)
+	{
+		AddContent(MakeCard(MakeText(Hint->Text, 23, BylaUI::Warning, true), BylaUI::Card, 20.f));
+	}
+	else
+	{
+		AddContent(MakeButton(UI(TEXT("hint_reveal")), ActRevealHint, Hint->Id, BylaUI::ButtonActive));
+	}
+}
+
 void ULaptopWidget::BuildStreamApp()
 {
 	const UTwitchChatSubsystem* Twitch = GetTwitch();
@@ -458,6 +490,43 @@ void ULaptopWidget::BuildStreamApp()
 		}
 	}
 	AddContent(MakeCard(MakeText(Status, 21, Color, true), BylaUI::Card), 32.f);
+
+	// Графика: пресеты качества движка (0 — низкое ... 3 — эпическое).
+	AddContent(MakeText(UI(TEXT("quality_header")), 22, BylaUI::Text, true), 8.f);
+	AddContent(MakeText(UI(TEXT("quality_help")), 18, BylaUI::TextDim), 10.f);
+	{
+		const UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings();
+		const int32 Current = Settings ? Settings->GetOverallScalabilityLevel() : -1;
+		UHorizontalBox* QualityRow = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+		for (int32 Level = 0; Level <= 3; ++Level)
+		{
+			const FText Label = UI(*FString::Printf(TEXT("quality_%d"), Level));
+			if (UHorizontalBoxSlot* S = QualityRow->AddChildToHorizontalBox(MakeButton(Label, ActQuality, FName(*FString::FromInt(Level)),
+				Level == Current ? BylaUI::ButtonActive : BylaUI::Button)))
+			{
+				S->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
+			}
+		}
+		AddContent(QualityRow, 28.f);
+	}
+
+	// Камера стримера: интерфейс уходит из выбранного угла.
+	AddContent(MakeText(UI(TEXT("facecam_header")), 22, BylaUI::Text, true), 8.f);
+	AddContent(MakeText(UI(TEXT("facecam_help")), 18, BylaUI::TextDim), 10.f);
+	{
+		const int32 Corner = Twitch ? Twitch->GetFacecamCorner() : 0;
+		UHorizontalBox* CamRow = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+		for (int32 c = 0; c <= 4; ++c)
+		{
+			const FText Label = UI(*FString::Printf(TEXT("facecam_%d"), c));
+			if (UHorizontalBoxSlot* S = CamRow->AddChildToHorizontalBox(MakeButton(Label, ActFacecam, FName(*FString::FromInt(c)),
+				c == Corner ? BylaUI::ButtonActive : BylaUI::Button, false, 17)))
+			{
+				S->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
+			}
+		}
+		AddContent(CamRow, 32.f);
+	}
 
 	// Новая игра: двойное подтверждение, чтобы стример не стёр прохождение случайно.
 	AddContent(MakeText(UI(TEXT("restart_header")), 22, BylaUI::Text, true), 8.f);
@@ -534,6 +603,23 @@ void ULaptopWidget::HandleAction(FName Action, FName Payload)
 	else if (Action == ActConnect && Twitch && ChannelInput)
 	{
 		Twitch->Connect(ChannelInput->GetText().ToString());
+	}
+	else if (Action == ActQuality)
+	{
+		if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings())
+		{
+			Settings->SetOverallScalabilityLevel(FCString::Atoi(*Payload.ToString()));
+			Settings->ApplySettings(false);
+			Settings->SaveSettings();
+		}
+	}
+	else if (Action == ActFacecam && Twitch)
+	{
+		Twitch->SetFacecamCorner(FCString::Atoi(*Payload.ToString()));
+	}
+	else if (Action == ActRevealHint)
+	{
+		RevealedHint = Payload;
 	}
 	else if (Action == ActRestartAsk)
 	{

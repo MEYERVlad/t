@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameHudWidget.generated.h"
 
+class UCanvasPanelSlot;
 class UTextBlock;
 class UVerticalBox;
 
@@ -20,10 +21,14 @@ public:
 
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
+	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
 	void BuildLayout();
+	/** Уводит доверие и уведомления из угла, где стоит камера стримера. */
+	void ApplyFacecamLayout();
 	void RebuildToasts();
 
 	struct FToast
@@ -41,6 +46,14 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UVerticalBox> ToastBox;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UCanvasPanelSlot> TrustSlot;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UCanvasPanelSlot> ToastSlot;
+
+	FDelegateHandle TwitchHandle;
 
 	FText CurrentPrompt;
 

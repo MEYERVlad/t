@@ -1,0 +1,171 @@
+[
+	{
+		"id": "h_logs",
+		"requiresFlag": "start",
+		"doneFlags": [
+			"login_log_read"
+		],
+		"text": "Подойдите к столу. Распечатка журнала входов в аккаунт Алины лежит справа от ноутбука — изучите её (E)."
+	},
+	{
+		"id": "h_call",
+		"requiresFlag": "login_log_read",
+		"doneFlags": [
+			"artem_called"
+		],
+		"text": "Позвоните Артёму Лаптеву с рабочего телефона на столе."
+	},
+	{
+		"id": "h_artem",
+		"requiresFlag": "artem_called",
+		"doneFlags": [
+			"artem_interrogated"
+		],
+		"text": "Допросите Артёма в соседней комнате. «Не прикасался к странице» опровергает журнал входов 2020 года. «Не разбираюсь в VPN» — карточка «Артём Лаптев» (он чинит телефоны)."
+	},
+	{
+		"id": "h_artem_decide",
+		"requiresFlag": "artem_interrogated",
+		"doneFlags": [
+			"decided_artem_fate"
+		],
+		"text": "Решите, что делать с Артёмом: ноутбук → «Решения». Можно отдать это голосованию чата."
+	},
+	{
+		"id": "h_wait_fit",
+		"requiresFlag": "decided_artem_fate",
+		"doneFlags": [
+			"route_received"
+		],
+		"text": "Подождите минуту: на почту придёт ответ «ФитПульса» о браслете Алины."
+	},
+	{
+		"id": "h_irina",
+		"requiresFlag": "route_received",
+		"doneFlags": [
+			"irina_interrogated"
+		],
+		"text": "Возьмите ключи от машины на стене у двери и езжайте к Ирине. Осмотрите телефон на столе. «Ничего не оставили» опровергает телефон Алины, «никуда не хожу» — маршрут браслета."
+	},
+	{
+		"id": "h_alibi",
+		"requiresFlag": "irina_interrogated",
+		"doneFlags": [
+			"denis_alibi"
+		],
+		"text": "В кабинете на полке — второй том дела (выписка Дениса). На доске «СЛЕД»: история браслета → приговор («противоречит»), выписка → Денис Лаптев («алиби для»). Затем «Доложить версию»."
+	},
+	{
+		"id": "h_report",
+		"requiresFlag": "denis_alibi",
+		"doneFlags": [
+			"decided_report_bracelet"
+		],
+		"text": "Решите в ноутбуке («Решения»), докладывать ли Гранину о данных браслета."
+	},
+	{
+		"id": "h_archive_wait",
+		"requiresFlag": "decided_report_bracelet",
+		"doneFlags": [
+			"archive_visited"
+		],
+		"text": "Подождите письма из архива. Потом — дверь в подвал в южной стене кабинета. Изучите в архиве всё, что лежит на столах и в шкафах."
+	},
+	{
+		"id": "h_kira_find",
+		"requiresFlag": "archive_visited",
+		"doneFlags": [
+			"kira_identified"
+		],
+		"text": "На доске одна из пар: фото № 14 → журнал фотоаппаратуры («указывает на») и журнал → Кира Ланская («владеет»). Или: заключение 2016 → Кира («написал(а)») и заключение → история браслета («противоречит»)."
+	},
+	{
+		"id": "h_kira",
+		"requiresFlag": "kira_identified",
+		"doneFlags": [
+			"kira_interrogated"
+		],
+		"text": "Езжайте в кафе «Причал» (ключи на стене). Кира — за угловым столиком. «Не имела отношения» опровергает заключение 2016 года, «браслет не исследовали» — история браслета."
+	},
+	{
+		"id": "h_kira_decide",
+		"requiresFlag": "kira_interrogated",
+		"doneFlags": [
+			"decided_tell_granin_kira"
+		],
+		"text": "Решите в ноутбуке, говорить ли Гранину, что свидетель найден. Это точка невозврата."
+	},
+	{
+		"id": "h_search",
+		"requiresFlag": "kira_recanted",
+		"doneFlags": [
+			"decided_search_kira"
+		],
+		"text": "Кира отказалась говорить. Решите в ноутбуке, через кого делать обыск."
+	},
+	{
+		"id": "h_wait_irina",
+		"requiresFlag": "decided_tell_granin_kira",
+		"doneFlags": [
+			"mentor_phase"
+		],
+		"text": "Подождите: скоро придут документы или новости. Следите за почтой."
+	},
+	{
+		"id": "h_svetlana",
+		"requiresFlag": "mentor_phase",
+		"doneFlags": [
+			"svetlana_talked"
+		],
+		"text": "Света работает в «Причале». Её «ни с кем, кроме Дениса» опровергает сообщение «О.» или показания Киры."
+	},
+	{
+		"id": "h_bmw",
+		"requiresFlag": "svetlana_talked",
+		"doneFlags": [
+			"bmw_linked"
+		],
+		"text": "Соберите три улики: у Ирины — галерея в телефоне Алины (фото BMW), в архиве — дело о ДТП на Речной. На доске: фото BMW → дело Ершова («указывает на»), слова Светы про BMW → фото BMW («указывает на»)."
+	},
+	{
+		"id": "h_oleg",
+		"requiresFlag": "bmw_linked",
+		"doneFlags": [
+			"oleg_suspect"
+		],
+		"text": "Дождитесь ответа ГИБДД на почте. На доске: реестр BMW → Олег Гранин («владеет»), слова Светы про BMW → Олег Гранин («указывает на»)."
+	},
+	{
+		"id": "h_route",
+		"requiresFlag": "oleg_suspect",
+		"doneFlags": [
+			"decided_oleg_route"
+		],
+		"text": "Решите в ноутбуке, через кого запрашивать звонки Олега и обыск дачи. Это точка невозврата. Пока можно: допросите Кулика в «Причале» (ведомость выплат из архива) и изучите третий том дела и медкарту у Ирины — пригодятся в суде."
+	},
+	{
+		"id": "h_deal",
+		"requiresFlag": "deal_offered",
+		"doneFlags": [
+			"decided_deal"
+		],
+		"text": "Гранин предложил сделку. Ответ — в ноутбуке, «Решения»."
+	},
+	{
+		"id": "h_dacha",
+		"requiresFlag": "dacha_known",
+		"doneFlags": [
+			"dacha_found",
+			"dacha_empty"
+		],
+		"text": "Езжайте на дачу «Рассвет» (ключи на стене) и осмотрите пол сарая."
+	},
+	{
+		"id": "h_court",
+		"requiresFlag": "hearing_scheduled",
+		"doneFlags": [
+			"hearing_closed"
+		],
+		"text": "Езжайте в суд (ключи на стене) и подойдите к судье. Ответы: история браслета, выписка Дениса, медкарта Алины, детализация Дениса, показания Кулика, находка на даче. Потом завершите выступление в «Решениях»."
+	}
+]

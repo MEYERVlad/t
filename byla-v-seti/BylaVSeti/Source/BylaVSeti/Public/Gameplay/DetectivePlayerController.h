@@ -36,6 +36,8 @@ private:
 	void HandleFeedPublished(FName Id);
 	void HandleCaseChanged();
 	void HandleEndingReached(FName EndingId);
+	/** Раз в 20 секунд: если игрок давно не продвигался — напомнить про подсказку. */
+	void CheckStuck();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UGameHudWidget> Hud;
@@ -47,4 +49,6 @@ private:
 	FDelegateHandle FeedHandle;
 	FDelegateHandle ChangedHandle;
 	FDelegateHandle EndingHandle;
+	FTimerHandle StuckTimer;
+	FName LastNudgedHint;
 };
