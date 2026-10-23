@@ -118,5 +118,96 @@
 		],
 		"requiresFlag": "irina_interrogated",
 		"setsFlag": "denis_alibi"
+	},
+	{
+		"id": "hyp_photo_kira",
+		"title": "Фото № 14 снято служебной камерой ЭКЦ 21.10.2016 — в тот день её брала стажёр Ланская.",
+		"links": [
+			{
+				"a": "photo_14",
+				"b": "camera_register",
+				"type": "points_to"
+			},
+			{
+				"a": "camera_register",
+				"b": "person_kira",
+				"type": "owns"
+			}
+		],
+		"requiresFlag": "archive_visited",
+		"setsFlag": "kira_identified"
+	},
+	{
+		"id": "hyp_expertise_kira",
+		"title": "Ланская подписала заключение «браслет не исследовался», хотя данные браслета существуют. Она что-то знала.",
+		"links": [
+			{
+				"a": "expertise_2016",
+				"b": "person_kira",
+				"type": "wrote"
+			},
+			{
+				"a": "expertise_2016",
+				"b": "bracelet_history_2016",
+				"type": "contradicts"
+			}
+		],
+		"requiresFlag": "archive_visited",
+		"setsFlag": "kira_identified"
+	},
+	{
+		"id": "hyp_maltsev_trap",
+		"title": "Алину убил Мальцев: накануне он поругался с ней из-за денег, а «Волна» в полутора километрах от кафе.",
+		"links": [
+			{
+				"a": "maltsev_quarrel",
+				"b": "person_maltsev",
+				"type": "points_to"
+			},
+			{
+				"a": "person_maltsev",
+				"b": "place_volna",
+				"type": "was_at"
+			}
+		],
+		"requiresFlag": "prichal_visited",
+		"setsFlag": "theory_maltsev",
+		"bTrap": true
+	},
+	{
+		"id": "hyp_granin_hid",
+		"title": "Гранин скрыл отчёт со временем смерти: его резолюция «не приобщать», и в тот же день из дела пропали листы 113–118.",
+		"links": [
+			{
+				"a": "kira_report",
+				"b": "person_granin",
+				"type": "wrote"
+			},
+			{
+				"a": "kira_report",
+				"b": "archive_log",
+				"type": "points_to"
+			}
+		],
+		"requiresFlag": "kira_report_received",
+		"setsFlag": "granin_hid_report"
+	},
+	{
+		"id": "hyp_o_meeting",
+		"title": "В 22:00 Алина встречалась на «Волне» с «О.», а не с Денисом. Потом её телефон увезли к дачам «Рассвет».",
+		"links": [
+			{
+				"a": "msg_to_o",
+				"b": "place_volna",
+				"type": "points_to"
+			},
+			{
+				"a": "tower_rasvet",
+				"b": "case_verdict",
+				"type": "contradicts"
+			}
+		],
+		"requiresFlag": "kira_report_received",
+		"setsFlag": "o_meeting"
 	}
 ]

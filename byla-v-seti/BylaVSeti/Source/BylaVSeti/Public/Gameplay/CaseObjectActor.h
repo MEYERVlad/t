@@ -14,9 +14,17 @@ class BYLAVSETI_API ACaseObjectActor : public AInteractableActor
 	GENERATED_BODY()
 
 public:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual FText GetPrompt() const override;
 	virtual void Interact(ADetectiveCharacter* Detective) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Case")
 	FName ObjectId;
+
+private:
+	/** Прячет предмет, пока сюжет до него не дошёл (ShowFlag в objects.json). */
+	void UpdateVisibility();
+
+	FDelegateHandle ChangedHandle;
 };

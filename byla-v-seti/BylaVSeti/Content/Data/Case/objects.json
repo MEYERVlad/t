@@ -61,7 +61,7 @@
 	},
 	{
 		"id": "car_keys",
-		"prompt": "Ключи от служебной машины: ехать на Садовую, 12",
+		"prompt": "Ключи от машины: Садовая, 12 (Ирина Соколова)",
 		"requiresFlag": "route_received",
 		"travelMap": "L_IrinaFlat",
 		"bOneShot": false,
@@ -98,6 +98,99 @@
 		"id": "irina",
 		"prompt": "Поговорить с Ириной Соколовой",
 		"interrogationId": "irina",
+		"bOneShot": false
+	},
+	{
+		"id": "archive_door",
+		"prompt": "Лестница в подвал: архив ЭКЦ",
+		"travelMap": "L_LabArchive",
+		"requiresFlag": "archive_open",
+		"bOneShot": false,
+		"lockedMessage": "Дверь в подвал заперта. Без запроса в архив не пустят."
+	},
+	{
+		"id": "archive_exit",
+		"prompt": "Подняться в кабинет",
+		"travelMap": "L_Office",
+		"bOneShot": false
+	},
+	{
+		"id": "archive_clerk_desk",
+		"prompt": "Стол архивариуса: журнал выдачи дел",
+		"inspectText": "Архивариус ушла на обед, журнал открыт. Дело № 1-217 в 2016 году брал только Гранин — на сутки. И нумерация листов в деле после его возврата скачет.",
+		"evidenceIds": [
+			"archive_log"
+		],
+		"setsFlag": "archive_visited",
+		"doneMessage": "Журнал уже изучен."
+	},
+	{
+		"id": "camera_cabinet",
+		"prompt": "Шкаф с фотоаппаратурой и журналом выдачи",
+		"inspectText": "Старый журнал выдачи техники за 2016 год. 21 октября: Nikon D3200 № 4519087 — стажёр Ланская.",
+		"evidenceIds": [
+			"camera_register"
+		],
+		"setsFlag": "archive_visited",
+		"doneMessage": "Журнал техники уже изучен."
+	},
+	{
+		"id": "expertise_box",
+		"prompt": "Коробка «Экспертизы 2016, № 1-217»",
+		"inspectText": "Полторы страницы заключения. «Браслет не исследовался». Подпись стажёра. Для дела об убийстве — подозрительно мало.",
+		"evidenceIds": [
+			"expertise_2016"
+		],
+		"setsFlag": "archive_visited",
+		"doneMessage": "Коробка уже изучена."
+	},
+	{
+		"id": "staff_folder",
+		"prompt": "Папка отдела кадров ЭКЦ",
+		"inspectText": "Штатное расписание 2016 года. Ланская К. С., стажёр, уволилась в марте 2017-го. Карандашом сбоку: «Медлайн», «Причал».",
+		"evidenceIds": [
+			"staff_list_2016",
+			"person_kira"
+		],
+		"setsFlag": "archive_visited",
+		"doneMessage": "Папка уже изучена."
+	},
+	{
+		"id": "car_keys_prichal",
+		"prompt": "Ключи от машины: кафе «Причал»",
+		"travelMap": "L_Prichal",
+		"requiresFlag": "archive_visited",
+		"bOneShot": false,
+		"setsFlag": "prichal_visited",
+		"lockedMessage": "В «Причал» пока ехать незачем."
+	},
+	{
+		"id": "prichal_exit",
+		"prompt": "Вернуться в отдел",
+		"travelMap": "L_Office",
+		"bOneShot": false
+	},
+	{
+		"id": "maltsev",
+		"prompt": "Поговорить с хозяином кафе",
+		"interrogationId": "maltsev",
+		"bOneShot": false
+	},
+	{
+		"id": "cash_journal",
+		"prompt": "Кассовый журнал под стойкой",
+		"inspectText": "Мальцев, не глядя, кидает на стойку журнал: «Смотрите, мне скрывать нечего». 14 октября 2016-го: свадьба, чеки каждые пять минут, его пароль.",
+		"evidenceIds": [
+			"maltsev_alibi"
+		],
+		"setsFlag": "maltsev_cleared",
+		"doneMessage": "Журнал уже изучен."
+	},
+	{
+		"id": "kira",
+		"prompt": "Подсесть к женщине за угловым столиком",
+		"interrogationId": "kira",
+		"showFlag": "kira_identified",
 		"bOneShot": false
 	}
 ]

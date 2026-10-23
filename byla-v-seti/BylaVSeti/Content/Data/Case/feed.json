@@ -101,19 +101,6 @@
 		"setsFlag": "account_deleted"
 	},
 	{
-		"id": "krug_photo_14",
-		"channel": "krug",
-		"author": "Алина Соколова",
-		"dateLabel": "сейчас",
-		"text": "[фото 2016 года: швартовая тумба, бурые пятна, масштабная линейка]\nОни это видели.",
-		"triggerFlag": "artem_released",
-		"delaySeconds": 30,
-		"grantsEvidence": [
-			"photo_14"
-		],
-		"setsFlag": "photo_14_published"
-	},
-	{
 		"id": "mail_granin_arrest",
 		"channel": "mail",
 		"author": "Майор В. Гранин",
@@ -188,12 +175,126 @@
 		"delaySeconds": 35
 	},
 	{
-		"id": "mail_end_act2",
+		"id": "krug_photo_14",
+		"channel": "krug",
+		"author": "Алина Соколова",
+		"dateLabel": "сейчас",
+		"text": "[фото 2016 года: швартовая тумба, бурые пятна, масштабная линейка]\nОни это видели.",
+		"triggerFlag": "decided_report_bracelet",
+		"delaySeconds": 25,
+		"blockedByFlag": "account_deleted",
+		"grantsEvidence": [
+			"photo_14"
+		]
+	},
+	{
+		"id": "mail_archive",
+		"channel": "mail",
+		"author": "Архив ЭКЦ, подвал, каб. 012",
+		"dateLabel": "сейчас",
+		"text": "По запросу адвоката Лаптева подняты материалы экспертиз 2016 года по делу № 1-217. Можете ознакомиться в архиве, вход по лестнице в подвал (дверь в южной стене вашего кабинета). Выносить ничего нельзя.",
+		"triggerFlag": "decided_report_bracelet",
+		"delaySeconds": 45,
+		"setsFlag": "archive_open"
+	},
+	{
+		"id": "mail_granin_archive",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Ветров, что ты забыл в архиве ЭКЦ? Дело рассмотрено судом. Не трать время.",
+		"triggerFlag": "archive_visited",
+		"delaySeconds": 20,
+		"trustDelta": -5
+	},
+	{
+		"id": "mail_granin_maltsev",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Ветров, ты доложил, что Мальцев мог убить. А у него в тот вечер была свадьба в кафе и касса под его паролем каждые пять минут. Проверяй, прежде чем докладывать.",
+		"triggerFlag": "maltsev_cleared",
+		"requiresFlag": "theory_maltsev",
+		"delaySeconds": 6,
+		"trustDelta": -10
+	},
+	{
+		"id": "mail_kira_report",
+		"channel": "mail",
+		"author": "Кира Ланская (личная почта)",
+		"dateLabel": "сейчас",
+		"text": "Как обещала. Сканы — те самые листы 113–118, резолюция Гранина на первом. И кое-что из полной выгрузки телефона, чего нет в деле: сообщение «О.» и вышка в 22:52. Я десять лет боялась это отправить. Пожалуйста, не отдавайте это ему.",
+		"triggerFlag": "kept_kira",
+		"delaySeconds": 40,
+		"grantsEvidence": [
+			"kira_report",
+			"msg_to_o",
+			"tower_rasvet"
+		],
+		"setsFlag": "kira_report_received"
+	},
+	{
+		"id": "mail_granin_kira",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Ланская? Она у нас стажёром была, вечно всё путала. Ладно, я сам с ней поговорю, по-старому. Не беспокой её.",
+		"triggerFlag": "told_granin_kira",
+		"delaySeconds": 6,
+		"trustDelta": 5
+	},
+	{
+		"id": "mail_kira_scared",
+		"channel": "mail",
+		"author": "Кира Ланская (личная почта)",
+		"dateLabel": "сейчас",
+		"text": "Вы ему сказали. Он был у меня вечером. Стоял в дверях и улыбался. Я ничего не подпишу и ничего не отдам. Не ищите меня.",
+		"triggerFlag": "told_granin_kira",
+		"delaySeconds": 40,
+		"setsFlag": "kira_recanted"
+	},
+	{
+		"id": "mail_search_belova",
+		"channel": "mail",
+		"author": "Прокурор Е. Белова",
+		"dateLabel": "сейчас",
+		"text": "Ордер подписан. Обыск у Ланской проведён, изъяты копии экспертного отчёта 2016 года и флешка с полной выгрузкой телефона Соколовой. Протокол прилагаю. Майору Гранину о вашем обращении стало известно: он звонил мне через час.",
+		"triggerFlag": "search_belova",
+		"delaySeconds": 20,
+		"grantsEvidence": [
+			"kira_report",
+			"msg_to_o",
+			"tower_rasvet"
+		],
+		"setsFlag": "kira_report_received",
+		"trustDelta": -10
+	},
+	{
+		"id": "mail_search_granin",
+		"channel": "mail",
+		"author": "Майор В. Гранин",
+		"dateLabel": "сейчас",
+		"text": "Обыск у Ланской провели. Ничего не нашли: никаких «копий», никаких флешек. Говорил же — путала всё. Закрывай, Ветров.",
+		"triggerFlag": "search_granin",
+		"delaySeconds": 20,
+		"setsFlag": "copy_lost"
+	},
+	{
+		"id": "mail_end_witness",
 		"channel": "mail",
 		"author": "Разработчики",
 		"dateLabel": "сейчас",
-		"text": "Здесь пока заканчивается готовая часть игры. Денис не мог убить Алину: в 22:14 он платил на заправке в 4 км оттуда, а пульс Алины остановился в 22:17. Кто-то в 2016 году знал это и промолчал.\n\nПродолжение расследования появится в следующих версиях. Спасибо, что играете! Напишите, где было непонятно.",
-		"triggerFlag": "decided_report_bracelet",
+		"text": "Здесь пока заканчивается готовая часть игры. У вас есть свидетель, отчёт со временем смерти и резолюция Гранина «не приобщать». Алина в 21:31 назначила встречу какому-то «О.» на «Волне», а в 22:52 её телефон был у дачного кооператива «Рассвет».\n\nДальше: кто такой «О.» — и почему Гранин так боится этого дела. Спасибо, что играете!",
+		"triggerFlag": "kira_report_received",
 		"delaySeconds": 60
+	},
+	{
+		"id": "mail_end_lost",
+		"channel": "mail",
+		"author": "Разработчики",
+		"dateLabel": "сейчас",
+		"text": "Здесь пока заканчивается готовая часть игры. Отчёт Ланской пропал при обыске, свидетель напугана. Гранин явно знает больше, чем говорит. Путь к правде стал длиннее — но он ещё есть.\n\nСпасибо, что играете!",
+		"triggerFlag": "copy_lost",
+		"delaySeconds": 40
 	}
 ]

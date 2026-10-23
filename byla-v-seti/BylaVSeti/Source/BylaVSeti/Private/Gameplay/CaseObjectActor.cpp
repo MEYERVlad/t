@@ -6,6 +6,40 @@
 #include "Gameplay/DetectivePlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
+void ACaseObjectActor::BeginPlay()
+{
+	Super::BeginPlay();
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UCaseStateSubsystem* Case = GI->GetSubsystem<UCaseStateSubsystem>())
+		{
+			ChangedHandle = Case->OnCaseChanged.AddUObject(this, &ACaseObjectActor::UpdateVisibility);
+		}
+	}
+	UpdateVisibility();
+}
+
+void ACaseObjectActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UCaseStateSubsystem* Case = GI->GetSubsystem<UCaseStateSubsystem>())
+		{
+			Case->OnCaseChanged.Remove(ChangedHandle);
+		}
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void ACaseObjectActor::UpdateVisibility()
+{
+	const UGameInstance* GI = GetGameInstance();
+	const UCaseStateSubsystem* Case = GI ? GI->GetSubsystem<UCaseStateSubsystem>() : nullptr;
+	const bool bVisible = !Case || Case->IsObjectVisible(ObjectId);
+	SetActorHiddenInGame(!bVisible);
+	SetActorEnableCollision(bVisible);
+}
+
 FText ACaseObjectActor::GetPrompt() const
 {
 	if (const UGameInstance* GI = GetGameInstance())

@@ -86,6 +86,8 @@ public:
 
 	// --- Предметы в мире ---
 	FText GetObjectPrompt(FName ObjectId) const;
+	/** Должен ли предмет сейчас быть виден в мире (ShowFlag). */
+	bool IsObjectVisible(FName ObjectId) const;
 	/**
 	 * Возвращает true, если предмет сработал. В OutMessage — текст для игрока.
 	 * Если предмет открывает допрос, его Id будет в OutInterrogation.

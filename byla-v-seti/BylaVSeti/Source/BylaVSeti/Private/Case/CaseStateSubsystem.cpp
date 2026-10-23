@@ -212,7 +212,8 @@ void UCaseStateSubsystem::ScheduleFeedForFlag(FName Flag)
 void UCaseStateSubsystem::PublishFeedItem(FName Id)
 {
 	const FCaseFeedItem* Item = FeedItems.FindByPredicate([Id](const FCaseFeedItem& I) { return I.Id == Id; });
-	if (!Item || PublishedFeed.Contains(Id) || !HasFlag(Item->RequiresFlag))
+	if (!Item || PublishedFeed.Contains(Id) || !HasFlag(Item->RequiresFlag)
+		|| (!Item->BlockedByFlag.IsNone() && Flags.Contains(Item->BlockedByFlag)))
 	{
 		return;
 	}
@@ -406,6 +407,12 @@ FText UCaseStateSubsystem::GetObjectPrompt(FName ObjectId) const
 	return FText::FromName(ObjectId);
 }
 
+bool UCaseStateSubsystem::IsObjectVisible(FName ObjectId) const
+{
+	const FCaseObject* O = Objects.Find(ObjectId);
+	return !O || O->ShowFlag.IsNone() || Flags.Contains(O->ShowFlag);
+}
+
 bool UCaseStateSubsystem::UseObject(FName ObjectId, FText& OutMessage, FName& OutInterrogation, FName& OutTravelMap)
 {
 	OutInterrogation = NAME_None;
@@ -500,7 +507,9 @@ FCasePresentResult UCaseStateSubsystem::PresentEvidence(FName InterrogationId, F
 		return Result;
 	}
 
-	if (!S->ContradictedBy.IsNone() && S->ContradictedBy == EvidenceId)
+	const bool bContradicts = !EvidenceId.IsNone()
+		&& ((!S->ContradictedBy.IsNone() && S->ContradictedBy == EvidenceId) || S->AlsoContradictedBy.Contains(EvidenceId));
+	if (bContradicts)
 	{
 		BrokenStatements.Add(StatementKey(InterrogationId, StatementId));
 		Result.bCorrect = true;

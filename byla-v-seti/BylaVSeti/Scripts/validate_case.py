@@ -48,6 +48,8 @@ for iid, i in interrogations.items():
     for st in i["statements"]:
         if st.get("contradictedBy"):
             check_ev(f"interrogation/{iid}/{st['id']}", st["contradictedBy"])
+        for e in st.get("alsoContradictedBy", []):
+            check_ev(f"interrogation/{iid}/{st['id']}", e)
         for e in st.get("grantsEvidence", []):
             check_ev(f"interrogation/{iid}/{st['id']}", e)
         if st.get("requiresStatement") and st["requiresStatement"] not in ids:
@@ -106,6 +108,9 @@ for o in objects:
     req = o.get("requiresFlag") or ""
     if req and req not in flags:
         errors.append(f"object/{o['id']}: требует недостижимый флаг '{req}'")
+for o in objects:
+    if o.get("showFlag") and o["showFlag"] not in flags:
+        errors.append(f"object/{o['id']}: showFlag '{o['showFlag']}' недостижим")
 for d in decisions:
     req = d.get("requiresFlag") or ""
     if req and req not in flags:

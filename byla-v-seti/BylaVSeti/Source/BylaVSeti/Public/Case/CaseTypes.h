@@ -82,6 +82,10 @@ struct FCaseFeedItem
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
 	FName RequiresFlag;
 
+	/** Если этот флаг выставлен к моменту публикации — пост не выходит (например, страница удалена). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName BlockedByFlag;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
 	float DelaySeconds = 0.f;
 
@@ -198,6 +202,10 @@ struct FCaseObject
 	/** Если задан — предмет переносит игрока на этот уровень (например, L_IrinaFlat). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
 	FName TravelMap;
+
+	/** Если задан — предмет (или человек) виден в мире только после этого флага. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName ShowFlag;
 };
 
 /** Одно показание на допросе. Его можно опровергнуть уликой ContradictedBy. */
@@ -215,6 +223,10 @@ struct FCaseStatement
 	/** Улика, которая опровергает показание. Пусто — показание правдивое. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
 	FName ContradictedBy;
+
+	/** Другие улики, которые тоже опровергают показание (разные пути расследования). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> AlsoContradictedBy;
 
 	/** Что говорит персонаж, когда показание опровергнуто. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")

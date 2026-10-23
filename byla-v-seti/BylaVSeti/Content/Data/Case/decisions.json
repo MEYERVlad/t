@@ -32,5 +32,39 @@
 				"setsFlag": "kept_bracelet"
 			}
 		]
+	},
+	{
+		"id": "tell_granin_kira",
+		"prompt": "Сказать Гранину, что свидетель найден?",
+		"description": "Кира готова передать копию полного отчёта — если никто не узнает. По уставу вы обязаны доложить начальнику о новом свидетеле. Гранин — ваш наставник. И это его резолюция стоит на отчёте.",
+		"requiresFlag": "kira_interrogated",
+		"bPointOfNoReturn": true,
+		"options": [
+			{
+				"label": "Доложить Гранину: он мой наставник",
+				"setsFlag": "told_granin_kira"
+			},
+			{
+				"label": "Скрыть свидетеля от Гранина",
+				"setsFlag": "kept_kira"
+			}
+		]
+	},
+	{
+		"id": "search_kira",
+		"prompt": "Ланская отказывается. Обыск — через кого?",
+		"description": "Копия отчёта у Киры дома. Нужен ордер. Через Гранина — быстро и тихо. Через прокурора Белову — в обход начальника, и он об этом узнает.",
+		"requiresFlag": "kira_recanted",
+		"bPointOfNoReturn": true,
+		"options": [
+			{
+				"label": "Ордер через прокурора Белову",
+				"setsFlag": "search_belova"
+			},
+			{
+				"label": "Попросить Гранина организовать обыск",
+				"setsFlag": "search_granin"
+			}
+		]
 	}
 ]
