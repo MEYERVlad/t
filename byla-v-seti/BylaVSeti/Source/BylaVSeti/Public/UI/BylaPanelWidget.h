@@ -58,7 +58,7 @@ protected:
 	UTextBlock* MakeText(const FText& Text, int32 Size, const FLinearColor& Color, bool bBold = false, bool bWrap = true);
 	/** bPersistent = кнопка каркаса; иначе кнопка удаляется при следующем ResetContentButtons(). */
 	UButton* MakeButton(const FText& Label, FName Action, FName Payload, const FLinearColor& Color, bool bPersistent = false, int32 FontSize = 20);
-	UWidget* MakeCard(UWidget* Inner, const FLinearColor& Color, float Padding = 16.f);
+	UWidget* MakeCard(UWidget* Inner, const FLinearColor& Color, float CardPadding = 16.f);
 
 	/** Вызывать в начале Refresh перед очисткой изменяемой части. */
 	void ResetContentButtons();

@@ -100,11 +100,11 @@ UButton* UBylaPanelWidget::MakeButton(const FText& Label, FName Action, FName Pa
 	return Button;
 }
 
-UWidget* UBylaPanelWidget::MakeCard(UWidget* Inner, const FLinearColor& Color, float Padding)
+UWidget* UBylaPanelWidget::MakeCard(UWidget* Inner, const FLinearColor& Color, float CardPadding)
 {
 	UBorder* Card = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass());
 	Card->SetBrushColor(Color);
-	Card->SetPadding(FMargin(Padding + 2.f, Padding));
+	Card->SetPadding(FMargin(CardPadding + 2.f, CardPadding));
 	Card->SetContent(Inner);
 	return Card;
 }
