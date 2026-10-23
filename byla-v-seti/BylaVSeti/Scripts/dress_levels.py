@@ -88,8 +88,49 @@ MESH = {
     "spruce_small": f"{F}/Meshes/small/spruce_small_03",
 }
 
+# Однотонные материалы для мебели: создаются скриптом в /Game/Byla/Materials.
+# (Материалы паков для мебели — «атласы», на простых коробках они превращаются в полосы.)
+FLAT = {
+    # имя: (цвет R, G, B, шероховатость, металличность)
+    "flat_wood_dark": (0.10, 0.06, 0.035, 0.55, 0.0),
+    "flat_wood": (0.30, 0.19, 0.10, 0.6, 0.0),
+    "flat_metal": (0.22, 0.23, 0.24, 0.45, 0.7),
+    "flat_metal_light": (0.45, 0.46, 0.47, 0.4, 0.6),
+    "flat_enamel": (0.80, 0.80, 0.77, 0.3, 0.0),
+    "flat_sofa": (0.20, 0.10, 0.08, 0.9, 0.0),
+    "flat_cardboard": (0.42, 0.30, 0.17, 0.9, 0.0),
+    "flat_car": (0.08, 0.09, 0.11, 0.3, 0.5),
+    "flat_roof": (0.12, 0.12, 0.12, 0.8, 0.0),
+    "flat_boards": (0.28, 0.27, 0.24, 0.85, 0.0),
+    "flat_shed": (0.22, 0.15, 0.09, 0.85, 0.0),
+    "flat_screen": (0.02, 0.02, 0.03, 0.2, 0.0),
+}
+FLAT_FOLDER = "/Game/Byla/Materials"
+
 _cache = {}
 _missing = set()
+
+
+def flat_material(name):
+    path = f"{FLAT_FOLDER}/M_{name}"
+    if unreal.EditorAssetLibrary.does_asset_exist(path):
+        return unreal.load_asset(path)
+    r, g, b, rough, metal = FLAT[name]
+    tools = unreal.AssetToolsHelpers.get_asset_tools()
+    m = tools.create_asset(f"M_{name}", FLAT_FOLDER, unreal.Material, unreal.MaterialFactoryNew())
+    lib = unreal.MaterialEditingLibrary
+    color = lib.create_material_expression(m, unreal.MaterialExpressionConstant3Vector, -400, 0)
+    color.set_editor_property("constant", unreal.LinearColor(r, g, b, 1.0))
+    lib.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    rough_node = lib.create_material_expression(m, unreal.MaterialExpressionConstant, -400, 200)
+    rough_node.set_editor_property("r", rough)
+    lib.connect_material_property(rough_node, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    metal_node = lib.create_material_expression(m, unreal.MaterialExpressionConstant, -400, 300)
+    metal_node.set_editor_property("r", metal)
+    lib.connect_material_property(metal_node, "", unreal.MaterialProperty.MP_METALLIC)
+    lib.recompile_material(m)
+    unreal.EditorAssetLibrary.save_asset(path)
+    return m
 
 
 def asset(path):
@@ -102,6 +143,10 @@ def asset(path):
 
 
 def mat(key):
+    if key in FLAT:
+        if key not in _cache:
+            _cache[key] = flat_material(key)
+        return _cache[key]
     return asset(MAT[key])
 
 
@@ -171,6 +216,20 @@ def place(label, mesh_key, x, y, bottom, yaw=0.0, scale=(1.0, 1.0, 1.0), folder=
     return actor
 
 
+CUBE_PATH = "/Engine/BasicShapes/Cube.Cube"
+
+
+def cube(label, center, size, material_key, folder="Dressing"):
+    """Простой блок (например, полка стеллажа) с материалом."""
+    actor = actors.spawn_actor_from_object(asset(CUBE_PATH), unreal.Vector(*center))
+    actor.set_actor_scale3d(unreal.Vector(size[0] / 100.0, size[1] / 100.0, size[2] / 100.0))
+    paint(actor, material_key)
+    _counter[0] += 1
+    actor.set_actor_label(f"{DRESS}{label}_{_counter[0]}")
+    actor.set_folder_path(folder)
+    return actor
+
+
 def replace(gen, name, mesh_key, yaw=0.0, scale=(1.0, 1.0, 1.0)):
     """Заменяет серый блок мешем того же места (низ — на полу блока). Блок удаляется."""
     box = gen.get(name)
@@ -197,13 +256,12 @@ def dress_office():
     paint_matching(gen, [
         ("Interrogation_Floor", "concrete"), ("Interrogation_Ceiling", "plaster_a"), ("Interrogation_Wall", "plaster_c"),
         ("Floor", "concrete_tiles"), ("Ceiling", "plaster_a"), ("Wall", "paint2"),
-        ("Cabinet", "painted_metal"), ("KeyBoard", "wood"), ("Interrogation_Table", "painted_metal"),
-        ("Desk", "furniture"), ("Table", "furniture"), ("Shelf", "furniture"),
+        ("Cabinet", "flat_metal"), ("KeyBoard", "flat_wood"), ("Interrogation_Table", "flat_metal_light"),
+        ("Desk", "flat_wood_dark"), ("Table", "flat_wood"), ("Shelf", "flat_wood"),
     ])
     replace(gen, "Chair", "chair", yaw=90)
     replace(gen, "Interrogation_Chair_Player", "chair", yaw=0)
     replace(gen, "Interrogation_Chair_Suspect", "chair", yaw=180)
-    place("Blind", "blind", 150, 488, 90, yaw=0)
     place("Plant", "pot", 560, 60, 0)
     place("Mug", "mug", 260, 425, 75)
     place("Newspaper", "newspaper", 70, 150, 75, yaw=20)
@@ -216,11 +274,10 @@ def dress_flat():
     gen = gen_actors()
     paint_matching(gen, [
         ("Floor", "epoxy"), ("Ceiling", "plaster_a"), ("Kitchen_", "plaster_b"), ("Hall_", "paint2"), ("Room_", "paint"),
-        ("Sofa", "furniture2"), ("Wardrobe", "furniture"), ("Shelf", "furniture"), ("Table", "furniture"),
-        ("Stove", "painted_white"), ("Fridge", "painted_white"),
+        ("Sofa", "flat_sofa"), ("Wardrobe", "flat_wood_dark"), ("Shelf", "flat_wood"), ("Table", "flat_wood"),
+        ("Stove", "flat_enamel"), ("Fridge", "flat_enamel"),
     ])
     replace(gen, "Chair", "chair", yaw=90)
-    place("Blind", "blind", 320, 14, 70, yaw=0, scale=(0.5, 1.0, 1.0))
     place("Mug", "mug", 125, 505, 75)
     save()
 
@@ -230,10 +287,24 @@ def dress_archive():
         return
     gen = gen_actors()
     paint_matching(gen, [
-        ("Floor", "concrete_tiles"), ("Ceiling", "concrete"), ("Wall", "concrete"),
-        ("ShelfBox", "wood_brown"), ("Shelf", "painted_metal"),
-        ("Desk", "furniture"), ("Table", "furniture"),
+        ("Floor", "concrete_tiles"), ("Ceiling", "plaster_a"), ("Wall", "plaster_c"),
+        ("ShelfBox", "flat_cardboard"),
+        ("Desk", "flat_wood_dark"), ("Table", "flat_wood"),
     ])
+    # Сплошные блоки стеллажей заменяем на каркас: стойки + полки.
+    for i in range(3):
+        box = gen.pop(f"Shelf_{i}", None)
+        if not box:
+            continue
+        origin, extent = box.get_actor_bounds(False)
+        actors.destroy_actor(box)
+        cx, cy = origin.x, origin.y
+        w, l, h = extent.x * 2, extent.y * 2, extent.z * 2
+        for sy in (-1, 1):
+            for sx in (-1, 1):
+                cube("Upright", (cx + sx * (w / 2 - 2), cy + sy * (l / 2 - 2), h / 2), (4, 4, h), "flat_metal")
+        for z in (8, 70, 133, 200):
+            cube("Board", (cx, cy, z - 2), (w, l, 4), "flat_metal_light")
     place("Cart", "cart", 230, 420, 0, yaw=90)
     place("Mug", "mug", 120, 70, 75)
     save()
@@ -245,7 +316,7 @@ def dress_prichal():
     gen = gen_actors()
     paint_matching(gen, [
         ("Floor", "epoxy"), ("Ceiling", "plaster_a"), ("Wall", "plaster"),
-        ("Counter", "wood"), ("BackShelf", "wood_dark"),
+        ("Counter", "flat_wood_dark"), ("BackShelf", "flat_wood_dark"),
     ])
     W, L, H = 900, 600, 320
 
@@ -288,8 +359,6 @@ def dress_prichal():
     place("Chalkboard", "chalkboard", 892, 300, 90, yaw=-90)
     place("Painting1", "painting1", 300, L - 18, 140, yaw=180)
     place("Painting2", "painting2", 8 + 10, 300, 140, yaw=90)
-    place("BlindL", "blind", 200, 22, 90)
-    place("BlindR", "blind", 700, 22, 90)
     save()
 
 
@@ -298,8 +367,8 @@ def dress_dacha():
         return
     gen = gen_actors()
     paint_matching(gen, [
-        ("Ground", "dirt"), ("HouseRoof", "roof"), ("House", "wood_grey"),
-        ("Shed_Roof", "roof"), ("Shed", "wood_brown"), ("OldCar", "painted_metal"), ("Barrel", "metal"),
+        ("Ground", "dirt"), ("HouseRoof", "flat_roof"), ("House", "flat_boards"),
+        ("Shed_Roof", "flat_roof"), ("Shed", "flat_shed"), ("OldCar", "flat_car"), ("Barrel", "flat_metal"),
     ])
 
     # Деревянный забор вместо серых стенок. На юге — проём для калитки (x 420..580).
@@ -347,7 +416,7 @@ def dress_court():
     gen = gen_actors()
     paint_matching(gen, [
         ("Floor", "epoxy"), ("Ceiling", "plaster_a"), ("Wall", "plaster_b"),
-        ("Judge", "wood_brown"), ("Tribune", "wood_brown"), ("Table", "wood_brown"), ("VideoScreen", "wood_dark"),
+        ("Judge", "flat_wood_dark"), ("Tribune", "flat_wood_dark"), ("Table", "flat_wood"), ("VideoScreen", "flat_screen"),
     ])
     for r in range(4):
         replace(gen, f"Bench_L_{r}", "bench")
