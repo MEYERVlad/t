@@ -62,15 +62,41 @@ def find_blueprint(char_name):
 
 
 def find_idle():
-    data = find_asset_by_name(IDLE_ANIM_NAME)
-    return unreal.load_asset(str(data.package_name)) if data else None
+    """Берёт копию анимации из проекта (/Game). Анимацию из папки плагина Optional
+    игра не грузит надёжно и не кладёт в .exe, поэтому её используем только как запасной вариант."""
+    global _all_assets
+    _all_assets = registry.get_all_assets()  # свежий список: копию могли сделать только что
+    plugin_copy = None
+    for data in _all_assets:
+        if str(data.asset_name) != IDLE_ANIM_NAME:
+            continue
+        path = str(data.package_name)
+        if path.startswith("/Game/"):
+            unreal.log(f"[characters] Анимация стояния: {path}")
+            return unreal.load_asset(path)
+        plugin_copy = path
+    if plugin_copy:
+        unreal.log_warning(
+            f"[characters] {IDLE_ANIM_NAME} есть только внутри плагина ({plugin_copy}). "
+            "Сделайте копию в проект (CHARACTERS.md, шаг «Анимация в проект») и запустите скрипт снова. "
+            "Пока ставлю анимацию из плагина: в редакторе работает, но в Message Log будут ошибки.")
+        return unreal.load_asset(plugin_copy)
+    return None
+
+
+def from_plugin(asset):
+    return asset is not None and asset.get_path_name().startswith("/MetaHumanCharacter/")
 
 
 def set_idle(actor, idle):
-    if idle is None:
-        return
     for comp in actor.get_components_by_class(unreal.SkeletalMeshComponent):
-        if comp.get_name() == "Body":
+        # Убираем ссылки на превью-анимации из плагина (лицо и т.п.), они дают ошибки загрузки.
+        if comp.get_name() != "Body" and comp.get_editor_property("animation_mode") == unreal.AnimationMode.ANIMATION_SINGLE_NODE:
+            data = comp.get_editor_property("animation_data")
+            if from_plugin(data.get_editor_property("anim_to_play")):
+                data.set_editor_property("anim_to_play", None)
+                comp.set_editor_property("animation_data", data)
+        if idle is not None and comp.get_name() == "Body":
             comp.set_editor_property("animation_mode", unreal.AnimationMode.ANIMATION_SINGLE_NODE)
             data = comp.get_editor_property("animation_data")
             data.set_editor_property("anim_to_play", idle)
