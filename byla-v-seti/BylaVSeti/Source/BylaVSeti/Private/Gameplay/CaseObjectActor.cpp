@@ -1,6 +1,7 @@
 ﻿#include "Gameplay/CaseObjectActor.h"
 
 #include "Case/CaseStateSubsystem.h"
+#include "Components/StaticMeshComponent.h"
 #include "Engine/GameInstance.h"
 #include "Gameplay/DetectiveCharacter.h"
 #include "Gameplay/DetectivePlayerController.h"
@@ -38,6 +39,18 @@ void ACaseObjectActor::UpdateVisibility()
 	const bool bVisible = !Case || Case->IsObjectVisible(ObjectId);
 	SetActorHiddenInGame(!bVisible);
 	SetActorEnableCollision(bVisible);
+	if (Mesh && bHideMesh)
+	{
+		Mesh->SetHiddenInGame(true);
+	}
+	for (AActor* Linked : LinkedActors)
+	{
+		if (Linked)
+		{
+			Linked->SetActorHiddenInGame(!bVisible);
+			Linked->SetActorEnableCollision(bVisible);
+		}
+	}
 }
 
 FText ACaseObjectActor::GetPrompt() const

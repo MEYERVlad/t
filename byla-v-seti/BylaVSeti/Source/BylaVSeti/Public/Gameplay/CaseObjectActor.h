@@ -22,6 +22,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Case")
 	FName ObjectId;
 
+	/** Спрятать серую модель, но оставить «невидимую зону» для взаимодействия (когда на этом месте стоит MetaHuman). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Case")
+	bool bHideMesh = false;
+
+	/** Акторы, которые появляются и исчезают вместе с этим предметом (например, MetaHuman персонажа). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Case")
+	TArray<TObjectPtr<AActor>> LinkedActors;
+
 private:
 	/** Прячет предмет, пока сюжет до него не дошёл (ShowFlag в objects.json). */
 	void UpdateVisibility();
