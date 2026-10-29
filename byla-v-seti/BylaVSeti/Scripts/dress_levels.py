@@ -1,4 +1,5 @@
-"""Оформляет серые коробки ассетами из ваших паков (RestaurantScene, Downtown_West, PN_interactiveSpruceForest).
+"""Оформляет серые коробки ассетами из ваших паков (RestaurantScene, Downtown_West, PN_interactiveSpruceForest,
+DetectiveOffice, TeenagerRoom).
 
 Запуск в редакторе Unreal: Tools -> Execute Python Script... -> выбрать этот файл.
 Запускать ПОСЛЕ скриптов build_*.py. Можно запускать повторно: старое оформление (метка DRESS_) удаляется.
@@ -8,12 +9,16 @@
   - кафе «Причал»: настоящие столы, стулья, диван, полки, лампы, пол, стены, жалюзи;
   - дача: деревянный забор, ели вокруг участка, земля, листва;
   - суд: деревянные скамьи;
-  - кабинет, допросная, квартира: стулья, растение, жалюзи.
+  - кабинет: стол, кресло, шкафы, сейф, коробки с делами, деревянные панели, доска с уликами и нитями;
+  - предметы дела везде (компьютер, папки, телефон, ключи, двери): модели поверх серых блоков,
+    серый блок в игре невидим и остаётся зоной для кнопки E;
+  - квартира: шкаф, диван, гитара и часы Алины.
 Стены, полы и предметы дела (то, с чем взаимодействует игрок) остаются на месте: меняется только внешний вид.
 
 Если какой-то ассет не найден, скрипт пропустит его и напишет предупреждение в Output Log.
 Материалы для каждой локации можно поменять в таблицах ниже.
 """
+import math
 import unreal
 
 actors = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
@@ -88,6 +93,37 @@ MESH = {
     "spruce_small": f"{F}/Meshes/small/spruce_small_03",
 }
 
+# Паки DetectiveOffice и TeenagerRoom: двери, предметы дела, мебель кабинета и квартиры.
+DO = "/Game/DetectiveOffice/StaticMeshes"
+TR = "/Game/TeenagerRoom/Placeable"
+MESH.update({
+    "door": f"{DO}/SM_door_Baked_0021",
+    "keys": f"{DO}/SM_key_set_001",
+    "phone": f"{DO}/SM_phone",
+    "paper_stack": f"{DO}/SM_Table_stack_2",
+    "books": f"{TR}/SM_Place_FewBooks",
+    "pc": f"{TR}/SM_Place_PC",
+    "office_desk": f"{DO}/SM_office_desk_2",
+    "office_chair": f"{DO}/SM_office_chair_2",
+    "cabinet_tall": f"{DO}/SM_wooden_cabinet_1_Baked",
+    "cabinet_low": f"{DO}/SM_wooden_cabinet_2_001_Baked_039",
+    "box_big": f"{DO}/SM_box_1_001",
+    "box_small": f"{DO}/SM_box_2_001",
+    "coat_rack": f"{DO}/SM_coat_rack",
+    "safe": f"{DO}/SM_safe",
+    "clock": f"{DO}/SM_clock",
+    "floor_lamp": f"{DO}/SM_lamp_1",
+    "carpet": f"{DO}/SM_carpet_21",
+    "ashtray": f"{DO}/SM_ashtrey",
+    "radio": f"{DO}/SM_radio",
+    "wood_panel": f"{DO}/SM_wooden_panel1",
+    "sofa_small": f"{DO}/SM_sofa1",
+    "wardrobe": f"{TR}/SM_Place_Wardrobe",
+    "guitar": f"{TR}/SM_Place_Guitar",
+    "wall_clock": f"{TR}/SM_Place_Clock",
+})
+MAT["cork"] = "/Game/DetectiveOffice/MaterialInstances/MI_cork"
+
 # Однотонные материалы для мебели: создаются скриптом в /Game/Byla/Materials.
 # (Материалы паков для мебели — «атласы», на простых коробках они превращаются в полосы.)
 FLAT = {
@@ -104,6 +140,8 @@ FLAT = {
     "flat_boards": (0.28, 0.27, 0.24, 0.85, 0.0),
     "flat_shed": (0.22, 0.15, 0.09, 0.85, 0.0),
     "flat_screen": (0.02, 0.02, 0.03, 0.2, 0.0),
+    "flat_paper": (0.85, 0.83, 0.78, 0.9, 0.0),
+    "flat_thread": (0.55, 0.02, 0.02, 0.6, 0.0),
 }
 FLAT_FOLDER = "/Game/Byla/Materials"
 
@@ -161,6 +199,18 @@ def open_level(path):
         unreal.log_warning(f"[dress] Уровня {path} нет — сначала запустите build-скрипты.")
         return False
     levels.load_level(path)
+    # Предметы дела, которым прошлый запуск надел модель: возвращаем им серый вид (модель поставим заново).
+    for actor in actors.get_all_level_actors():
+        cls = actor.get_class().get_name()
+        if cls == "CaseObjectActor":
+            linked = actor.get_editor_property("linked_actors") or []
+            if any(a is not None and a.get_actor_label().startswith(DRESS) for a in linked):
+                actor.set_editor_property("hide_mesh", False)
+                actor.set_editor_property("linked_actors", [])
+        elif cls == "LaptopActor":
+            comp = actor.get_component_by_class(unreal.StaticMeshComponent)
+            if comp:
+                comp.set_editor_property("visible", True)
     for actor in actors.get_all_level_actors():
         label = actor.get_actor_label()
         if label.startswith(DRESS):
@@ -293,6 +343,130 @@ def top(name, default):
     return TOPS.get(name, default)
 
 
+def no_collision(actor):
+    comp = actor.get_component_by_class(unreal.StaticMeshComponent) if actor else None
+    if comp:
+        comp.set_collision_profile_name("NoCollision")
+
+
+def cover(mesh_key, center, size, bottom, mode="stretch", yaw=0.0, label="Prop", folder="Dressing"):
+    """Ставит модель в коробку size (x, y, z в см) с центром center (x, y) и низом на высоте bottom.
+    stretch — растянуть точно по коробке; uniform — сохранить пропорции и вписать в коробку.
+    Если модель вытянута не вдоль той же оси, что коробка, она сама поворачивается на 90°."""
+    m = mesh(mesh_key)
+    if m is None:
+        return None
+    actor = actors.spawn_actor_from_object(m, unreal.Vector(center[0], center[1], bottom))
+    _, e = actor.get_actor_bounds(False)
+    if (size[0] >= size[1]) != (e.x >= e.y) and abs(size[0] - size[1]) > 1 and abs(e.x - e.y) > 0.5:
+        yaw += 90.0
+    actor.set_actor_rotation(unreal.Rotator(roll=0, pitch=0, yaw=yaw), False)
+    _, e = actor.get_actor_bounds(False)
+    sx, sy, sz = max(e.x * 2, 0.1), max(e.y * 2, 0.1), max(e.z * 2, 0.1)
+    if mode == "stretch":
+        fx, fy, fz = size[0] / sx, size[1] / sy, size[2] / sz
+    else:
+        f = min(size[0] / sx, size[1] / sy)
+        if size[2] > 1 and sz > 1:
+            f = min(f, size[2] / sz)
+        fx = fy = fz = f
+    if abs(abs(yaw) % 180 - 90) < 1:   # повёрнута на 90°: локальная X идёт вдоль мировой Y
+        fx, fy = fy, fx
+    actor.set_actor_scale3d(unreal.Vector(fx, fy, fz))
+    align(actor, center[0], center[1], bottom)
+    _counter[0] += 1
+    actor.set_actor_label(f"{DRESS}{label}_{_counter[0]}")
+    actor.set_folder_path(folder)
+    return actor
+
+
+def skin(target, mesh_key, mode="stretch", yaw=0.0, size=None):
+    """Надевает модель на предмет дела. Серый блок становится невидимым в игре, но остаётся зоной для кнопки E;
+    модель появляется и исчезает вместе с предметом (по сюжету)."""
+    if target is None:
+        return None
+    origin, extent = target.get_actor_bounds(False)
+    box = size or (extent.x * 2, extent.y * 2, extent.z * 2)
+    actor = cover(mesh_key, (origin.x, origin.y), box, origin.z - extent.z, mode, yaw,
+                  label=target.get_actor_label().replace(GEN, ""), folder="Dressing/Case")
+    if actor is None:
+        return None
+    # Без коллизии: иначе модель перехватит взгляд игрока, и кнопка E не сработает.
+    no_collision(actor)
+    cls = target.get_class().get_name()
+    if cls == "CaseObjectActor":
+        target.set_editor_property("hide_mesh", True)
+        target.set_editor_property("linked_actors", [actor])
+    elif cls == "LaptopActor":
+        comp = target.get_component_by_class(unreal.StaticMeshComponent)
+        if comp:
+            comp.set_editor_property("visible", False)
+    return actor
+
+
+def replace_box(gen, name, mesh_key, yaw=0.0):
+    """Как replace, но растягивает модель точно по серому блоку (по всем трём осям)."""
+    box = gen.get(name)
+    if box is None:
+        return None
+    origin, extent = box.get_actor_bounds(False)
+    actor = cover(mesh_key, (origin.x, origin.y), (extent.x * 2, extent.y * 2, extent.z * 2),
+                  origin.z - extent.z, "stretch", yaw, label=name)
+    if actor:
+        hide_box(box)
+    return actor
+
+
+def case_objects():
+    return {a.get_actor_label()[len(GEN):]: a for a in actors.get_all_level_actors()
+            if a.get_actor_label().startswith(GEN) and a.get_class().get_name() in ("CaseObjectActor", "LaptopActor")}
+
+
+def wainscot(start, end, fixed, along_x, gaps=()):
+    """Деревянные панели (90 см) по низу стены от start до end; gaps — проёмы дверей (от, до)."""
+    segs = [(start, end)]
+    for g0, g1 in gaps:
+        new = []
+        for a, b in segs:
+            if g1 <= a or g0 >= b:
+                new.append((a, b))
+                continue
+            if g0 > a:
+                new.append((a, g0))
+            if g1 < b:
+                new.append((g1, b))
+        segs = new
+    for a, b in segs:
+        length = b - a
+        if length < 20:
+            continue
+        n = max(1, round(length / 180.0))
+        w = length / n
+        for i in range(n):
+            c = a + w * (i + 0.5)
+            x, y = (c, fixed) if along_x else (fixed, c)
+            size = (w, 3, 90) if along_x else (3, w, 90)
+            cover("wood_panel", (x, y), size, 0, "stretch", label="Wainscot", folder="Dressing/Walls")
+
+
+def evidence_board(cx, wall_y, bottom, w=200, h=120):
+    """Пробковая доска с бумагами и красными нитями на северной стене (лицом на юг)."""
+    y = wall_y - 2
+    cube("Corkboard", (cx, y, bottom + h / 2), (w, 4, h), "cork", folder="Dressing/Board")
+    notes = [(-70, 30), (-20, 40), (40, 25), (75, -20), (-55, -30), (10, -25)]
+    pts = []
+    for dx, dz in notes:
+        p = (cx + dx, bottom + h / 2 + dz)
+        cube("Note", (p[0], y - 2.5, p[1]), (18, 1, 24), "flat_paper", folder="Dressing/Board")
+        pts.append(p)
+    for i, j in ((0, 1), (1, 2), (2, 3), (4, 5), (1, 5)):
+        (x1, z1), (x2, z2) = pts[i], pts[j]
+        length = math.hypot(x2 - x1, z2 - z1)
+        t = cube("Thread", ((x1 + x2) / 2, y - 3.5, (z1 + z2) / 2), (length, 0.5, 0.5), "flat_thread",
+                 folder="Dressing/Board")
+        t.set_actor_rotation(unreal.Rotator(roll=0, pitch=math.degrees(math.atan2(z2 - z1, x2 - x1)), yaw=0), False)
+
+
 def save():
     levels.save_current_level()
 
@@ -308,15 +482,59 @@ def dress_office():
         ("Floor", "concrete_tiles"), ("Ceiling", "plaster_a"), ("Wall", "paint2"),
         ("Cabinet", "painted_metal"), ("KeyBoard", "flat_wood"), ("Shelf", "flat_wood"),
     ])
-    replace(gen, "Desk", "table", fit=True)
+    # Кабинет: мебель из пака DetectiveOffice.
+    replace(gen, "Desk", "office_desk", fit=True)
     replace(gen, "SideTable", "table", yaw=90, fit=True)
     replace(gen, "Interrogation_Table", "table", fit=True)
-    replace(gen, "Chair", "chair", yaw=90)
+    replace(gen, "Chair", "office_chair")
     replace(gen, "Interrogation_Chair_Player", "chair", yaw=0)
     replace(gen, "Interrogation_Chair_Suspect", "chair", yaw=180)
+    replace_box(gen, "Cabinet", "cabinet_tall")
+    replace_box(gen, "Cabinet2", "cabinet_tall")
+    replace(gen, "Shelf", "cabinet_low", fit=True)
+
+    # Предметы дела: модели поверх серых блоков (кнопка E работает как раньше).
+    objs = case_objects()
+    laptop = objs.get("Laptop")
+    if laptop:
+        # Зона кнопки E — размером с компьютер, чтобы срабатывать, когда смотришь на экран.
+        o, e = laptop.get_actor_bounds(False)
+        bottom = o.z - e.z
+        laptop.set_actor_scale3d(unreal.Vector(0.55, 0.45, 0.40))
+        laptop.set_actor_location(unreal.Vector(o.x, o.y, bottom + 20), False, False)
+        skin(laptop, "pc", "uniform")
+    skin(objs.get("CaseFolder"), "paper_stack", "uniform")
+    skin(objs.get("LoginPrintout"), "paper_stack", "uniform")
+    skin(objs.get("ForumPrintout"), "paper_stack", "uniform")
+    skin(objs.get("DeskPhone"), "phone", "uniform")
+    skin(objs.get("CaseVolume2"), "books", "uniform")
+    for k in ("CarKeys", "CarKeysPrichal", "CarKeysDacha", "CarKeysCourt"):
+        skin(objs.get(k), "keys", "uniform")
+    skin(objs.get("ArchiveDoor"), "door")
+
+    # Стены кабинета: деревянные панели снизу, проёмы дверей свободны.
+    wainscot(0, 600, 2, True, gaps=[(405, 495)])          # юг, дверь в архив
+    wainscot(0, 600, 498, True)                          # север
+    wainscot(0, 500, 2, False)                           # запад
+    wainscot(0, 500, 588, False, gaps=[(180, 280)])      # восток, проход в допросную
+    evidence_board(300, 500, 125)
+
+    # Обстановка.
     place("Plant", "pot", 560, 60, 0)
     place("Mug", "mug", 260, 425, top("Desk", 75))
+    place("Ashtray", "ashtray", 335, 432, top("Desk", 75))
     place("Newspaper", "newspaper", 70, 150, top("SideTable", 75), yaw=20)
+    place("CoatRack", "coat_rack", 40, 40, 0)
+    place("Safe", "safe", 560, 360, 0, yaw=-90)
+    big = place("CaseBoxes", "box_big", 230, 35, 0)
+    if big:
+        o, e = big.get_actor_bounds(False)
+        place("CaseBoxes", "box_small", 232, 35, o.z + e.z, yaw=8)
+    place("FloorLamp", "floor_lamp", 560, 130, 0)
+    place("Clock", "clock", 150, 5, 190)
+    place("Radio", "radio", 450, 470, top("Cabinet2", 180))
+    rug = place("Carpet", "carpet", 300, 230, 0.3, scale=(0.6, 0.55, 1.0))
+    no_collision(rug)
     save()
 
 
@@ -332,7 +550,16 @@ def dress_flat():
     replace(gen, "Table", "table", fit=True)
     replace(gen, "KitchenTable", "table", fit=True)
     replace(gen, "Chair", "chair", yaw=90)
+    replace_box(gen, "Wardrobe", "wardrobe")
+    replace(gen, "Sofa", "sofa_small", fit=True)
     place("Mug", "mug", 125, 505, top("KitchenTable", 75))
+    # Вещи Алины: мать десять лет ничего не убирает.
+    place("Guitar", "guitar", 386, 215, 0, yaw=90)
+    place("Clock", "wall_clock", 320, 10, 180)
+    objs = case_objects()
+    skin(objs.get("FlatExit"), "door")
+    if objs.get("AlinaPhone"):
+        paint(objs["AlinaPhone"], "flat_screen")
     save()
 
 
@@ -362,6 +589,18 @@ def dress_archive():
         for z in (8, 70, 133, 200):
             cube("Board", (cx, cy, z - 2), (w, l, 4), "flat_metal_light")
     place("Cart", "cart", 230, 420, 0, yaw=90)
+    # Коробки с делами на полках (вместо однотонных блоков) и ещё ряд на нижней полке.
+    for name in [n for n in gen if n.startswith("ShelfBox_")]:
+        replace_box(gen, name, "box_small")
+    for x in (300, 450, 600):
+        for y in (185, 255, 325):
+            cover("box_small", (x, y), (36, 45, 28), 72, "stretch", label="ArchiveBox")
+    objs = case_objects()
+    skin(objs.get("StairsUp"), "door")
+    skin(objs.get("ClerkJournal"), "paper_stack", "uniform")
+    skin(objs.get("StaffFolder"), "paper_stack", "uniform")
+    skin(objs.get("ExpertiseBox"), "box_small")
+    skin(objs.get("CameraCabinet"), "cabinet_tall")
     place("Mug", "mug", 120, 70, top("ClerkDesk", 75))
     save()
 
@@ -417,6 +656,9 @@ def dress_prichal():
     place("Chalkboard", "chalkboard", 892, 300, 90, yaw=-90)
     place("Painting1", "painting1", 300, L - 18, 140, yaw=180)
     place("Painting2", "painting2", 8 + 10, 300, 140, yaw=90)
+    objs = case_objects()
+    skin(objs.get("Exit"), "door")
+    skin(objs.get("CashJournal"), "paper_stack", "uniform")
     save()
 
 
@@ -466,6 +708,7 @@ def dress_dacha():
         place("Bush", "bush", x, y, 0)
     for (x, y) in ((600, 150), (350, 650), (750, 500), (450, 900), (950, 150)):
         place("Grass", "grass", x, y, 0)
+    skin(case_objects().get("Gate"), "fence_b")
     save()
 
 
@@ -487,6 +730,7 @@ def dress_court():
         place("Chair", "chair", x, 885, 0, yaw=90)
     place("PlantL", "plant", 60, 1300, 0)
     place("PlantR", "plant", 940, 60, 0)
+    skin(case_objects().get("CourtDoor"), "door")
     save()
 
 
