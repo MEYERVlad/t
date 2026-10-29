@@ -1,5 +1,6 @@
 ﻿#include "UI/MainMenuWidget.h"
 
+#include "Audio/MusicSubsystem.h"
 #include "Audio/VoiceSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Case/CaseStateSubsystem.h"
@@ -29,6 +30,7 @@ namespace
 	const FName ActWindow(TEXT("window"));
 	const FName ActQuit(TEXT("quit"));
 	const FName ActVoice(TEXT("voice"));
+	const FName ActMusic(TEXT("music"));
 }
 
 void UMainMenuWidget::NativeOnInitialized()
@@ -180,6 +182,24 @@ void UMainMenuWidget::BuildSettings()
 		AddRow(Row, 30.f);
 	}
 
+	// Музыка: выключить или громкость.
+	if (UMusicSubsystem* Music = GetGameInstance() ? GetGameInstance()->GetSubsystem<UMusicSubsystem>() : nullptr)
+	{
+		AddRow(MakeText(UI(TEXT("menu_music_header")), 24, BylaUI::Text, true), 12.f);
+		UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+		const int32 Percent = Music->IsMusicEnabled() ? FMath::RoundToInt(Music->GetVolume() * 100.f) : 0;
+		for (const int32 Option : { 0, 15, 35, 60 })
+		{
+			const FText Label = Option == 0 ? UI(TEXT("menu_voice_off")) : FText::FromString(FString::Printf(TEXT("%d%%"), Option));
+			if (UHorizontalBoxSlot* S = Row->AddChildToHorizontalBox(MakeButton(Label, ActMusic, FName(*FString::FromInt(Option)),
+				Option == Percent ? BylaUI::ButtonActive : BylaUI::Button)))
+			{
+				S->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
+			}
+		}
+		AddRow(Row, 30.f);
+	}
+
 	AddRow(MakeText(UI(TEXT("menu_settings_note")), 18, BylaUI::TextDim), 30.f);
 	AddRow(MakeButton(UI(TEXT("menu_back")), ActBack, NAME_None, BylaUI::Button, false, 24), 0.f);
 }
@@ -215,6 +235,14 @@ void UMainMenuWidget::HandleAction(FName Action, FName Payload)
 	{
 		bSettings = false;
 		bConfirmNew = false;
+	}
+	else if (Action == ActMusic)
+	{
+		if (UMusicSubsystem* Music = GetGameInstance() ? GetGameInstance()->GetSubsystem<UMusicSubsystem>() : nullptr)
+		{
+			const int32 Option = FCString::Atoi(*Payload.ToString());
+			Music->SetMusic(Option > 0, Option > 0 ? Option / 100.f : Music->GetVolume());
+		}
 	}
 	else if (Action == ActVoice)
 	{

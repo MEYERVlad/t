@@ -67,4 +67,6 @@ private:
 	FDelegateHandle EndingHandle;
 	FTimerHandle StuckTimer;
 	FName LastNudgedHint;
+	/** Сейчас играет музыка допроса — при закрытии вернуть музыку локации. */
+	bool bSpecialMusic = false;
 };

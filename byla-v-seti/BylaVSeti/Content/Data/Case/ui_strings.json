@@ -119,5 +119,6 @@
 	"quit": "Выйти из игры",
 	"menu_voice_header": "Озвучка персонажей",
 	"menu_voice_off": "Выкл",
-	"app_reco": "Реконструкция"
+	"app_reco": "Реконструкция",
+	"menu_music_header": "Музыка"
 }

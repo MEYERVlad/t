@@ -1,5 +1,6 @@
 ﻿#include "Gameplay/DetectivePlayerController.h"
 
+#include "Audio/MusicSubsystem.h"
 #include "Case/CaseStateSubsystem.h"
 #include "CoreGlobals.h"
 #include "Engine/GameInstance.h"
@@ -97,6 +98,11 @@ void ADetectivePlayerController::BeginPlay()
 
 	GetWorldTimerManager().SetTimer(StuckTimer, this, &ADetectivePlayerController::CheckStuck, 20.f, true);
 
+	if (UMusicSubsystem* Music = GetGameInstance() ? GetGameInstance()->GetSubsystem<UMusicSubsystem>() : nullptr)
+	{
+		Music->PlayForLevel(this);
+	}
+
 	if (bShowMenu)
 	{
 		OpenPanel(CreateWidget<UMainMenuWidget>(this, UMainMenuWidget::StaticClass()));
@@ -174,6 +180,11 @@ void ADetectivePlayerController::OpenInterrogation(FName InterrogationId)
 		Widget->SetInterrogation(InterrogationId);
 	}
 	OpenPanel(Widget);
+	if (UMusicSubsystem* Music = GetGameInstance() ? GetGameInstance()->GetSubsystem<UMusicSubsystem>() : nullptr)
+	{
+		Music->PlaySpecial(this, TEXT("Interrogation"));
+		bSpecialMusic = true;
+	}
 }
 
 void ADetectivePlayerController::OpenEnding(FName EndingId)
@@ -184,6 +195,11 @@ void ADetectivePlayerController::OpenEnding(FName EndingId)
 		Widget->SetEnding(EndingId);
 	}
 	OpenPanel(Widget);
+	if (UMusicSubsystem* Music = GetGameInstance() ? GetGameInstance()->GetSubsystem<UMusicSubsystem>() : nullptr)
+	{
+		Music->PlaySpecial(this, TEXT("Ending"));
+		bSpecialMusic = true;
+	}
 }
 
 void ADetectivePlayerController::HandleEndingReached(FName EndingId)
@@ -222,6 +238,15 @@ void ADetectivePlayerController::ClosePanel()
 	}
 	ActivePanel->RemoveFromParent();
 	ActivePanel = nullptr;
+
+	if (bSpecialMusic)
+	{
+		bSpecialMusic = false;
+		if (UMusicSubsystem* Music = GetGameInstance() ? GetGameInstance()->GetSubsystem<UMusicSubsystem>() : nullptr)
+		{
+			Music->PlayForLevel(this);
+		}
+	}
 
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
