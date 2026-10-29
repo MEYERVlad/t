@@ -68,7 +68,8 @@ def find_idle():
     _all_assets = registry.get_all_assets()  # свежий список: копию могли сделать только что
     plugin_copy = None
     for data in _all_assets:
-        if str(data.asset_name) != IDLE_ANIM_NAME:
+        # Копия в проекте может называться с приставкой или окончанием (RTG_..., ..._Retargeted).
+        if IDLE_ANIM_NAME not in str(data.asset_name):
             continue
         path = str(data.package_name)
         if path.startswith("/Game/"):
