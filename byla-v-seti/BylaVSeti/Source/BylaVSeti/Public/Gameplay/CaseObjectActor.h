@@ -4,6 +4,8 @@
 #include "Gameplay/InteractableActor.h"
 #include "CaseObjectActor.generated.h"
 
+class UAnimationAsset;
+
 /**
  * Предмет дела: папка, распечатка, телефон, человек на допросе.
  * Всё поведение берётся из Content/Data/Case/objects.json по ObjectId.
@@ -30,9 +32,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Case")
 	TArray<TObjectPtr<AActor>> LinkedActors;
 
+	/** Анимация стояния, которая включается на теле (компонент Body) связанных персонажей при старте уровня. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Case")
+	TObjectPtr<UAnimationAsset> IdleAnimation;
+
 private:
 	/** Прячет предмет, пока сюжет до него не дошёл (ShowFlag в objects.json). */
 	void UpdateVisibility();
+
+	/** Включает IdleAnimation на связанных персонажах. */
+	void StartIdleAnimations();
 
 	FDelegateHandle ChangedHandle;
 };

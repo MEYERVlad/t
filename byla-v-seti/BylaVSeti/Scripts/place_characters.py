@@ -114,6 +114,23 @@ def set_idle(actor, idle):
                        f"{check.get_path_name() if check else 'НЕТ АНИМАЦИИ'}")
 
 
+_warned_idle = False
+
+
+def set_cylinder_idle(cylinder, idle):
+    """Игра сама включает анимацию на персонаже при старте уровня (поле idle_animation у цилиндра).
+    Это надёжнее, чем настройка компонента Body: блупринт MetaHuman её сбрасывает."""
+    global _warned_idle
+    try:
+        cylinder.set_editor_property("idle_animation", idle)
+    except Exception:  # noqa: BLE001
+        if not _warned_idle:
+            unreal.log_warning("[characters] В коде игры ещё нет поля idle_animation — пересоберите C++ "
+                               "(удалить Binaries и Intermediate, открыть .uproject, согласиться на пересборку). "
+                               "Пока анимацию можно выставить вручную: Body -> Anim to Play.")
+            _warned_idle = True
+
+
 def place_level(level_path, entries, idle):
     if not unreal.EditorAssetLibrary.does_asset_exist(level_path):
         unreal.log_warning(f"[characters] Нет уровня {level_path} — сначала build-скрипты.")
@@ -153,6 +170,7 @@ def place_level(level_path, entries, idle):
         cylinder.set_actor_hidden_in_game(False)   # видимостью теперь управляет игра
         cylinder.set_editor_property("hide_mesh", True)
         cylinder.set_editor_property("linked_actors", [person])
+        set_cylinder_idle(cylinder, idle)
         placed += 1
 
     levels.save_current_level()

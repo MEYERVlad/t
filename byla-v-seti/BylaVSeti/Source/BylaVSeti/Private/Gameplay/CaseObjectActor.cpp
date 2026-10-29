@@ -1,6 +1,8 @@
 ﻿#include "Gameplay/CaseObjectActor.h"
 
 #include "Case/CaseStateSubsystem.h"
+#include "Animation/AnimationAsset.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/GameInstance.h"
 #include "Gameplay/DetectiveCharacter.h"
@@ -18,6 +20,32 @@ void ACaseObjectActor::BeginPlay()
 		}
 	}
 	UpdateVisibility();
+	StartIdleAnimations();
+}
+
+void ACaseObjectActor::StartIdleAnimations()
+{
+	if (!IdleAnimation)
+	{
+		return;
+	}
+	for (AActor* Linked : LinkedActors)
+	{
+		if (!Linked)
+		{
+			continue;
+		}
+		TArray<USkeletalMeshComponent*> Meshes;
+		Linked->GetComponents<USkeletalMeshComponent>(Meshes);
+		for (USkeletalMeshComponent* SkelMesh : Meshes)
+		{
+			// У MetaHuman тело называется Body, остальные части (лицо, одежда) следуют за ним.
+			if (SkelMesh && SkelMesh->GetName() == TEXT("Body"))
+			{
+				SkelMesh->PlayAnimation(IdleAnimation, true);
+			}
+		}
+	}
 }
 
 void ACaseObjectActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
