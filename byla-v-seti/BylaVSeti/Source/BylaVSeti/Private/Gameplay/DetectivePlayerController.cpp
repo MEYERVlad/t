@@ -37,6 +37,14 @@ void ADetectivePlayerController::BylaFlag(FName Flag)
 	}
 }
 
+void ADetectivePlayerController::BylaEvidence(FName EvidenceId)
+{
+	if (UCaseStateSubsystem* Case = GetCase())
+	{
+		Case->AddEvidence(EvidenceId);
+	}
+}
+
 void ADetectivePlayerController::BeginPlay()
 {
 	Super::BeginPlay();

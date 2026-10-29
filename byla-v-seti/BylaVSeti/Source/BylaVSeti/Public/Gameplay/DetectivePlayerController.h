@@ -30,6 +30,10 @@ public:
 	/** Консоль (клавиша ~): поставить сюжетный флаг, например BylaFlag kira_identified. Пишется в сохранение. */
 	UFUNCTION(Exec)
 	void BylaFlag(FName Flag);
+
+	/** Консоль (клавиша ~): выдать улику, например BylaEvidence bank_statement. Пишется в сохранение. */
+	UFUNCTION(Exec)
+	void BylaEvidence(FName EvidenceId);
 	bool IsPanelOpen() const { return ActivePanel != nullptr; }
 	/** Выход из игры (кнопка в меню и в компьютере). */
 	void ExitGame();
