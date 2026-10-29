@@ -15,6 +15,8 @@
 #include "Components/WrapBox.h"
 #include "Components/WrapBoxSlot.h"
 #include "Engine/GameInstance.h"
+#include "EngineUtils.h"
+#include "Gameplay/CaseObjectActor.h"
 #include "Gameplay/DetectivePlayerController.h"
 #include "InputCoreTypes.h"
 #include "UI/UIStyle.h"
@@ -45,13 +47,45 @@ void UInterrogationWidget::NativeConstruct()
 	PlayCurrentStatement();
 }
 
+AActor* UInterrogationWidget::FindSpeaker()
+{
+	if (Speaker.IsValid())
+	{
+		return Speaker.Get();
+	}
+	const UCaseStateSubsystem* Case = GetCase();
+	UWorld* World = GetWorld();
+	if (!Case || !World)
+	{
+		return nullptr;
+	}
+	// Предмет дела, который открывает этот допрос, — серый цилиндр; на нём записан персонаж MetaHuman.
+	for (TActorIterator<ACaseObjectActor> It(World); It; ++It)
+	{
+		const FCaseObject* Object = Case->FindObject(It->ObjectId);
+		if (!Object || Object->InterrogationId != InterrogationId)
+		{
+			continue;
+		}
+		for (AActor* Linked : It->LinkedActors)
+		{
+			if (UVoiceSubsystem::FindFace(Linked))
+			{
+				Speaker = Linked;
+				return Linked;
+			}
+		}
+	}
+	return nullptr;
+}
+
 void UInterrogationWidget::PlayVoice(FName VoiceId)
 {
 	if (UGameInstance* GI = GetGameInstance())
 	{
 		if (UVoiceSubsystem* Voice = GI->GetSubsystem<UVoiceSubsystem>())
 		{
-			Voice->Play(VoiceId);
+			Voice->Play(VoiceId, FindSpeaker());
 		}
 	}
 }

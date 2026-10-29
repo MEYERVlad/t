@@ -2,6 +2,7 @@
 
 #include "Case/CaseStateSubsystem.h"
 #include "Animation/AnimationAsset.h"
+#include "Audio/VoiceSubsystem.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/GameInstance.h"
@@ -25,6 +26,17 @@ void ACaseObjectActor::BeginPlay()
 
 void ACaseObjectActor::StartIdleAnimations()
 {
+	// Лицо: спокойный цикл с морганием (если в проекте есть Face_Idle).
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UVoiceSubsystem* Voice = GI->GetSubsystem<UVoiceSubsystem>())
+		{
+			for (AActor* Linked : LinkedActors)
+			{
+				Voice->StartFaceIdle(Linked);
+			}
+		}
+	}
 	if (!IdleAnimation)
 	{
 		return;

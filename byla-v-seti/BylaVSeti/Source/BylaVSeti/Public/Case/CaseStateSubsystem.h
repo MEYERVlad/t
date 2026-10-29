@@ -105,6 +105,7 @@ public:
 
 	// --- Допросы ---
 	const FCaseInterrogation* FindInterrogation(FName Id) const;
+	const FCaseObject* FindObject(FName Id) const { return Objects.Find(Id); }
 	/** Показания, которые сейчас видны игроку (с учётом RequiresStatement). */
 	TArray<const FCaseStatement*> GetVisibleStatements(FName InterrogationId) const;
 	bool IsStatementBroken(FName InterrogationId, FName StatementId) const;

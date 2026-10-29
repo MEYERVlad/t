@@ -4,7 +4,12 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "VoiceSubsystem.generated.h"
 
+class AActor;
+class UAnimInstance;
+class UAnimMontage;
+class UAnimSequenceBase;
 class UAudioComponent;
+class USkeletalMeshComponent;
 
 /**
  * Озвучка реплик. Звук реплики — ассет /Game/Voice/<Id> (WAV, перетащенный в папку Content/Voice).
@@ -19,8 +24,17 @@ class BYLAVSETI_API UVoiceSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-	/** Проиграть реплику (предыдущая останавливается). Возвращает false, если файла нет или озвучка выключена. */
-	bool Play(FName VoiceId);
+	/**
+	 * Проиграть реплику (предыдущая останавливается). Возвращает false, если файла нет или озвучка выключена.
+	 * Speaker — персонаж MetaHuman: если есть анимация лица /Game/Voice/Face/<Id>, она играет на его лице.
+	 */
+	bool Play(FName VoiceId, AActor* Speaker = nullptr);
+
+	/** Включить спокойную анимацию лица (моргание) /Game/Characters/Animations/Face_Idle на персонаже. */
+	void StartFaceIdle(AActor* Character);
+
+	/** Найти лицо MetaHuman (компонент Face). */
+	static USkeletalMeshComponent* FindFace(AActor* Character);
 	void Stop();
 
 	bool IsVoiceEnabled() const { return bVoiceEnabled; }
@@ -41,4 +55,15 @@ private:
 	float Volume = 1.f;
 
 	TWeakObjectPtr<UAudioComponent> Current;
+
+	UFUNCTION()
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void PlayIdleOn(UAnimInstance* Anim);
+
+	/** Лицо, которое сейчас говорит, и его монтаж речи. */
+	TWeakObjectPtr<UAnimInstance> SpeakingFace;
+	TWeakObjectPtr<UAnimMontage> SpeakingMontage;
+
+	/** Анимация спокойного лица для каждого персонажа (по его AnimInstance лица). */
+	TMap<TWeakObjectPtr<UAnimInstance>, TWeakObjectPtr<UAnimSequenceBase>> IdleFaces;
 };

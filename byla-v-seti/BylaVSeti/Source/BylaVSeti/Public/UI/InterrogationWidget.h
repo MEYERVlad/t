@@ -39,6 +39,8 @@ private:
 	void PlayVoice(FName VoiceId);
 	/** Озвучка: проиграть текущее показание. */
 	void PlayCurrentStatement();
+	/** Персонаж MetaHuman, которого допрашивают (для анимации лица). */
+	AActor* FindSpeaker();
 
 	FName InterrogationId;
 	int32 Index = 0;
@@ -62,4 +64,5 @@ private:
 	TObjectPtr<UVerticalBox> Body;
 
 	FDelegateHandle FeedHandle;
+	TWeakObjectPtr<AActor> Speaker;
 };
