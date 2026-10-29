@@ -1,1 +1,5 @@
 __pycache__/
+
+# Озвучка: модель и сгенерированные файлы не храним в репозитории
+Scripts/voice/v4_ru.pt
+Scripts/voice/out/

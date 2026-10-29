@@ -1,5 +1,6 @@
 ﻿#include "UI/InterrogationWidget.h"
 
+#include "Audio/VoiceSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Case/CaseStateSubsystem.h"
 #include "Components/Border.h"
@@ -13,6 +14,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Components/WrapBox.h"
 #include "Components/WrapBoxSlot.h"
+#include "Engine/GameInstance.h"
 #include "Gameplay/DetectivePlayerController.h"
 #include "InputCoreTypes.h"
 #include "UI/UIStyle.h"
@@ -40,6 +42,32 @@ void UInterrogationWidget::NativeConstruct()
 	{
 		FeedHandle = Case->OnFeedPublished.AddUObject(this, &UInterrogationWidget::HandleFeedPublished);
 	}
+	PlayCurrentStatement();
+}
+
+void UInterrogationWidget::PlayVoice(FName VoiceId)
+{
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UVoiceSubsystem* Voice = GI->GetSubsystem<UVoiceSubsystem>())
+		{
+			Voice->Play(VoiceId);
+		}
+	}
+}
+
+void UInterrogationWidget::PlayCurrentStatement()
+{
+	const UCaseStateSubsystem* Case = GetCase();
+	if (!Case)
+	{
+		return;
+	}
+	const TArray<const FCaseStatement*> Statements = Case->GetVisibleStatements(InterrogationId);
+	if (Statements.IsValidIndex(Index))
+	{
+		PlayVoice(UVoiceSubsystem::StatementId(InterrogationId, Statements[Index]->Id));
+	}
 }
 
 void UInterrogationWidget::NativeDestruct()
@@ -47,6 +75,13 @@ void UInterrogationWidget::NativeDestruct()
 	if (UCaseStateSubsystem* Case = GetCase())
 	{
 		Case->OnFeedPublished.Remove(FeedHandle);
+	}
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UVoiceSubsystem* Voice = GI->GetSubsystem<UVoiceSubsystem>())
+		{
+			Voice->Stop();
+		}
 	}
 	Super::NativeDestruct();
 }
@@ -89,6 +124,7 @@ void UInterrogationWidget::HandleFeedPublished(FName FeedId)
 		if (R.FeedId == FeedId)
 		{
 			LiveReaction = FText::Format(FText::FromString(TEXT("{0}: {1}")), I->Person, R.Text);
+			PlayVoice(UVoiceSubsystem::LiveId(InterrogationId, FeedId));
 		}
 	}
 	MarkDirty();
@@ -302,7 +338,9 @@ void UInterrogationWidget::HandleAction(FName Action, FName Payload)
 		const TArray<const FCaseStatement*> Statements = Case->GetVisibleStatements(InterrogationId);
 		if (Statements.IsValidIndex(Index))
 		{
-			const FCasePresentResult Result = Case->PresentEvidence(InterrogationId, Statements[Index]->Id, Payload);
+			const FCaseStatement* Statement = Statements[Index];
+			const FCasePresentResult Result = Case->PresentEvidence(InterrogationId, Statement->Id, Payload);
+			PlayVoice(UVoiceSubsystem::ReactionId(InterrogationId, Statement->Id, Result.bCorrect, !Statement->WrongReaction.IsEmpty()));
 			bLastCorrect = Result.bCorrect;
 			// При верном ответе реакция уже показана в карточке показания.
 			LastReaction = Result.bCorrect ? FText::GetEmpty() : Result.Reaction;
@@ -319,6 +357,10 @@ void UInterrogationWidget::HandleAction(FName Action, FName Payload)
 		{
 			Index = (Index % Count + Count) % Count;
 		}
+	}
+	if (Action == ActPrev || Action == ActNext)
+	{
+		PlayCurrentStatement();
 	}
 	MarkDirty();
 }

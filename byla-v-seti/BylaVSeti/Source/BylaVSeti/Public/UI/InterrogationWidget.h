@@ -35,6 +35,10 @@ protected:
 private:
 	void HandleFeedPublished(FName FeedId);
 	void AddBody(UWidget* Widget, float BottomPadding = 14.f);
+	/** Озвучка: проиграть реплику (если есть файл). */
+	void PlayVoice(FName VoiceId);
+	/** Озвучка: проиграть текущее показание. */
+	void PlayCurrentStatement();
 
 	FName InterrogationId;
 	int32 Index = 0;

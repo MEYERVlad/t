@@ -1,5 +1,6 @@
 ﻿#include "UI/MainMenuWidget.h"
 
+#include "Audio/VoiceSubsystem.h"
 #include "Blueprint/WidgetTree.h"
 #include "Case/CaseStateSubsystem.h"
 #include "Components/Border.h"
@@ -10,6 +11,7 @@
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Engine/GameInstance.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Gameplay/DetectivePlayerController.h"
 #include "InputCoreTypes.h"
@@ -26,6 +28,7 @@ namespace
 	const FName ActQuality(TEXT("quality"));
 	const FName ActWindow(TEXT("window"));
 	const FName ActQuit(TEXT("quit"));
+	const FName ActVoice(TEXT("voice"));
 }
 
 void UMainMenuWidget::NativeOnInitialized()
@@ -159,6 +162,24 @@ void UMainMenuWidget::BuildSettings()
 		AddRow(Row, 30.f);
 	}
 
+	// Озвучка: выключить или громкость.
+	if (UVoiceSubsystem* Voice = GetGameInstance() ? GetGameInstance()->GetSubsystem<UVoiceSubsystem>() : nullptr)
+	{
+		AddRow(MakeText(UI(TEXT("menu_voice_header")), 24, BylaUI::Text, true), 12.f);
+		UHorizontalBox* Row = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+		const int32 Percent = Voice->IsVoiceEnabled() ? FMath::RoundToInt(Voice->GetVolume() * 100.f) : 0;
+		for (const int32 Option : { 0, 50, 75, 100 })
+		{
+			const FText Label = Option == 0 ? UI(TEXT("menu_voice_off")) : FText::FromString(FString::Printf(TEXT("%d%%"), Option));
+			if (UHorizontalBoxSlot* S = Row->AddChildToHorizontalBox(MakeButton(Label, ActVoice, FName(*FString::FromInt(Option)),
+				Option == Percent ? BylaUI::ButtonActive : BylaUI::Button)))
+			{
+				S->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
+			}
+		}
+		AddRow(Row, 30.f);
+	}
+
 	AddRow(MakeText(UI(TEXT("menu_settings_note")), 18, BylaUI::TextDim), 30.f);
 	AddRow(MakeButton(UI(TEXT("menu_back")), ActBack, NAME_None, BylaUI::Button, false, 24), 0.f);
 }
@@ -194,6 +215,18 @@ void UMainMenuWidget::HandleAction(FName Action, FName Payload)
 	{
 		bSettings = false;
 		bConfirmNew = false;
+	}
+	else if (Action == ActVoice)
+	{
+		if (UVoiceSubsystem* Voice = GetGameInstance() ? GetGameInstance()->GetSubsystem<UVoiceSubsystem>() : nullptr)
+		{
+			const int32 Option = FCString::Atoi(*Payload.ToString());
+			Voice->SetVoiceEnabled(Option > 0);
+			if (Option > 0)
+			{
+				Voice->SetVolume(Option / 100.f);
+			}
+		}
 	}
 	else if (Action == ActQuality || Action == ActWindow)
 	{
