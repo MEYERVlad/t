@@ -121,7 +121,10 @@ MESH.update({
     "wardrobe": f"{TR}/SM_Place_Wardrobe",
     "guitar": f"{TR}/SM_Place_Guitar",
     "wall_clock": f"{TR}/SM_Place_Clock",
+    "teen_desk": f"{TR}/SM_Place_Desk",
+    "small_cabinet": f"{TR}/SM_Place_SmallMobile",
 })
+MAT["pictures"] = "/Game/DetectiveOffice/MaterialInstances/MI_pictures"
 MAT["cork"] = "/Game/DetectiveOffice/MaterialInstances/MI_cork"
 
 # Однотонные материалы для мебели: создаются скриптом в /Game/Byla/Materials.
@@ -349,7 +352,8 @@ def no_collision(actor):
         comp.set_collision_profile_name("NoCollision")
 
 
-def cover(mesh_key, center, size, bottom, mode="stretch", yaw=0.0, label="Prop", folder="Dressing"):
+def cover(mesh_key, center, size, bottom, mode="stretch", yaw=0.0, label="Prop", folder="Dressing",
+          roll=0.0, pitch=0.0, auto=True):
     """Ставит модель в коробку size (x, y, z в см) с центром center (x, y) и низом на высоте bottom.
     stretch — растянуть точно по коробке; uniform — сохранить пропорции и вписать в коробку.
     Если модель вытянута не вдоль той же оси, что коробка, она сама поворачивается на 90°."""
@@ -357,10 +361,11 @@ def cover(mesh_key, center, size, bottom, mode="stretch", yaw=0.0, label="Prop",
     if m is None:
         return None
     actor = actors.spawn_actor_from_object(m, unreal.Vector(center[0], center[1], bottom))
+    actor.set_actor_rotation(unreal.Rotator(roll=roll, pitch=pitch, yaw=yaw), False)
     _, e = actor.get_actor_bounds(False)
-    if (size[0] >= size[1]) != (e.x >= e.y) and abs(size[0] - size[1]) > 1 and abs(e.x - e.y) > 0.5:
+    if auto and (size[0] >= size[1]) != (e.x >= e.y) and abs(size[0] - size[1]) > 1 and abs(e.x - e.y) > 0.5:
         yaw += 90.0
-    actor.set_actor_rotation(unreal.Rotator(roll=0, pitch=0, yaw=yaw), False)
+        actor.set_actor_rotation(unreal.Rotator(roll=roll, pitch=pitch, yaw=yaw), False)
     _, e = actor.get_actor_bounds(False)
     sx, sy, sz = max(e.x * 2, 0.1), max(e.y * 2, 0.1), max(e.z * 2, 0.1)
     if mode == "stretch":
@@ -370,7 +375,9 @@ def cover(mesh_key, center, size, bottom, mode="stretch", yaw=0.0, label="Prop",
         if size[2] > 1 and sz > 1:
             f = min(f, size[2] / sz)
         fx = fy = fz = f
-    if abs(abs(yaw) % 180 - 90) < 1:   # повёрнута на 90°: локальная X идёт вдоль мировой Y
+    if roll or pitch:
+        fx = fy = fz = min(fx, fy, fz)   # наклонённую модель масштабируем без искажений
+    elif abs(abs(yaw) % 180 - 90) < 1:   # повёрнута на 90°: локальная X идёт вдоль мировой Y
         fx, fy = fy, fx
     actor.set_actor_scale3d(unreal.Vector(fx, fy, fz))
     align(actor, center[0], center[1], bottom)
@@ -380,7 +387,7 @@ def cover(mesh_key, center, size, bottom, mode="stretch", yaw=0.0, label="Prop",
     return actor
 
 
-def skin(target, mesh_key, mode="stretch", yaw=0.0, size=None):
+def skin(target, mesh_key, mode="stretch", yaw=0.0, size=None, roll=0.0, pitch=0.0, auto=True):
     """Надевает модель на предмет дела. Серый блок становится невидимым в игре, но остаётся зоной для кнопки E;
     модель появляется и исчезает вместе с предметом (по сюжету)."""
     if target is None:
@@ -388,20 +395,54 @@ def skin(target, mesh_key, mode="stretch", yaw=0.0, size=None):
     origin, extent = target.get_actor_bounds(False)
     box = size or (extent.x * 2, extent.y * 2, extent.z * 2)
     actor = cover(mesh_key, (origin.x, origin.y), box, origin.z - extent.z, mode, yaw,
-                  label=target.get_actor_label().replace(GEN, ""), folder="Dressing/Case")
+                  label=target.get_actor_label().replace(GEN, ""), folder="Dressing/Case",
+                  roll=roll, pitch=pitch, auto=auto)
     if actor is None:
         return None
-    # Без коллизии: иначе модель перехватит взгляд игрока, и кнопка E не сработает.
-    no_collision(actor)
+    link(target, [actor])
+    return actor
+
+
+def link(target, parts):
+    """Серый блок предмета — невидимая зона для кнопки E; parts появляются и исчезают вместе с предметом."""
+    for actor in parts:
+        no_collision(actor)
     cls = target.get_class().get_name()
     if cls == "CaseObjectActor":
         target.set_editor_property("hide_mesh", True)
-        target.set_editor_property("linked_actors", [actor])
+        target.set_editor_property("linked_actors", parts)
     elif cls == "LaptopActor":
         comp = target.get_component_by_class(unreal.StaticMeshComponent)
         if comp:
             comp.set_editor_property("visible", False)
-    return actor
+
+
+def overlay(target, parts):
+    """Собирает внешний вид предмета из простых блоков: parts = [(dx, dy, dz, (sx, sy, sz), материал)]
+    относительно центра предмета."""
+    if target is None:
+        return
+    o, _ = target.get_actor_bounds(False)
+    made = [cube(target.get_actor_label().replace(GEN, ""), (o.x + dx, o.y + dy, o.z + dz), size, m,
+                 folder="Dressing/Case") for dx, dy, dz, size, m in parts]
+    link(target, [a for a in made if a])
+
+
+def settle(box_name, top_z):
+    """Кладёт предметы дела, лежащие на блоке box_name, ровно на его новую поверхность top_z."""
+    box = gen_actors().get(box_name)
+    if box is None:
+        return
+    bo, be = box.get_actor_bounds(False)
+    for a in actors.get_all_level_actors():
+        if a.get_class().get_name() not in ("CaseObjectActor", "LaptopActor"):
+            continue
+        ao, ae = a.get_actor_bounds(False)
+        inside = abs(ao.x - bo.x) <= be.x and abs(ao.y - bo.y) <= be.y
+        bottom = ao.z - ae.z
+        if inside and abs(bottom - top_z) < 30:
+            loc = a.get_actor_location()
+            a.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z + top_z - bottom), False, False)
 
 
 def replace_box(gen, name, mesh_key, yaw=0.0):
@@ -483,7 +524,8 @@ def dress_office():
         ("Cabinet", "painted_metal"), ("KeyBoard", "flat_wood"), ("Shelf", "flat_wood"),
     ])
     # Кабинет: мебель из пака DetectiveOffice.
-    replace(gen, "Desk", "office_desk", fit=True)
+    replace_box(gen, "Desk", "teen_desk")
+    settle("Desk", 75)
     replace(gen, "SideTable", "table", yaw=90, fit=True)
     replace(gen, "Interrogation_Table", "table", fit=True)
     replace(gen, "Chair", "office_chair")
@@ -491,7 +533,8 @@ def dress_office():
     replace(gen, "Interrogation_Chair_Suspect", "chair", yaw=180)
     replace_box(gen, "Cabinet", "cabinet_tall")
     replace_box(gen, "Cabinet2", "cabinet_tall")
-    replace(gen, "Shelf", "cabinet_low", fit=True)
+    replace_box(gen, "Shelf", "small_cabinet")
+    settle("Shelf", 90)
 
     # Предметы дела: модели поверх серых блоков (кнопка E работает как раньше).
     objs = case_objects()
@@ -502,14 +545,16 @@ def dress_office():
         bottom = o.z - e.z
         laptop.set_actor_scale3d(unreal.Vector(0.55, 0.45, 0.40))
         laptop.set_actor_location(unreal.Vector(o.x, o.y, bottom + 20), False, False)
-        skin(laptop, "pc", "uniform")
+        # Монитор — экраном к креслу (на юг).
+        skin(laptop, "pc", "uniform", yaw=180, size=(50, 55, 50), auto=False)
     skin(objs.get("CaseFolder"), "paper_stack", "uniform")
     skin(objs.get("LoginPrintout"), "paper_stack", "uniform")
     skin(objs.get("ForumPrintout"), "paper_stack", "uniform")
     skin(objs.get("DeskPhone"), "phone", "uniform")
     skin(objs.get("CaseVolume2"), "books", "uniform")
     for k in ("CarKeys", "CarKeysPrichal", "CarKeysDacha", "CarKeysCourt"):
-        skin(objs.get(k), "keys", "uniform")
+        # Связка висит на крючке: кольцо сверху, плашмя к доске.
+        skin(objs.get(k), "keys", "uniform", roll=90, yaw=90, auto=False)
     skin(objs.get("ArchiveDoor"), "door")
 
     # Стены кабинета: деревянные панели снизу, проёмы дверей свободны.
@@ -525,7 +570,6 @@ def dress_office():
     place("Ashtray", "ashtray", 335, 432, top("Desk", 75))
     place("Newspaper", "newspaper", 70, 150, top("SideTable", 75), yaw=20)
     place("CoatRack", "coat_rack", 40, 40, 0)
-    place("Safe", "safe", 560, 360, 0, yaw=-90)
     big = place("CaseBoxes", "box_big", 230, 35, 0)
     if big:
         o, e = big.get_actor_bounds(False)
@@ -551,7 +595,7 @@ def dress_flat():
     replace(gen, "KitchenTable", "table", fit=True)
     replace(gen, "Chair", "chair", yaw=90)
     replace_box(gen, "Wardrobe", "wardrobe")
-    replace(gen, "Sofa", "sofa_small", fit=True)
+    replace(gen, "Sofa", "sofa_small", yaw=180, fit=True)
     place("Mug", "mug", 125, 505, top("KitchenTable", 75))
     # Вещи Алины: мать десять лет ничего не убирает.
     place("Guitar", "guitar", 386, 215, 0, yaw=90)
@@ -560,6 +604,21 @@ def dress_flat():
     skin(objs.get("FlatExit"), "door")
     if objs.get("AlinaPhone"):
         paint(objs["AlinaPhone"], "flat_screen")
+    # Настенный календарь: лист, красная шапка, строки недель, обведённая дата.
+    overlay(objs.get("WallCalendar"), [
+        (0, 1.5, 0, (40, 1, 50), "flat_paper"),
+        (0, 2.2, 20, (40, 1, 10), "flat_thread"),
+        (0, 2.2, 8, (34, 0.5, 0.6), "flat_screen"),
+        (0, 2.2, -1, (34, 0.5, 0.6), "flat_screen"),
+        (0, 2.2, -10, (34, 0.5, 0.6), "flat_screen"),
+        (0, 2.2, -19, (34, 0.5, 0.6), "flat_screen"),
+        (6, 2.6, -5, (6, 0.5, 6), "flat_thread"),
+    ])
+    # Фотография Алины в рамке на полке (лицом в комнату).
+    overlay(objs.get("AlinaPhoto"), [
+        (0, 0, 0, (3, 22, 26), "flat_wood_dark"),
+        (2, 0, 0, (1, 18, 22), "pictures"),
+    ])
     save()
 
 
@@ -622,14 +681,23 @@ def dress_prichal():
     # Панели стен поверх серых стен (высота подогнана под потолок).
     sz = H / 400.0
     for ix in range(3):
-        place("WallS", "wall", 150 + ix * 300, 8, 0, yaw=0, scale=(1, 1, sz))
+        if ix == 1:
+            # Посередине южной стены — выход: панели только по бокам двери (x 400..500).
+            place("WallS", "wall", 350, 8, 0, yaw=0, scale=(1 / 3.0, 1, sz))
+            place("WallS", "wall", 550, 8, 0, yaw=0, scale=(1 / 3.0, 1, sz))
+        else:
+            place("WallS", "wall", 150 + ix * 300, 8, 0, yaw=0, scale=(1, 1, sz))
         place("WallN", "wall", 150 + ix * 300, L - 8, 0, yaw=180, scale=(1, 1, sz))
     for iy in range(2):
         place("WallW", "wall", 8, 150 + iy * 300, 0, yaw=90, scale=(1, 1, sz))
         place("WallE", "wall", W - 8, 150 + iy * 300, 0, yaw=-90, scale=(1, 1, sz))
 
     # Столы и стулья вместо блоков.
-    for i in range(4):
+    # Четвёртый столик (у стойки) убран: мешал пройти к Мальцеву.
+    for name in ("Table_3", "Stool_3_a", "Stool_3_b"):
+        if gen.get(name):
+            hide_box(gen[name])
+    for i in range(3):
         replace(gen, f"Table_{i}", "table")
         replace(gen, f"Stool_{i}_a", "chair", yaw=0)
         replace(gen, f"Stool_{i}_b", "chair", yaw=180)
@@ -650,9 +718,8 @@ def dress_prichal():
 
     # Атмосфера: лампы, растение, меню на доске, картины, жалюзи на «окнах».
     # Лампы висят над столиками (не над проходом), чтобы игрок в них не упирался.
-    for (x, y) in ((220, 200), (720, 200), (220, 330), (720, 340), (140, 510)):
+    for (x, y) in ((220, 200), (720, 200), (220, 330), (140, 510)):
         place("Lamp", "lamp", x, y, H - 180)
-    place("Plant", "plant", 830, 90, 0)
     place("Chalkboard", "chalkboard", 892, 300, 90, yaw=-90)
     place("Painting1", "painting1", 300, L - 18, 140, yaw=180)
     place("Painting2", "painting2", 8 + 10, 300, 140, yaw=90)
