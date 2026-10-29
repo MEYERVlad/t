@@ -117,8 +117,8 @@ def build_prichal():
     box("Counter", (650, 470, 55), (400, 60, 110), "Furniture")
     box("BackShelf", (650, 585, 120), (400, 25, 240), "Furniture")
 
-    # Столики с табуретами
-    for i, (x, y) in enumerate(((300, 250), (520, 250), (300, 420), (720, 220))):
+    # Столики с табуретами: два ряда у стен, посередине свободный проход от входа к стойке (x 330..620).
+    for i, (x, y) in enumerate(((220, 200), (720, 200), (220, 330), (720, 340))):
         box(f"Table_{i}", (x, y, 37.5), (80, 80, 75), "Furniture")
         box(f"Stool_{i}_a", (x - 60, y, 22.5), (40, 40, 45), "Furniture")
         box(f"Stool_{i}_b", (x + 60, y, 22.5), (40, 40, 45), "Furniture")
@@ -131,8 +131,9 @@ def build_prichal():
     case_object("Maltsev", "maltsev", (700, 525, 85), (50, 50, 170), CYLINDER)
     case_object("CashJournal", "cash_journal", (560, 470, 112), (25, 32, 3))
     case_object("Kira", "kira", (150, 425, 70), (45, 45, 140), CYLINDER)
-    case_object("Svetlana", "svetlana", (420, 330, 82), (45, 45, 164), CYLINDER)
-    case_object("Kulik", "kulik", (420, 470 - 60, 80), (50, 50, 160), CYLINDER)
+    # Света — у столиков, Кулик — у стойки. Оба сбоку от прохода, чтобы не перегораживать его.
+    case_object("Svetlana", "svetlana", (355, 265, 82), (45, 45, 164), CYLINDER)
+    case_object("Kulik", "kulik", (490, 405, 80), (50, 50, 160), CYLINDER)
 
     point_light("Light_1", (250, 200, 290))
     point_light("Light_2", (650, 200, 290))

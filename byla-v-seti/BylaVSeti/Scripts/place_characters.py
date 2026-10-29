@@ -39,7 +39,7 @@ CHARACTERS = [
     ("/Game/Maps/L_Prichal", "Kira", "Kira", (450, 250)),
     ("/Game/Maps/L_Prichal", "Maltsev", "Maltsev", (700, 300)),
     ("/Game/Maps/L_Prichal", "Svetlana", "Svetlana", (450, 80)),
-    ("/Game/Maps/L_Prichal", "Kulik", "Kulik", (300, 300)),
+    ("/Game/Maps/L_Prichal", "Kulik", "Kulik", (450, 80)),
     ("/Game/Maps/L_Court", "Judge", "Judge", (500, 850)),
 ]
 
