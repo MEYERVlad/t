@@ -1,6 +1,7 @@
 ﻿#include "Gameplay/DetectivePlayerController.h"
 
 #include "Case/CaseStateSubsystem.h"
+#include "CoreGlobals.h"
 #include "Engine/GameInstance.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -42,7 +43,10 @@ void ADetectivePlayerController::BeginPlay()
 
 	// MetaHuman-персонажи тяжёлые по текстурам: стандартного пула не хватает (красная надпись
 	// «размер подгружаемых данных текстуры превышает лимит»). 3 ГБ подходит для карт с 8 ГБ памяти.
-	if (IConsoleVariable* Pool = IConsoleManager::Get().FindConsoleVariable(TEXT("r.Streaming.PoolSize")))
+	// Только в готовой игре: в редакторе видеопамять уже занята самим редактором, и лишние 3 ГБ
+	// на 8-гигабайтной карте приводят к сбою видеодрайвера (D3D device removed).
+	IConsoleVariable* Pool = GIsEditor ? nullptr : IConsoleManager::Get().FindConsoleVariable(TEXT("r.Streaming.PoolSize"));
+	if (Pool)
 	{
 		if (Pool->GetInt() < 3000)
 		{
