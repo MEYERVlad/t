@@ -3,3 +3,4 @@ __pycache__/
 # Озвучка: модель и сгенерированные файлы не храним в репозитории
 **/Scripts/voice/*.pt
 **/Scripts/voice/out/
+**/Scripts/voice/Face_Idle.wav
