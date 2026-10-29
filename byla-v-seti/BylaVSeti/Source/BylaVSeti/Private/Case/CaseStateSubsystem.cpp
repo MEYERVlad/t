@@ -413,8 +413,18 @@ FText UCaseStateSubsystem::GetObjectPrompt(FName ObjectId) const
 	return FText::FromName(ObjectId);
 }
 
+void UCaseStateSubsystem::SetShowAllObjects(bool bShow)
+{
+	bShowAllObjects = bShow;
+	OnCaseChanged.Broadcast();
+}
+
 bool UCaseStateSubsystem::IsObjectVisible(FName ObjectId) const
 {
+	if (bShowAllObjects)
+	{
+		return true;
+	}
 	const FCaseObject* O = Objects.Find(ObjectId);
 	return !O || O->ShowFlag.IsNone() || Flags.Contains(O->ShowFlag);
 }

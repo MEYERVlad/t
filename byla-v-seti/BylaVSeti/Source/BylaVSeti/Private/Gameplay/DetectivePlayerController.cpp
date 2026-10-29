@@ -2,6 +2,7 @@
 
 #include "Case/CaseStateSubsystem.h"
 #include "Engine/GameInstance.h"
+#include "HAL/IConsoleManager.h"
 #include "TimerManager.h"
 #include "UI/EndingWidget.h"
 #include "UI/GameHudWidget.h"
@@ -15,9 +16,37 @@ UCaseStateSubsystem* ADetectivePlayerController::GetCase() const
 	return GI ? GI->GetSubsystem<UCaseStateSubsystem>() : nullptr;
 }
 
+void ADetectivePlayerController::BylaShowAll()
+{
+	if (UCaseStateSubsystem* Case = GetCase())
+	{
+		Case->SetShowAllObjects(!Case->GetShowAllObjects());
+		ShowToast(FText::FromString(Case->GetShowAllObjects() ? TEXT("Debug: show all ON") : TEXT("Debug: show all OFF")));
+	}
+}
+
+void ADetectivePlayerController::BylaFlag(FName Flag)
+{
+	if (UCaseStateSubsystem* Case = GetCase())
+	{
+		Case->SetFlag(Flag);
+		ShowToast(FText::FromString(FString::Printf(TEXT("Debug: flag %s"), *Flag.ToString())));
+	}
+}
+
 void ADetectivePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// MetaHuman-персонажи тяжёлые по текстурам: стандартного пула не хватает (красная надпись
+	// «размер подгружаемых данных текстуры превышает лимит»). 3 ГБ подходит для карт с 8 ГБ памяти.
+	if (IConsoleVariable* Pool = IConsoleManager::Get().FindConsoleVariable(TEXT("r.Streaming.PoolSize")))
+	{
+		if (Pool->GetInt() < 3000)
+		{
+			Pool->Set(3000, ECVF_SetByCode);
+		}
+	}
 
 	if (!IsLocalController())
 	{

@@ -26,10 +26,17 @@ IDLE_ANIM_NAME = "AS_MH_Neutral_Stand_Idle_Loop"
 FACING_OFFSET = -90.0
 
 # уровень, цилиндр (метка без GEN_), имя персонажа (BP_MHC_<имя>), точка, на которую он смотрит (x, y)
+# Если персонажа нужно поставить не туда, где цилиндр стоит после build-скрипта:
+# (уровень, цилиндр) -> (x, y). Цилиндр (зона кнопки E) переезжает вместе с персонажем.
+STAND_AT = {
+    # Кира стоит у своего углового столика, а не внутри дивана.
+    ("/Game/Maps/L_Prichal", "Kira"): (150, 425),
+}
+
 CHARACTERS = [
     ("/Game/Maps/L_Office", "Artem", "Artem", (695, 200)),
     ("/Game/Maps/L_IrinaFlat", "Irina", "Irina", (200, 175)),
-    ("/Game/Maps/L_Prichal", "Kira", "Kira", (200, 510)),
+    ("/Game/Maps/L_Prichal", "Kira", "Kira", (450, 250)),
     ("/Game/Maps/L_Prichal", "Maltsev", "Maltsev", (700, 300)),
     ("/Game/Maps/L_Prichal", "Svetlana", "Svetlana", (450, 80)),
     ("/Game/Maps/L_Prichal", "Kulik", "Kulik", (300, 300)),
@@ -156,6 +163,11 @@ def place_level(level_path, entries, idle):
             cylinder.set_editor_property("linked_actors", [])
             continue
 
+        stand = STAND_AT.get((level_path, cylinder_name))
+        if stand:
+            o0, _ = cylinder.get_actor_bounds(False)
+            loc = cylinder.get_actor_location()
+            cylinder.set_actor_location(unreal.Vector(loc.x + stand[0] - o0.x, loc.y + stand[1] - o0.y, loc.z), False, False)
         origin, extent = cylinder.get_actor_bounds(False)
         floor_z = origin.z - extent.z
         angle = math.degrees(math.atan2(look_at[1] - origin.y, look_at[0] - origin.x))

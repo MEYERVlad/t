@@ -20,6 +20,14 @@ public:
 	void OpenEnding(FName EndingId);
 	/** Закрывает ноутбук или допрос. */
 	void ClosePanel();
+
+	/** Консоль (клавиша ~): показать всех скрытых по сюжету персонажей и предметы. Повторный вызов — вернуть как было. */
+	UFUNCTION(Exec)
+	void BylaShowAll();
+
+	/** Консоль (клавиша ~): поставить сюжетный флаг, например BylaFlag kira_identified. Пишется в сохранение. */
+	UFUNCTION(Exec)
+	void BylaFlag(FName Flag);
 	bool IsPanelOpen() const { return ActivePanel != nullptr; }
 
 	void ShowToast(const FText& Message);

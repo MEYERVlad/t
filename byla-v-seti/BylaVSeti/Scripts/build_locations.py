@@ -130,7 +130,7 @@ def build_prichal():
     case_object("Exit", "prichal_exit", (450, 6, 105), (100, 6, 210))
     case_object("Maltsev", "maltsev", (700, 525, 85), (50, 50, 170), CYLINDER)
     case_object("CashJournal", "cash_journal", (560, 470, 112), (25, 32, 3))
-    case_object("Kira", "kira", (75, 510, 70), (45, 45, 140), CYLINDER)
+    case_object("Kira", "kira", (150, 425, 70), (45, 45, 140), CYLINDER)
     case_object("Svetlana", "svetlana", (420, 330, 82), (45, 45, 164), CYLINDER)
     case_object("Kulik", "kulik", (420, 470 - 60, 80), (50, 50, 160), CYLINDER)
 

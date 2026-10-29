@@ -91,6 +91,9 @@ public:
 	FText GetObjectPrompt(FName ObjectId) const;
 	/** Должен ли предмет сейчас быть виден в мире (ShowFlag). */
 	bool IsObjectVisible(FName ObjectId) const;
+	/** Проверка без прохождения: все предметы и персонажи видны независимо от сюжета. */
+	void SetShowAllObjects(bool bShow);
+	bool GetShowAllObjects() const { return bShowAllObjects; }
 	/**
 	 * Возвращает true, если предмет сработал. В OutMessage — текст для игрока.
 	 * Если предмет открывает допрос, его Id будет в OutInterrogation.
@@ -153,6 +156,7 @@ private:
 	double LastProgressTime = 0.0;
 	int32 Trust = 60;
 	bool bLinksChangedSinceReport = true;
+	bool bShowAllObjects = false;
 
 	TArray<FTimerHandle> FeedTimers;
 };

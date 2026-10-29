@@ -395,7 +395,8 @@ def dress_prichal():
         replace(gen, f"Stool_{i}_a", "chair", yaw=0)
         replace(gen, f"Stool_{i}_b", "chair", yaw=180)
     replace(gen, "CornerTable", "table", yaw=90)
-    replace(gen, "CornerBench", "booth", yaw=90)
+    # Спинка дивана к западной стене, сиденье — к столику.
+    replace(gen, "CornerBench", "booth", yaw=-90)
 
     # За стойкой — полки с бутылками.
     box = gen.pop("BackShelf", None)
@@ -423,8 +424,9 @@ def dress_dacha():
         return
     gen = gen_actors()
     paint_matching(gen, [
-        ("Ground", "dirt"), ("HouseRoof", "flat_roof"), ("House", "flat_boards"),
-        ("Shed_Roof", "flat_roof"), ("Shed", "flat_shed"), ("OldCar", "flat_car"), ("Barrel", "flat_metal"),
+        # Кирпичный дачный дом, деревянный сарай, тёмная крыша, ржавая бочка.
+        ("Ground", "dirt"), ("HouseRoof", "roof"), ("House", "bricks"),
+        ("Shed_Roof", "roof"), ("Shed", "wood_grey"), ("OldCar", "flat_car"), ("Barrel", "painted_metal"),
     ])
 
     # Деревянный забор вместо серых стенок. На юге — проём для калитки (x 420..580).
@@ -477,8 +479,9 @@ def dress_court():
     replace(gen, "ProsecutorTable", "table", fit=True)
     replace(gen, "DefenceTable", "table", fit=True)
     for r in range(4):
-        replace(gen, f"Bench_L_{r}", "bench")
-        replace(gen, f"Bench_R_{r}", "bench")
+        # Публика сидит лицом к судье (на север).
+        replace(gen, f"Bench_L_{r}", "bench", yaw=180)
+        replace(gen, f"Bench_R_{r}", "bench", yaw=180)
     for x in (200, 300, 700, 800):
         place("Chair", "chair", x, 885, 0, yaw=90)
     place("PlantL", "plant", 60, 1300, 0)
