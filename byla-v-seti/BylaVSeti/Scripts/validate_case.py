@@ -129,6 +129,25 @@ for e in endings:
     if e.get("scoreInterrogation") and e["scoreInterrogation"] not in interrogations:
         errors.append(f"ending/{e['id']}: неизвестный допрос '{e['scoreInterrogation']}'")
 
+# Реконструкция 14.10.2016.
+reco = load("reconstruction.json")
+places = {p["id"] for p in reco["places"]} | {"none"}
+actors_ids = {a["id"] for a in reco["actors"]}
+for ref in [reco.get("unlockEvidence")] + [a.get("requiresEvidence") for a in reco["actors"]] \
+        + [ev.get("requires") for ev in reco["events"]] + reco["question"].get("requires", []) \
+        + reco["question"].get("grantsEvidence", []):
+    if ref and ref not in evidence:
+        errors.append(f"reconstruction: неизвестная улика '{ref}'")
+for ev in reco["events"]:
+    for key in ("positions", "positionsUnknown"):
+        for who, where in ev.get(key, {}).items():
+            if who not in actors_ids:
+                errors.append(f"reconstruction/{ev['minute']}: неизвестный силуэт '{who}'")
+            if where not in places:
+                errors.append(f"reconstruction/{ev['minute']}: неизвестное место '{where}'")
+if sum(1 for o in reco["question"]["options"] if o.get("bCorrect")) != 1:
+    errors.append("reconstruction: у вопроса должен быть ровно один верный ответ")
+
 if errors:
     print("ОШИБКИ:")
     for e in errors:

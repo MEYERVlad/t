@@ -110,6 +110,15 @@ public:
 	bool IsStatementBroken(FName InterrogationId, FName StatementId) const;
 	bool IsInterrogationFinished(FName InterrogationId) const { return FinishedInterrogations.Contains(InterrogationId); }
 	FCasePresentResult PresentEvidence(FName InterrogationId, FName StatementId, FName EvidenceId);
+
+	// --- Реконструкция 14.10.2016 ---
+	const FCaseReconstruction& GetReconstruction() const { return Reconstruction; }
+	bool IsReconstructionUnlocked() const;
+	bool IsReconstructionSolved() const;
+	/** Хватает ли улик, чтобы ответить на вопрос реконструкции. */
+	bool CanAnswerReconstruction() const;
+	/** Ответ на вопрос реконструкции: верный — улика и флаг, неверный — минус доверие. */
+	FCaseReportResult AnswerReconstruction(int32 OptionIndex);
 	int32 CountBrokenStatements(FName InterrogationId) const;
 	int32 CountStatements(FName InterrogationId) const;
 
@@ -140,6 +149,7 @@ private:
 	TArray<FCaseInterrogation> Interrogations;
 	TArray<FCaseEnding> Endings;
 	TArray<FCaseHint> Hints;
+	FCaseReconstruction Reconstruction;
 	TMap<FName, FText> UIStrings;
 
 	// Состояние игрока

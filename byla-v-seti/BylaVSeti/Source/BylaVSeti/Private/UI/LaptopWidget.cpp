@@ -21,6 +21,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Stream/TwitchChatSubsystem.h"
 #include "UI/BoardWidget.h"
+#include "UI/ReconstructionWidget.h"
 #include "UI/UIStyle.h"
 
 namespace
@@ -51,6 +52,7 @@ namespace
 		{ ELaptopApp::Krug, TEXT("krug"), TEXT("app_krug") },
 		{ ELaptopApp::Mail, TEXT("mail"), TEXT("app_mail") },
 		{ ELaptopApp::Board, TEXT("board"), TEXT("app_board") },
+		{ ELaptopApp::Reconstruction, TEXT("reco"), TEXT("app_reco") },
 		{ ELaptopApp::Decisions, TEXT("decisions"), TEXT("app_decisions") },
 		{ ELaptopApp::Hint, TEXT("hint"), TEXT("app_hint") },
 		{ ELaptopApp::Stream, TEXT("stream"), TEXT("app_stream") },
@@ -184,6 +186,7 @@ void ULaptopWidget::BuildLayout()
 
 	// Доска и поле канала создаются один раз и живут, пока открыт ноутбук.
 	Board = WidgetTree->ConstructWidget<UBoardWidget>(UBoardWidget::StaticClass());
+	Reco = WidgetTree->ConstructWidget<UReconstructionWidget>(UReconstructionWidget::StaticClass());
 	ChannelInput = WidgetTree->ConstructWidget<UEditableTextBox>(UEditableTextBox::StaticClass());
 	ChannelInput->SetHintText(UI(TEXT("stream_channel_hint")));
 	if (const UTwitchChatSubsystem* Twitch = GetTwitch())
@@ -210,6 +213,11 @@ void ULaptopWidget::BuildNav()
 			{
 				Label = FText::Format(FText::FromString(TEXT("{0}  ({1})")), Label, FText::AsNumber(Count));
 			}
+		}
+		// Реконструкцию можно «защёлкнуть» — отмечаем, чтобы игрок не пропустил.
+		if (Info.App == ELaptopApp::Reconstruction && Case && Case->CanAnswerReconstruction())
+		{
+			Label = FText::Format(FText::FromString(TEXT("{0}  (!)")), Label);
 		}
 		const FLinearColor Color = (Info.App == CurrentApp) ? BylaUI::ButtonActive : BylaUI::Button;
 		if (UVerticalBoxSlot* S = NavBox->AddChildToVerticalBox(MakeButton(Label, ActApp, FName(Info.Id), Color)))
@@ -244,6 +252,19 @@ void ULaptopWidget::Refresh()
 		if (Board)
 		{
 			Board->MarkDirty();
+		}
+		return;
+	}
+	// Реконструкция живёт отдельным виджетом: ползунок не должен пересоздаваться при каждом изменении дела.
+	if (CurrentApp == ELaptopApp::Reconstruction)
+	{
+		if (Reco && Reco->GetParent() != ContentPanel.Get())
+		{
+			ContentPanel->SetContent(Reco);
+		}
+		if (Reco)
+		{
+			Reco->MarkDirty();
 		}
 		return;
 	}

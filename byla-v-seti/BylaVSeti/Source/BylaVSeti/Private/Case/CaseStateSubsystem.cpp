@@ -100,6 +100,13 @@ void UCaseStateSubsystem::LoadData()
 	CaseData::LoadArray(TEXT("interrogations.json"), Interrogations);
 	CaseData::LoadArray(TEXT("endings.json"), Endings);
 	CaseData::LoadArray(TEXT("hints.json"), Hints);
+
+	FString RecoJson;
+	if (!FFileHelper::LoadFileToString(RecoJson, *CaseData::DataPath(TEXT("reconstruction.json")))
+		|| !FJsonObjectConverter::JsonObjectStringToUStruct(RecoJson, &Reconstruction, 0, 0))
+	{
+		UE_LOG(LogCase, Warning, TEXT("reconstruction.json missing or invalid"));
+	}
 	LastProgressTime = FPlatformTime::Seconds();
 
 	UE_LOG(LogCase, Log, TEXT("Case loaded: evidence %d, feed %d, hypotheses %d, decisions %d, objects %d, interrogations %d, ui strings %d"),
@@ -685,6 +692,59 @@ bool UCaseStateSubsystem::SaveCase() const
 	Save->ReachedEnding = ReachedEnding;
 	Save->Trust = Trust;
 	return UGameplayStatics::SaveGameToSlot(Save, CaseData::SaveSlot, 0);
+}
+
+bool UCaseStateSubsystem::IsReconstructionUnlocked() const
+{
+	return !Reconstruction.Events.IsEmpty() && (Reconstruction.UnlockEvidence.IsNone() || HasEvidence(Reconstruction.UnlockEvidence));
+}
+
+bool UCaseStateSubsystem::IsReconstructionSolved() const
+{
+	return !Reconstruction.Question.SetsFlag.IsNone() && Flags.Contains(Reconstruction.Question.SetsFlag);
+}
+
+bool UCaseStateSubsystem::CanAnswerReconstruction() const
+{
+	if (!IsReconstructionUnlocked() || IsReconstructionSolved())
+	{
+		return false;
+	}
+	for (const FName& Id : Reconstruction.Question.Requires)
+	{
+		if (!HasEvidence(Id))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+FCaseReportResult UCaseStateSubsystem::AnswerReconstruction(int32 OptionIndex)
+{
+	FCaseReportResult Result;
+	const FCaseRecoQuestion& Q = Reconstruction.Question;
+	if (!CanAnswerReconstruction() || !Q.Options.IsValidIndex(OptionIndex))
+	{
+		return Result;
+	}
+	const FCaseRecoOption& Option = Q.Options[OptionIndex];
+	if (!Option.bCorrect)
+	{
+		Result.Message = Option.Reaction;
+		ChangeTrust(-CaseData::WrongPresentPenalty);
+		return Result;
+	}
+	Result.bAccepted = true;
+	Result.Message = Q.SolvedText;
+	for (const FName& Id : Q.GrantsEvidence)
+	{
+		AddEvidence(Id);
+	}
+	Trust = FMath::Clamp(Trust + Q.TrustBonus, 0, 100);
+	SetFlag(Q.SetsFlag);
+	MarkChanged();
+	return Result;
 }
 
 bool UCaseStateSubsystem::HasSave() const

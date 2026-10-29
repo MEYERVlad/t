@@ -352,3 +352,160 @@ struct FCaseInterrogation
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
 	TArray<FCaseLiveReaction> LiveReactions;
 };
+
+// ---------------------------------------------------------------- Реконструкция 14.10.2016
+
+/** Точка на схеме реконструкции (набережная, АЗС, дача...). X, Y — от 0 до 1 по ширине и высоте схемы. */
+USTRUCT(BlueprintType)
+struct FCaseRecoPlace
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	float X = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	float Y = 0.5f;
+};
+
+/** Силуэт на схеме: Алина, Денис, «О.», телефон Алины. Виден, только если игрок знает RequiresEvidence. */
+USTRUCT(BlueprintType)
+struct FCaseRecoActor
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Name;
+
+	/** Цвет метки, например "#E04848". */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FString Color;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName RequiresEvidence;
+};
+
+/**
+ * Момент той ночи. Если игрок знает улику Requires — показывается Text и Positions (как было на самом деле);
+ * иначе TextUnknown и PositionsUnknown (версия обвинения или «данных нет»).
+ */
+USTRUCT(BlueprintType)
+struct FCaseRecoEvent
+{
+	GENERATED_BODY()
+
+	/** Минуты от 21:00. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	int32 Minute = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Title;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText TextUnknown;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName Requires;
+
+	/** Силуэт -> место. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TMap<FName, FName> Positions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TMap<FName, FName> PositionsUnknown;
+};
+
+USTRUCT(BlueprintType)
+struct FCaseRecoOption
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	bool bCorrect = false;
+
+	/** Ответ на неверный вариант. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Reaction;
+};
+
+/** Вопрос, который «защёлкивает» реконструкцию. Доступен, когда игрок знает все улики Requires. */
+USTRUCT(BlueprintType)
+struct FCaseRecoQuestion
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Text;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> Requires;
+
+	/** Что сказать, пока не хватает улик. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText LockedText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseRecoOption> Options;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText SolvedText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FName> GrantsEvidence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName SetsFlag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	int32 TrustBonus = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FCaseReconstruction
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Title;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText Intro;
+
+	/** Реконструкция открывается, когда игрок знает эту улику. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FName UnlockEvidence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FText LockedText;
+
+	/** Конец шкалы в минутах от 21:00. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	int32 EndMinute = 165;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseRecoPlace> Places;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseRecoActor> Actors;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	TArray<FCaseRecoEvent> Events;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Case")
+	FCaseRecoQuestion Question;
+};

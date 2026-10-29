@@ -408,5 +408,14 @@
 		"triggerFlag": "dacha_empty",
 		"delaySeconds": 25,
 		"setsFlag": "hearing_scheduled"
+	},
+	{
+		"id": "mail_reconstruction",
+		"channel": "mail",
+		"author": "ЭКЦ, группа визуализации",
+		"dateLabel": "сейчас",
+		"text": "Ветров, по вашему запросу подключили модуль «Реконструкция» к служебному ПК. Загрузили туда материалы дела Лаптева и новые данные браслета за 14.10.2016. Схема дополняется сама, как только к делу приобщается новая улика.",
+		"triggerFlag": "irina_interrogated",
+		"delaySeconds": 20
 	}
 ]

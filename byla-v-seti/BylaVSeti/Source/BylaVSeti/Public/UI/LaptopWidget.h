@@ -6,6 +6,7 @@
 
 class UBorder;
 class UBoardWidget;
+class UReconstructionWidget;
 class UEditableTextBox;
 class UScrollBox;
 class UTextBlock;
@@ -19,6 +20,7 @@ enum class ELaptopApp : uint8
 	Krug,
 	Mail,
 	Board,
+	Reconstruction,
 	Decisions,
 	Hint,
 	Stream
@@ -67,6 +69,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UBoardWidget> Board;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UReconstructionWidget> Reco;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UVerticalBox> NavBox;
