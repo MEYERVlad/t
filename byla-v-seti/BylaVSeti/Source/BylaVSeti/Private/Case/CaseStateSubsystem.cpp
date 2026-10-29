@@ -687,6 +687,11 @@ bool UCaseStateSubsystem::SaveCase() const
 	return UGameplayStatics::SaveGameToSlot(Save, CaseData::SaveSlot, 0);
 }
 
+bool UCaseStateSubsystem::HasSave() const
+{
+	return UGameplayStatics::DoesSaveGameExist(CaseData::SaveSlot, 0);
+}
+
 bool UCaseStateSubsystem::LoadCase()
 {
 	UCaseSaveGame* Save = Cast<UCaseSaveGame>(UGameplayStatics::LoadGameFromSlot(CaseData::SaveSlot, 0));

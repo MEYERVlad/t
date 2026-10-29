@@ -36,6 +36,7 @@ namespace
 	const FName ActFacecam(TEXT("facecam"));
 	const FName ActRestartAsk(TEXT("restart_ask"));
 	const FName ActRestart(TEXT("restart"));
+	const FName ActQuitGame(TEXT("quit_game"));
 
 	constexpr float PollSeconds = 60.f;
 
@@ -539,6 +540,10 @@ void ULaptopWidget::BuildStreamApp()
 	{
 		AddContent(MakeButton(UI(TEXT("restart")), ActRestartAsk, NAME_None, BylaUI::Button), 8.f);
 	}
+
+	AddContent(MakeText(UI(TEXT("quit_header")), 22, BylaUI::Text, true), 8.f);
+	AddContent(MakeText(UI(TEXT("quit_help")), 18, BylaUI::TextDim), 10.f);
+	AddContent(MakeButton(UI(TEXT("quit")), ActQuitGame, NAME_None, BylaUI::Button), 8.f);
 }
 
 // ================================================================ Действия
@@ -629,6 +634,14 @@ void ULaptopWidget::HandleAction(FName Action, FName Payload)
 	{
 		Case->StartNewCase();
 		UGameplayStatics::OpenLevel(this, TEXT("L_Office"));
+		return;
+	}
+	else if (Action == ActQuitGame)
+	{
+		if (ADetectivePlayerController* PC = Cast<ADetectivePlayerController>(GetOwningPlayer()))
+		{
+			PC->ExitGame();
+		}
 		return;
 	}
 	else if (Action == ActDisconnect && Twitch)

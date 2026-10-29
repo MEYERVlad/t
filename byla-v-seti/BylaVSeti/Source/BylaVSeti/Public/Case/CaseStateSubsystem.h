@@ -50,6 +50,8 @@ public:
 	void StartNewCase();
 	bool SaveCase() const;
 	bool LoadCase();
+	/** Есть ли сохранённое прохождение (для кнопки «Продолжить дело»). */
+	bool HasSave() const;
 
 	// --- Тексты интерфейса (ui_strings.json) ---
 	FText UI(FName Key) const;

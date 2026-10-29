@@ -18,6 +18,8 @@ public:
 	void OpenLaptop();
 	void OpenInterrogation(FName InterrogationId);
 	void OpenEnding(FName EndingId);
+	/** Выбор в главном меню: продолжить сохранённое дело или начать новое. Закрывает меню. */
+	void BeginCase(bool bContinue);
 	/** Закрывает ноутбук или допрос. */
 	void ClosePanel();
 
@@ -29,6 +31,8 @@ public:
 	UFUNCTION(Exec)
 	void BylaFlag(FName Flag);
 	bool IsPanelOpen() const { return ActivePanel != nullptr; }
+	/** Выход из игры (кнопка в меню и в компьютере). */
+	void ExitGame();
 
 	void ShowToast(const FText& Message);
 	void SetInteractionPrompt(const FText& Prompt);

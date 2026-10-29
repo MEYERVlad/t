@@ -3,11 +3,13 @@
 #include "Case/CaseStateSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "HAL/IConsoleManager.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "TimerManager.h"
 #include "UI/EndingWidget.h"
 #include "UI/GameHudWidget.h"
 #include "UI/InterrogationWidget.h"
 #include "UI/LaptopWidget.h"
+#include "UI/MainMenuWidget.h"
 #include "UI/PollOverlayWidget.h"
 
 UCaseStateSubsystem* ADetectivePlayerController::GetCase() const
@@ -65,35 +67,58 @@ void ADetectivePlayerController::BeginPlay()
 		Poll->AddToViewport(50);
 	}
 
+	// Дело ещё не начато в этом запуске игры — сначала главное меню (открываем в конце BeginPlay).
+	// При переезде между локациями дело уже идёт, и меню не показываем.
+	bool bShowMenu = false;
 	if (UCaseStateSubsystem* Case = GetCase())
 	{
-		// Игра идёт одним сплошным делом: при запуске продолжаем с автосохранения.
-		// При переезде между локациями дело уже идёт, и ничего не показываем.
-		FText Greeting;
-		if (!Case->HasFlag(TEXT("start")))
-		{
-			if (Case->LoadCase())
-			{
-				Greeting = Case->UI(TEXT("toast_continue"));
-			}
-			else
-			{
-				Case->StartNewCase();
-				Greeting = Case->UI(TEXT("toast_welcome"));
-			}
-		}
+		bShowMenu = !Case->HasFlag(TEXT("start"));
 		EvidenceHandle = Case->OnEvidenceAdded.AddUObject(this, &ADetectivePlayerController::HandleEvidenceAdded);
 		FeedHandle = Case->OnFeedPublished.AddUObject(this, &ADetectivePlayerController::HandleFeedPublished);
 		ChangedHandle = Case->OnCaseChanged.AddUObject(this, &ADetectivePlayerController::HandleCaseChanged);
 		EndingHandle = Case->OnEndingReached.AddUObject(this, &ADetectivePlayerController::HandleEndingReached);
 		HandleCaseChanged();
-		ShowToast(Greeting);
 	}
 
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
 
 	GetWorldTimerManager().SetTimer(StuckTimer, this, &ADetectivePlayerController::CheckStuck, 20.f, true);
+
+	if (bShowMenu)
+	{
+		OpenPanel(CreateWidget<UMainMenuWidget>(this, UMainMenuWidget::StaticClass()));
+	}
+}
+
+void ADetectivePlayerController::BeginCase(bool bContinue)
+{
+	UCaseStateSubsystem* Case = GetCase();
+	if (!Case)
+	{
+		return;
+	}
+	FText Greeting;
+	if (bContinue && Case->LoadCase())
+	{
+		Greeting = Case->UI(TEXT("toast_continue"));
+	}
+	else
+	{
+		Case->StartNewCase();
+		Greeting = Case->UI(TEXT("toast_welcome"));
+	}
+	// Закрываем меню на следующем кадре, не внутри обработчика его же кнопки.
+	GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this, Greeting]()
+	{
+		ClosePanel();
+		ShowToast(Greeting);
+	}));
+}
+
+void ADetectivePlayerController::ExitGame()
+{
+	UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);
 }
 
 void ADetectivePlayerController::CheckStuck()
