@@ -60,3 +60,9 @@
 4. Play → допрос: губы двигаются в такт голосу, персонажи моргают.
 
 Перезаписали реплику своим голосом — удалите её анимацию в `Voice/Face` и запустите `make_faces.py` снова.
+
+### Важно: правка схемы лица (уже сделана)
+Чтобы игра могла проигрывать анимацию лица, в `Content/MetaHumans/Common/Face/ABP_Face` (AnimGraph) добавлено:
+`Copy Pose From Mesh → Base Pose`, `Slot 'DefaultSlot' → Blend Poses 0`, `Layered blend per bone → Output Pose`,
+у Layered blend per bone: Layer Setup [0] → Branch Filters → `FACIAL_C_FacialRoot`, Blend Depth 0.
+Если при пересборке персонажа редактор MetaHuman предложит заменить общие файлы (Common) — откажитесь, иначе правку придётся повторить.

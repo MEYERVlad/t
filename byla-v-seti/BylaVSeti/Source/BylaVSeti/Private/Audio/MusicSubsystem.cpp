@@ -4,6 +4,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/PackageName.h"
 #include "Sound/SoundWave.h"
 #include "UObject/SoftObjectPath.h"
 
@@ -15,6 +16,11 @@ namespace
 	USoundBase* LoadTrack(FName Track)
 	{
 		const FString Name = Track.ToString();
+		// Сначала проверяем, есть ли файл: необязательных треков может не быть, и это не ошибка.
+		if (!FPackageName::DoesPackageExist(TEXT("/Game/Music/") + Name))
+		{
+			return nullptr;
+		}
 		return Cast<USoundBase>(FSoftObjectPath(FString::Printf(TEXT("/Game/Music/%s.%s"), *Name, *Name)).TryLoad());
 	}
 }

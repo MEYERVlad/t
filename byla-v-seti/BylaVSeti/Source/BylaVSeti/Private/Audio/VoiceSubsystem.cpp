@@ -9,6 +9,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/PackageName.h"
 #include "Sound/SoundBase.h"
 #include "UObject/SoftObjectPath.h"
 
@@ -22,6 +23,10 @@ namespace
 
 	UAnimSequenceBase* LoadAnim(const FString& Folder, const FString& Name)
 	{
+		if (!FPackageName::DoesPackageExist(Folder / Name))
+		{
+			return nullptr;
+		}
 		return Cast<UAnimSequenceBase>(FSoftObjectPath(FString::Printf(TEXT("%s/%s.%s"), *Folder, *Name, *Name)).TryLoad());
 	}
 }
@@ -88,6 +93,10 @@ bool UVoiceSubsystem::Play(FName VoiceId, AActor* Speaker)
 		return false;
 	}
 	const FString Name = VoiceId.ToString();
+	if (!FPackageName::DoesPackageExist(TEXT("/Game/Voice/") + Name))
+	{
+		return false; // реплика ещё не озвучена — показываем только текст
+	}
 	const FSoftObjectPath Path(FString::Printf(TEXT("/Game/Voice/%s.%s"), *Name, *Name));
 	USoundBase* Sound = Cast<USoundBase>(Path.TryLoad());
 	if (!Sound)
