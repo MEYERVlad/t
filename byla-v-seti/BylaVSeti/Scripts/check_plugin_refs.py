@@ -20,7 +20,11 @@ options = unreal.AssetRegistryDependencyOptions(
     include_hard_management_references=False,
 )
 
-packages = sorted({str(a.package_name) for a in registry.get_assets_by_path("/Game", recursive=True)})
+# Файлы MetaHuman Character (MHC_<Имя>) — исходники для редактора, в игру не попадают,
+# им ссылаться на плагин можно.
+assets = registry.get_assets_by_path("/Game", recursive=True)
+editor_only = {str(a.package_name) for a in assets if str(a.asset_class_path.asset_name) == "MetaHumanCharacter"}
+packages = sorted({str(a.package_name) for a in assets} - editor_only)
 lines = []
 for pkg in packages:
     deps = registry.get_dependencies(pkg, options) or []

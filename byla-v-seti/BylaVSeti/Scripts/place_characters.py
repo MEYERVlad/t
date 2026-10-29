@@ -151,7 +151,25 @@ def place_level(level_path, entries, idle):
     return placed
 
 
+def code_is_fresh():
+    """Новые поля hide_mesh / linked_actors появляются только после пересборки C++."""
+    cls = unreal.load_class(None, "/Script/BylaVSeti.CaseObjectActor")
+    try:
+        cdo = unreal.get_default_object(cls)
+        cdo.get_editor_property("hide_mesh")
+        cdo.get_editor_property("linked_actors")
+        return True
+    except Exception:
+        return False
+
+
 def main():
+    if not code_is_fresh():
+        unreal.log_error(
+            "[characters] Код игры устарел: нет полей hide_mesh / linked_actors. "
+            "Закройте Unreal, удалите папки Binaries и Intermediate в папке проекта, "
+            "откройте BylaVSeti.uproject и согласитесь пересобрать модули. Потом запустите скрипт снова.")
+        return
     idle = find_idle()
     if idle is None:
         unreal.log_warning(f"[characters] Анимация {IDLE_ANIM_NAME} не найдена — персонажи будут без анимации.")
