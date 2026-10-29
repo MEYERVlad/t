@@ -99,11 +99,19 @@ def set_idle(actor, idle):
                 comp.set_editor_property("animation_data", data)
         if idle is not None and comp.get_name() == "Body":
             comp.set_editor_property("animation_mode", unreal.AnimationMode.ANIMATION_SINGLE_NODE)
-            data = comp.get_editor_property("animation_data")
+            data = unreal.SingleAnimationPlayData()
             data.set_editor_property("anim_to_play", idle)
             data.set_editor_property("saved_looping", True)
             data.set_editor_property("saved_playing", True)
+            data.set_editor_property("saved_play_rate", 1.0)
             comp.set_editor_property("animation_data", data)
+            try:
+                comp.override_animation_data(idle, True, True, 0.0, 1.0)
+            except Exception as e:  # noqa: BLE001
+                unreal.log_warning(f"[characters] override_animation_data: {e}")
+            check = comp.get_editor_property("animation_data").get_editor_property("anim_to_play")
+            unreal.log(f"[characters] {actor.get_actor_label() or actor.get_name()}: Body -> "
+                       f"{check.get_path_name() if check else 'НЕТ АНИМАЦИИ'}")
 
 
 def place_level(level_path, entries, idle):
