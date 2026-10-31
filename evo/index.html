@@ -1141,7 +1141,11 @@ function winGame() {
   $('winStats').innerHTML = `Съедено существ: ${S.eaten}<br>Смертей: ${S.deaths}<br>Время эволюции: ${fmtTime(S.time)}${S.ng ? `<br>Круг эволюции: ${S.ng + 1}` : ''}`;
   showScreen('win');
 }
-$('bStart').onclick = () => { if (S.started && S.stage > 0 && !confirm('Начать заново с клетки? Улучшения и ДНК сохранятся.')) return; S.stage = 0; S.boss = {}; startGame(0); };
+let restartArm = 0;
+$('bStart').onclick = () => {
+  if (S.started && S.stage > 0 && Date.now() - restartArm > 3000) { restartArm = Date.now(); $('bStart').textContent = 'Точно с нуля? Нажми ещё раз'; setTimeout(() => $('bStart').textContent = 'Начать с клетки', 3000); return; }
+  S.stage = 0; S.boss = {}; startGame(0);
+};
 $('bCont').onclick = () => startGame(S.stage);
 $('bSound').onclick = $('bSound2').onclick = () => { audioInit(); setSound(!S.sound); };
 $('bResume').onclick = resumeGame;
