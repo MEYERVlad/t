@@ -43,3 +43,7 @@
 - Быстрый переход к сцене: `index.html?scene=pier&flags=vision,zinaSleeps&inv=book,bell`.
 - Автопрохождение глав с проверкой ошибок: `node tools/playthrough.js shots`, `node tools/playthrough2.js shots`, `node tools/playthrough3.js shots`, `node tools/playthrough4.js shots`, `node tools/playthrough5.js shots` (нужен Playwright; в главах 4–5 — по три маршрута).
 - Стенд персонажей: `tools/figures.html`.
+
+## Заводь
+
+В папке [`pond/`](pond/) лежит отдельная спокойная игра «Заводь» — пруд с карпами, разведение и атлас пород. Открыть `pond/index.html`.
