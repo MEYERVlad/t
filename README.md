@@ -43,3 +43,9 @@
 - Быстрый переход к сцене: `index.html?scene=pier&flags=vision,zinaSleeps&inv=book,bell`.
 - Автопрохождение глав с проверкой ошибок: `node tools/playthrough.js shots`, `node tools/playthrough2.js shots`, `node tools/playthrough3.js shots`, `node tools/playthrough4.js shots`, `node tools/playthrough5.js shots` (нужен Playwright; в главах 4–5 — по три маршрута).
 - Стенд персонажей: `tools/figures.html`.
+
+---
+
+## Ещё одна игра в репозитории: «Пожиратель»
+
+`evo/index.html` — мобильная игра-эволюция: от клетки до пожирателя галактик. Подробности — в [`evo/README.md`](evo/README.md).
