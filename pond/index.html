@@ -734,7 +734,10 @@ function openCard(f){
     <div class="genes">${genes}</div>
     <div class="btns"><button class="btn ghost rel">Отпустить в реку · ${P} ${releaseVal(p)}</button></div></div>`,()=>{
     const c=sin.querySelector('canvas.big');let t0=T;const draw=()=>{if(sheetKind!=='card')return;thumb(c,f,T);};draw();clearInterval(sheetTimer);sheetTimer=setInterval(draw,60);
-    sin.querySelector('.nm').onclick=()=>{const n=prompt('Имя рыбы',f.name);if(n&&n.trim()){f.name=n.trim().slice(0,18);save();openCard(f)}};
+    sin.querySelector('.nm').onclick=e=>{const h=e.currentTarget;if(h.querySelector('input'))return;
+      h.innerHTML=`<input maxlength="18" value="${f.name.replace(/"/g,'&quot;')}" style="font:inherit;font-size:20px;width:70%;background:rgba(255,255,255,.1);color:#f4ecd8;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:2px 8px"> <button class="btn" style="padding:6px 12px">ОК</button>`;
+      const i=h.querySelector('input'),ok=()=>{const n=i.value.trim();if(n)f.name=n.slice(0,18);save();openCard(f)};
+      i.focus();i.select();i.onkeydown=k=>{if(k.key==='Enter')ok()};h.querySelector('button').onclick=k=>{k.stopPropagation();ok()}};
     const rel=sin.querySelector('.rel');let armed=false;
     rel.onclick=()=>{if(state.fish.length<=2){toast('В пруду должно остаться хотя бы две рыбы');return}
       if(!armed){armed=true;rel.textContent='Точно отпустить? Нажмите ещё раз';rel.style.background='rgba(200,120,80,.35)';return}
@@ -801,7 +804,7 @@ function openMenu(){
     sin.querySelector('[data-a=snd]').onclick=()=>{state.opt.snd=state.opt.snd?0:1;snd.set(state.opt.snd);save();openMenu()};
     sin.querySelector('[data-a=time]').onclick=()=>{const o=['real','day','night'];state.opt.time=o[(o.indexOf(state.opt.time)+1)%3];save();openMenu()};
     let n=0;sin.querySelector('[data-a=reset]').onclick=e=>{n++;if(n<2){e.target.textContent='Все рыбы пропадут. Нажмите ещё раз';return}
-      localStorage.removeItem('zavod_v1');state=freshState();initState();closeSheet();toast('Новый пруд','')};
+      try{localStorage.removeItem('zavod_v1')}catch(e){}state=freshState();initState();closeSheet();toast('Новый пруд','')};
   });
 }
 
