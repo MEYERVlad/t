@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07080c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Свой</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div id="phase"></div>
+    <div id="stats"></div>
+    <button id="btn-notes" class="hbtn" aria-label="Памятка">Памятка</button>
+    <button id="btn-menu" class="hbtn" aria-label="Меню">☰</button>
+  </header>
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="candles"></div>
+    <div id="title" hidden><h1>СВОЙ</h1><p>семь ночей · одна дверь</p></div>
+    <div id="flash"></div>
+  </div>
+  <section id="panel">
+    <div id="checks" hidden></div>
+    <div id="who" hidden></div>
+    <div id="say"></div>
+    <div id="actions"></div>
+  </section>
+  <div id="modal" hidden>
+    <div class="sheet">
+      <div id="modal-body"></div>
+      <button id="modal-close" class="btn wide">Закрыть</button>
+    </div>
+  </div>
+</div>
+<script src="src/util.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/data.js"></script>
+<script src="src/gfx.js"></script>
+<script src="src/portrait.js"></script>
+<script src="src/scenes.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/game.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
