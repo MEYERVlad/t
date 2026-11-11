@@ -1,0 +1,579 @@
+<title>Негатив. Глава I</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Caveat:wght@500&display=swap">
+<style>
+/* Layout: one dark "darkroom" column. Stage on top, inventory strip under it, design document below as a reading column. */
+:root{
+  color-scheme: dark;
+  --ink:#14100c; --room:#1d1712; --panel:#272019; --line:#4a3c2c;
+  --bone:#e8dcc0; --sepia:#b49a72; --dim:#8d7a5e; --ruby:#a8322c; --swamp:#6f7d52;
+  --display:'Old Standard TT','Times New Roman',serif;
+  --body:'PT Serif',Georgia,serif;
+  --hand:'Caveat','Segoe Script',cursive;
+}
+[hidden]{display:none!important}
+html,body{background:var(--ink);color:var(--bone)}
+body{font-family:var(--body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 60px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;border-bottom:1px solid var(--line);padding-bottom:10px}
+header.top h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,5vw,40px);letter-spacing:.14em;margin:0;line-height:1.1}
+header.top p{margin:0;color:var(--sepia);font-style:italic}
+header.top .sp{flex:1}
+button{font:inherit;color:var(--bone);background:var(--panel);border:1px solid var(--line);padding:6px 12px;cursor:pointer;border-radius:2px}
+button:hover{border-color:var(--sepia)}
+button:focus-visible,.slot:focus-visible{outline:2px solid var(--sepia);outline-offset:2px}
+#stage{position:relative;background:#000;border:1px solid var(--line);aspect-ratio:16/9;max-width:100%;overflow:hidden;touch-action:none;user-select:none}
+#stage svg{display:block;width:100%;height:100%}
+.hs{fill:transparent;cursor:pointer}
+.hs:hover{fill:rgba(232,220,192,.06)}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:72px;font-size:26px;padding:0;background:rgba(20,16,12,.55)}
+#navL{left:6px}#navR{right:6px}
+#navB{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(20,16,12,.7)}
+#compass{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-family:var(--display);letter-spacing:.3em;font-size:13px;color:var(--bone);background:rgba(20,16,12,.6);padding:2px 12px;pointer-events:none}
+#caption{min-height:3.2em;font-style:italic;color:var(--bone);border-left:2px solid var(--ruby);padding:4px 12px;background:var(--room)}
+#ticks{color:var(--sepia);letter-spacing:.4em;font-style:normal}
+#inv{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
+.slot{aspect-ratio:1;background:var(--panel);border:1px solid var(--line);padding:4px;display:flex;align-items:center;justify-content:center;border-radius:2px}
+.slot svg{width:100%;height:100%}
+.slot.sel{border-color:var(--bone);background:#3a2f22}
+.slot:disabled{cursor:default;opacity:.5}
+#end{position:absolute;inset:0;background:rgba(8,5,4,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:16px}
+#end h2{font-family:var(--display);letter-spacing:.2em;margin:0;font-size:clamp(20px,4vw,34px)}
+#end p{margin:0;max-width:46ch;color:var(--sepia)}
+.help{color:var(--dim);font-size:14px;margin:0}
+/* document */
+#doc{max-width:74ch;margin:36px auto 0;min-width:0}
+#doc h1{font-family:var(--display);letter-spacing:.08em;font-size:30px;line-height:1.2;text-wrap:balance;border-top:1px solid var(--line);padding-top:28px}
+#doc h2{font-family:var(--display);font-size:24px;margin-top:2em;color:var(--bone);text-wrap:balance}
+#doc h3{font-family:var(--display);font-size:19px;margin-top:1.6em;color:var(--sepia);letter-spacing:.04em}
+#doc hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+#doc code{font-size:.9em;background:var(--panel);padding:1px 5px}
+#doc strong{color:#fff3d6}
+#doc .tw{overflow-x:auto;margin:1em 0}
+#doc table{border-collapse:collapse;font-size:14.5px;line-height:1.45;min-width:520px;width:100%}
+#doc th,#doc td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;text-align:left}
+#doc th{background:var(--panel);font-family:var(--display);font-weight:700;letter-spacing:.04em}
+#doc td{font-variant-numeric:tabular-nums}
+@media (max-width:560px){#inv{grid-template-columns:repeat(4,minmax(0,1fr))}.nav{width:36px;height:56px}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>НЕГАТИВ</h1>
+    <p>Глава I «Выдержка». Ателье Ланге, Вейсмар, 11 ноября 1924</p>
+    <span class="sp"></span>
+    <button id="snd" type="button">Звук: выкл</button>
+    <button id="restart" type="button">Заново</button>
+  </header>
+
+  <div id="stage">
+    <svg id="view" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Комната ателье"></svg>
+    <div id="compass">СЕВЕР</div>
+    <button class="nav" id="navL" type="button" aria-label="Повернуться налево">‹</button>
+    <button class="nav" id="navR" type="button" aria-label="Повернуться направо">›</button>
+    <button id="navB" type="button" hidden>Отойти</button>
+    <div id="end" hidden>
+      <h2>КОНЕЦ ГЛАВЫ I</h2>
+      <p>Дверь тёмной комнаты открыта. Глава II «Проявитель» начинается за ней.</p>
+      <button id="again" type="button">Сыграть ещё раз</button>
+    </div>
+  </div>
+  <div id="caption"><span id="say"></span> <span id="ticks"></span></div>
+  <div id="inv" aria-label="Инвентарь"></div>
+  <p class="help">Стрелки по бокам поворачивают к соседней стене. Предмет из инвентаря выбирается кликом, затем клик по месту в комнате. «Негатив VII» водят над стеной и задерживают над тёмными местами.</p>
+</div>
+
+<article id="doc"></article>
+<script type="text/markdown" id="gdd">/*GDD*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script>
+(function(){
+"use strict";
+/* ---------- palette ---------- */
+const INK='#1d1611', BONE='#e8dcc0', SEP='#b49a72', SEPD='#6e5536', SW='#4c5737', SWD='#39422a',
+  BOR='#6e2329', BORD='#4a161b', WOOD='#6b4a2f', WOODD='#4a3220', WOODL='#8a6440', BRASS='#b08d43', BRASSL='#d6b56a',
+  FLOOR='#5a4128', BLACK='#17120f', RUBY='#5a1216';
+const S=`stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
+const S2=`stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" fill="none"`;
+const ROM=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const CODE=[1,3,8,6];
+
+/* ---------- state ---------- */
+let st;
+function fresh(){return {view:'N',zoom:null,inv:[],sel:null,f:{},dials:[11,11,11,11],focus:1,matches:3,matchUntil:0,clockT:0,hold:null,ended:false}}
+const ITEMS={
+  receipt:{n:'Квитанция',d:'«Ателье Ланге и сын. Портрет г-жи Хольм. Пластина VII. Выдержка — четыре удара».',
+    i:`<rect x="10" y="16" width="44" height="32" fill="${BONE}" ${S}/><path d="M16 26h32M16 33h24M16 40h28" ${S2}/>`},
+  matches:{n:'Спички',d:'Вейсмарская спичечная фабрика. Внутри гремят спички.',
+    i:`<rect x="10" y="22" width="44" height="24" fill="${SEP}" ${S}/><rect x="10" y="22" width="44" height="7" fill="${BOR}" ${S}/><path d="M40 16l12 6" stroke="${BONE}" stroke-width="3"/><circle cx="40" cy="16" r="3" fill="${BOR}"/>`},
+  key:{n:'Часовой ключ',d:'Латунный ключ с ушком в форме бабочки. Для завода часов.',
+    i:`<path d="M32 30v26M27 56h10" stroke="${BRASS}" stroke-width="6"/><path d="M32 30C14 8 14 34 32 30C50 34 50 8 32 30Z" fill="${BRASSL}" ${S}/>`},
+  knife:{n:'Нож для бумаг',d:'Костяная рукоять, тупое латунное лезвие. Нитки режет.',
+    i:`<path d="M12 52L40 20l6 4L18 56Z" fill="${BRASSL}" ${S}/><path d="M40 20l10-12 6 6-10 10Z" fill="${BONE}" ${S}/>`},
+  plate:{n:'Негатив VII',d:'Стеклянная пластина. В ней комната видна наизнанку: тёмное светится. Води над стеной.',
+    i:`<rect x="10" y="14" width="44" height="36" fill="#2a2520" ${S}/><ellipse cx="32" cy="30" rx="8" ry="10" fill="#cfc4aa"/><path d="M18 50q14-14 28 0" fill="#cfc4aa"/>`},
+  holder:{n:'Кассета',d:'Деревянная кассета с чистой пластиной и выдвижным шибером.',
+    i:`<rect x="12" y="10" width="40" height="44" fill="${WOOD}" ${S}/><rect x="18" y="16" width="28" height="32" fill="${BLACK}" ${S}/><path d="M26 6h12v6H26z" fill="${BRASS}" ${S}/>`},
+  lens:{n:'Объектив',d:'Латунный объектив. Стекло чистое, хотя лежал в стене.',
+    i:`<circle cx="32" cy="32" r="22" fill="${BRASS}" ${S}/><circle cx="32" cy="32" r="14" fill="#232b33" ${S}/><circle cx="27" cy="27" r="4" fill="#8fa3ad"/>`},
+  bulb:{n:'Груша затвора',d:'Красная резиновая груша на длинной трубке.',
+    i:`<ellipse cx="24" cy="38" rx="14" ry="18" fill="${BOR}" ${S}/><path d="M32 22q10-14 24-8" ${S2}/>`},
+  bird:{n:'Птичка',d:'Латунная птица на пружине с прищепкой. Внутри свисток.',
+    i:`<path d="M14 34q8-16 24-10l12-4-6 10q0 14-16 14q-12 0-14-10Z" fill="${BRASSL}" ${S}/><circle cx="38" cy="28" r="2" fill="${INK}"/><path d="M28 44q-4 6 2 10q-6 2 0 6" ${S2}/>`}
+};
+
+/* ---------- audio ---------- */
+let AC=null, soundOn=false, drone=null;
+function ac(){ if(!soundOn) return null; if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null} } return AC }
+function tone(f,d,type,vol,f2,delay){const a=ac(); if(!a)return; const t=a.currentTime+(delay||0); const o=a.createOscillator(), g=a.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(vol||.15,t); g.gain.exponentialRampToValueAtTime(.0005,t+d); o.connect(g).connect(a.destination); o.start(t); o.stop(t+d+.02)}
+function noise(d,freq,vol,type,delay){const a=ac(); if(!a)return; const t=a.currentTime+(delay||0); const n=Math.floor(a.sampleRate*d), b=a.createBuffer(1,n,a.sampleRate), ch=b.getChannelData(0);
+  for(let i=0;i<n;i++) ch[i]=Math.random()*2-1; const s=a.createBufferSource(); s.buffer=b; const fl=a.createBiquadFilter(); fl.type=type||'bandpass'; fl.frequency.value=freq;
+  const g=a.createGain(); g.gain.setValueAtTime(vol||.2,t); g.gain.exponentialRampToValueAtTime(.0005,t+d); s.connect(fl).connect(g).connect(a.destination); s.start(t)}
+const SFX={
+  tick(){noise(.03,3200,.12,'highpass')}, click(){tone(900,.05,'square',.06)}, dull(){tone(140,.12,'triangle',.15)},
+  clink(){tone(2300,.5,'sine',.1);tone(3150,.35,'sine',.05)}, ghost(){tone(1760,1.2,'sine',.05);tone(2637,1.4,'sine',.04,null,.05)},
+  cloth(){noise(.45,700,.12)}, paper(){noise(.2,2400,.08)}, wood(){tone(180,.1,'triangle',.2);noise(.06,900,.1)},
+  match(){noise(.12,4000,.25,'highpass');noise(1.2,1200,.05,'bandpass',.12)},
+  chirp(){tone(2200,.14,'sine',.12,3400);tone(2200,.14,'sine',.12,3400,.2);tone(2600,.2,'sine',.1,3600,.42)},
+  chime(n){for(let i=0;i<n;i++){tone(523,1.6,'sine',.16,null,i*1.1);tone(1046,1.1,'sine',.06,null,i*1.1);tone(1569,.6,'sine',.03,null,i*1.1)}},
+  creak(){tone(90,1.4,'sawtooth',.05,160)}, wind(){tone(600,.35,'sine',.07,300);noise(.3,500,.1)},
+  roll(){for(let i=0;i<8;i++)noise(.05,500+i*60,.12,'bandpass',i*.07)}, rip(){for(let i=0;i<6;i++)noise(.04,2600,.12,'highpass',i*.08)}
+};
+function setDrone(on){const a=ac(); if(drone){try{drone.o.stop()}catch(e){} drone=null} if(!on||!a) return;
+  const o=a.createOscillator(), g=a.createGain(); o.frequency.value=55; g.gain.value=.035; o.connect(g).connect(a.destination); o.start(); drone={o}}
+
+/* ---------- drawing helpers ---------- */
+function defs(){return `<defs>
+<pattern id="wp" width="80" height="100" patternUnits="userSpaceOnUse"><rect width="80" height="100" fill="${SW}"/>
+  <g fill="#5a6643" opacity=".9"><path d="M40 30c-16-18-30-6-18 8c-10 6-2 18 14 6l4 10l4-10c16 12 24 0 14-6c12-14-2-26-18-8Z"/><ellipse cx="40" cy="34" rx="2.5" ry="10" fill="${SWD}"/>
+  <path d="M0 80c-8-9-15-3-9 4c-5 3-1 9 7 3l2 5l2-5c8 6 12 0 7-3c6-7-1-13-9-4Z"/><path d="M80 80c-8-9-15-3-9 4c-5 3-1 9 7 3l2 5l2-5c8 6 12 0 7-3c6-7-1-13-9-4Z"/></g>
+  <path d="M40 60v30M0 20v30M80 20v30" stroke="${SWD}" stroke-width="1.5" opacity=".6"/></pattern>
+<pattern id="veil" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 0l6 6M6 0l-6 6" stroke="${BLACK}" stroke-width=".8"/></pattern>
+<pattern id="plank" width="1600" height="150" patternUnits="userSpaceOnUse"><rect width="1600" height="150" fill="${WOOD}"/><path d="M0 2h1600M0 150h1600" stroke="${WOODD}" stroke-width="3"/><path d="M60 40q200 14 420 0M700 100q260-16 520 4M1100 50q180 10 400 0" stroke="${WOODD}" stroke-width="1.5" fill="none" opacity=".6"/></pattern>
+<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 .35  0 0 0 0 .27  0 0 0 0 .18  0 0 0 .9 -.25"/></filter>
+<filter id="neg" color-interpolation-filters="sRGB"><feColorMatrix values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 1 0"/><feColorMatrix values=".5 .4 .1 0 0  .45 .38 .1 0 0  .35 .3 .1 0 0  0 0 0 1 0"/></filter>
+<filter id="blur"><feGaussianBlur id="blurG" stdDeviation="0"/></filter>
+<filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+<radialGradient id="corner" cx="1" cy=".1" r=".9"><stop offset="0" stop-color="#070504" stop-opacity=".93"/><stop offset=".45" stop-color="#070504" stop-opacity=".8"/><stop offset="1" stop-color="#070504" stop-opacity="0"/></radialGradient>
+<radialGradient id="flame" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffcf7a" stop-opacity=".75"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f8c80"/><stop offset=".6" stop-color="#d9b77c"/><stop offset="1" stop-color="#e9a45a"/></linearGradient>
+<linearGradient id="skyN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#15161c"/><stop offset="1" stop-color="#3a2a2a"/></linearGradient>
+<clipPath id="plateClip"><rect id="plateRect" x="-999" y="-999" width="300" height="220"/></clipPath>
+<clipPath id="ggClip"><rect x="420" y="200" width="560" height="420"/></clipPath>
+</defs>`}
+function room(){let p='';for(let i=0;i<=16;i++){p+=`M${800+(i-8)*70} 718L${800+(i-8)*230} 900`}
+  return `<rect width="1600" height="690" fill="url(#wp)"/><rect width="1600" height="42" fill="#3a2a1c" ${S}/><rect y="66" width="1600" height="9" fill="${WOODD}" ${S}/>
+  <rect y="690" width="1600" height="28" fill="${WOODD}" ${S}/><rect y="718" width="1600" height="182" fill="${FLOOR}"/><path d="${p}" stroke="${WOODD}" stroke-width="2.5"/>`}
+function hand(a,l,w,col){/* clock hand */const r=(a-90)*Math.PI/180;return `<line x1="0" y1="0" x2="${(Math.cos(r)*l).toFixed(1)}" y2="${(Math.sin(r)*l).toFixed(1)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`}
+function clockTime(){return 15*60+56+Math.floor(st.clockT/60*0)+ (st.f.ended?4:0)}
+
+/* cuckoo clock at (cx, top) */
+function cuckoo(cx,y,sc,mins,simple){const h=(mins/60)%12, m=mins%60;
+  return `<g transform="translate(${cx},${y}) scale(${sc})">
+  <path d="M-88 48L0-8L88 48Z" fill="${WOODD}" ${S}/><rect x="-70" y="48" width="140" height="150" fill="${WOOD}" ${S}/>
+  <path d="M-70 198q35 30 70 0q35 30 70 0" fill="${WOODD}" ${S}/><rect x="-15" y="56" width="30" height="26" fill="${WOODD}" ${S}/>
+  <circle cx="0" cy="135" r="48" fill="${BLACK}" ${S}/><circle cx="0" cy="135" r="48" fill="none" stroke="${BRASS}" stroke-width="2"/>
+  ${[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>{const r=(i*30-90)*Math.PI/180;return `<circle cx="${(Math.cos(r)*39).toFixed(1)}" cy="${(135+Math.sin(r)*39).toFixed(1)}" r="${i%3==0?3.2:1.8}" fill="${BONE}"/>`}).join('')}
+  <g transform="translate(0,135)">${hand(h*30,24,5,BONE)}${hand(m*6,36,3,BONE)}<circle r="4" fill="${BRASS}"/></g>
+  ${simple?'':`<line x1="0" y1="200" x2="0" y2="370" stroke="${BRASS}" stroke-width="3"/><circle cx="0" cy="372" r="18" fill="${BRASSL}" ${S}/>
+  <path d="M-26 200v215M26 200v255" stroke="${INK}" stroke-width="2" stroke-dasharray="4 4"/>
+  <path d="M-26 412c-12 14-10 34 0 44c10-10 12-30 0-44Z" fill="${WOODD}" ${S}/><path d="M26 452c-12 14-10 34 0 44c10-10 12-30 0-44Z" fill="${WOODD}" ${S}/>`}
+  </g>`}
+
+/* the widow, seated behind the table. Origin = scene coordinates of the North wall. */
+function widowBody(blink){
+  const arm=`<path d="M752 404Q726 470 718 548L752 558Q770 482 784 412Z" fill="${BLACK}" ${S}/>
+   <path d="M742 470q10 8 22 4M738 498q12 8 22 2M748 430q12 6 26 0" ${S2} stroke="#3a322b"/>
+   <path d="M718 546Q742 574 776 590L794 572Q766 562 752 540Z" fill="${BLACK}" ${S}/>
+   <path d="M774 592q6-14 20-22l8 8q-10 8-14 20Z" fill="${BONE}" ${S}/>
+   <path d="M790 578q14-8 30-2q6 2 8 8l2 8q0 4-5 4l-34-2q-5-8-1-16Z" fill="#dccfb2" ${S}/>
+   <path d="M795 594v11q0 4 3.5 4t3.5-4v-10M803 595v13q0 4 3.5 4t3.5-4v-12M811 596v12q0 4 3.5 4t3.5-4v-11M819 596v8q0 3.5 3 3.5t3-3.5v-8" fill="#dccfb2" ${S2}/>
+   <path d="M828 584q10 2 12 9q0 4-5 3l-9-4" fill="#dccfb2" ${S2}/>`;
+  return `<g>
+  <rect x="728" y="360" width="16" height="200" fill="${WOODD}" ${S}/><rect x="936" y="360" width="16" height="200" fill="${WOODD}" ${S}/>
+  <circle cx="736" cy="352" r="10" fill="${WOOD}" ${S}/><circle cx="944" cy="352" r="10" fill="${WOOD}" ${S}/><rect x="744" y="376" width="192" height="16" fill="${WOODD}" ${S}/>
+  <path d="M745 404Q760 374 802 368L878 368Q920 374 935 404L925 566L755 566Z" fill="${BLACK}" ${S}/>
+  <path d="M770 392q30 30 60 40M910 392q-30 30-60 40M800 470q40 14 80 0" ${S2} stroke="#3a322b"/>
+  <g fill="#9a9080" opacity=".7"><circle cx="772" cy="386" r="2"/><circle cx="790" cy="378" r="1.6"/><circle cx="900" cy="380" r="2"/><circle cx="916" cy="390" r="1.6"/><circle cx="760" cy="396" r="1.4"/><circle cx="884" cy="374" r="1.4"/></g>
+  <rect x="818" y="336" width="44" height="36" fill="${BLACK}" ${S}/>
+  <ellipse cx="840" cy="300" rx="36" ry="46" fill="#dccfb2" ${S}/>
+  ${blink?`<path d="M818 300q8 4 16 0M846 300q8 4 16 0" ${S2}/>`:`<ellipse cx="826" cy="298" rx="7" ry="4.5" fill="${BONE}" ${S2}/><ellipse cx="854" cy="298" rx="7" ry="4.5" fill="${BONE}" ${S2}/><circle cx="826" cy="298" r="3" fill="${INK}"/><circle cx="854" cy="298" r="3" fill="${INK}"/>`}
+  <path d="M816 288q10-5 20 0M844 288q10-5 20 0M840 302v14q-5 3 0 5M830 330q10 3 20 0" ${S2}/>
+  <path d="M800 268L880 268L877 346Q840 362 803 346Z" fill="url(#veil)" opacity=".75"/><path d="M800 268L880 268L877 346Q840 362 803 346Z" fill="${BLACK}" opacity=".18"/>
+  <path d="M794 270q46-52 92 0q-46 12-92 0Z" fill="${BLACK}" ${S}/><path d="M860 246q26-14 30 6q-16 8-30-6Z" fill="${BORD}" ${S}/>
+  </g>
+  <!-- ARMS -->`+'\u0000'+`<g>${arm}<path d="M802 596v6" stroke="${BRASS}" stroke-width="0"/><rect x="802.5" y="600" width="8" height="3.5" fill="${BRASSL}"/></g><g transform="translate(1680,0) scale(-1,1)">${arm}</g>`}
+function tableSet(){return `
+  <path d="M770 756q-18 4-24 18h30ZM910 756q18 4 24 18h-30ZM826 760q14 10 28 0v16h-28Z" fill="${WOODD}" ${S}/>
+  <path d="M610 560L628 746Q840 776 1052 746L1070 560Z" fill="${BORD}" ${S}/>
+  <path d="M680 590l8 160M760 596l4 164M920 596l-4 164M1000 590l-8 160M840 598v170" stroke="#3a1014" stroke-width="2.5" fill="none"/>
+  <ellipse cx="840" cy="560" rx="230" ry="30" fill="${BOR}" ${S}/>`}
+function cup(receipt){return `<g>
+  ${receipt?`<path d="M712 574l22 4l-3 9l-22-4Z" fill="${BONE}" ${S2}/>`:''}
+  <ellipse cx="690" cy="573" rx="38" ry="9" fill="${BONE}" ${S}/><ellipse cx="690" cy="572" rx="22" ry="4.5" fill="#cfc2a4"/>
+  <path d="M668 548L676 571Q690 576 704 571L712 548Z" fill="${BONE}" ${S}/><ellipse cx="690" cy="548" rx="22" ry="5" fill="#7b5a36" ${S}/>
+  <path d="M676 548q14 4 26-1" stroke="#b79a6a" stroke-width="1.5" fill="none"/>
+  <path d="M711 552q14 0 12 9q-2 7-16 7" ${S2}/><path d="M660 577l-14 7" stroke="${BRASSL}" stroke-width="4" stroke-linecap="round"/></g>`}
+function widowFull(o){const w=widowBody(o.blink).split('\u0000');return w[0]+tableSet()+w[1]+cup(o.receipt)}
+
+/* ---------- scenes ---------- */
+function mins(){return 15*60+56+Math.floor(st.clockT/60)+(st.f.finale?4:0)}
+function sceneN(){const up=st.f.backdropUp;
+  let s=room()+`<path d="M1332 42l-8 40l14 34l-18 46l10 36l-14 60" stroke="${SWD}" stroke-width="2.5" fill="none"/>`;
+  s+=`<g opacity=".3" transform="translate(10,6)"><rect x="180" y="140" width="140" height="170" fill="#000"/></g>`+cuckoo(250,92,1,mins());
+  if(st.f.clockRun) s+=`<path d="M272 218v-10M266 210h12" stroke="${BRASSL}" stroke-width="4"/>`;
+  // backdrop
+  s+=`<path d="M470 60v30M1210 60v30" stroke="${INK}" stroke-width="6"/>`;
+  if(up){ s+=`<rect x="790" y="240" width="110" height="96" fill="#14100c" ${S}/><rect x="782" y="232" width="126" height="10" fill="${WOODD}" ${S}/>`;
+    if(!has('lens')&&!st.f.lensOn) s+=`<rect x="816" y="282" width="56" height="52" rx="6" fill="#5b3a22" ${S}/><path d="M816 298h56" ${S2}/><circle cx="844" cy="298" r="4" fill="${BRASS}"/>`;
+    s+=`<rect x="462" y="74" width="756" height="44" rx="20" fill="#b8a27a" ${S}/><path d="M480 86h720M480 104h720" stroke="${SEPD}" stroke-width="1.5"/>`;
+  } else {
+    s+=`<path d="M480 100L480 640q180 8 360 0t360 0L1200 100Z" fill="#b8a27a" ${S}/>
+    <g fill="#cdb991"><ellipse cx="640" cy="230" rx="120" ry="44"/><ellipse cx="720" cy="200" rx="90" ry="50"/><ellipse cx="1030" cy="300" rx="130" ry="46"/><ellipse cx="960" cy="270" rx="80" ry="44"/><ellipse cx="820" cy="480" rx="200" ry="40"/></g>
+    <g fill="#9d8762" opacity=".6"><ellipse cx="660" cy="262" rx="120" ry="16"/><ellipse cx="1030" cy="336" rx="130" ry="14"/><ellipse cx="820" cy="512" rx="200" ry="12"/></g>
+    <path d="M520 150q-10 200 0 460M1160 150q10 220 0 470" stroke="${SEPD}" stroke-width="1.5" fill="none" opacity=".6"/>
+    <path d="M880 404Q896 374 938 368L960 300q10-60 60-50q40 10 30 70l-20 60q30 10 40 34L1065 566L880 566Z" fill="#000" opacity=".22"/>
+    <rect x="462" y="80" width="756" height="26" rx="12" fill="${WOODL}" ${S}/>`; }
+  s+=`<circle cx="470" cy="93" r="10" fill="${WOODD}" ${S}/><circle cx="1210" cy="93" r="10" fill="${WOODD}" ${S}/>
+   <path d="M1228 96V${up?300:500}" stroke="${BONE}" stroke-width="3"/><path d="M1228 ${up?300:500}l-9 34h18Z" fill="${BOR}" ${S}/><circle cx="1228" cy="${up?298:498}" r="6" fill="${BRASS}" ${S}/>`;
+  s+=widowFull({blink:st.f.blink,receipt:!st.f.receipt});
+  // head-rest stand
+  s+=`<path d="M1380 760l-46 24M1380 760l46 24M1380 760v26" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><rect x="1375" y="330" width="10" height="432" fill="#2b2622" ${S}/>
+   <path d="M1352 316q28 30 56 0" stroke="#2b2622" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="1380" cy="470" r="9" fill="${BRASS}" ${S}/>
+   <path d="M1392 780l80 14l-90 4Z" fill="#000" opacity=".3"/>`;
+  return s}
+function ghostN(){return `<g opacity=".88"><ellipse cx="930" cy="200" rx="34" ry="42" fill="#2a211a"/><path d="M860 275Q930 252 1000 275L1012 560L850 560Z" fill="#2a211a"/>
+  <path d="M866 284L838 206L830 132" stroke="#2a211a" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M828 128V92" stroke="#2a211a" stroke-width="9" stroke-linecap="round"/>
+  <path d="M996 284L1010 352L932 390" stroke="#2a211a" stroke-width="24" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M936 392v16M927 392v18M918 391v17M910 389v14" stroke="#2a211a" stroke-width="6" stroke-linecap="round"/></g>
+  ${st.f.backdropUp?'':`<text x="520" y="420" font-family="Caveat,cursive" font-size="54" fill="#1a1410" transform="rotate(-4 520 420)">подними небо</text>`}
+  <circle cx="272" cy="213" r="9" fill="none" stroke="#000" stroke-width="5"/><circle cx="272" cy="213" r="3" fill="#000"/>`}
+
+function sceneE(){const lit=st.f.light&&!st.f.finale, fin=st.f.finale, open=st.f.cabinet;
+  let s=room();
+  if(lit) s+=`<path d="M500 190L1090 150L1110 560L520 600Z" fill="#ffdc96" opacity=".2"/><path d="M795 170L815 580M508 330L1098 290M514 465L1104 425" stroke="${SWD}" stroke-width="10" opacity=".35"/>`;
+  // calendar
+  s+=`<rect x="322" y="264" width="110" height="140" fill="#000" opacity=".25"/><rect x="330" y="260" width="110" height="140" fill="${BONE}" ${S}/><rect x="330" y="260" width="110" height="30" fill="${BOR}" ${S}/>
+   <circle cx="385" cy="254" r="4" fill="${INK}"/><text x="385" y="281" text-anchor="middle" font-family="Old Standard TT,serif" font-size="15" fill="${BONE}">НОЯБРЬ 1924</text>
+   <text x="385" y="356" text-anchor="middle" font-family="Old Standard TT,serif" font-weight="700" font-size="70" fill="${INK}">7</text><text x="385" y="386" text-anchor="middle" font-family="Old Standard TT,serif" font-size="16" fill="${INK}">пятница</text>`;
+  // door
+  s+=`<rect x="545" y="135" width="290" height="583" fill="${WOODD}" ${S}/>`;
+  if(fin){ s+=`<rect x="560" y="150" width="260" height="568" fill="#050303"/><path d="M700 150L820 150L820 718L700 718Z" fill="#7a1512" opacity=".5" filter="url(#soft)"/>
+    <path d="M560 150L730 172L730 700L560 718Z" fill="${WOOD}" ${S}/><path d="M584 196L706 212L706 420L584 412ZM584 446L706 452L706 672L584 684Z" fill="none" ${S2}/>
+    <path d="M610 232L690 242L690 322L610 318Z" fill="#d23a2a" ${S}/><path d="M610 232L690 242L690 322L610 318Z" fill="#ff6a4a" opacity=".5" filter="url(#soft)"/>
+    <g><path d="M728 432h14q8 0 8 7t-8 7h-14ZM728 448h16q8 0 8 7t-8 7h-16ZM728 464h15q8 0 8 7t-8 7h-15ZM728 480h11q7 0 7 6.500t-7 6.500h-11Z" fill="#cdbf9f" ${S}/>
+    <path d="M744 436v6M746 452v6M745 468v6M741 483v6" stroke="${INK}" stroke-width="1.5"/></g>`;
+  } else {
+    s+=`<rect x="560" y="150" width="260" height="568" fill="${WOOD}" ${S}/><rect x="584" y="196" width="212" height="230" fill="none" ${S}/><rect x="584" y="452" width="212" height="236" fill="none" ${S}/>
+    <rect x="630" y="215" width="120" height="100" fill="${RUBY}" ${S}/><path d="M640 300l40-70M670 305l30-50" stroke="#7a1d22" stroke-width="3"/>
+    <rect x="600" y="345" width="180" height="30" fill="${BRASS}" ${S}/><text x="690" y="365" text-anchor="middle" font-family="Old Standard TT,serif" font-size="11" font-weight="700" fill="${INK}">ПРОЯВКА · НЕ ВХОДИТЬ</text>
+    <rect x="778" y="420" width="22" height="48" rx="4" fill="${BRASS}" ${S}/><circle cx="789" cy="438" r="4" fill="${INK}"/><path d="M789 440v12" stroke="${INK}" stroke-width="3"/>
+    <rect x="554" y="210" width="12" height="34" fill="${BRASS}" ${S}/><rect x="554" y="610" width="12" height="34" fill="${BRASS}" ${S}/><rect x="562" y="712" width="256" height="6" fill="#000"/>`; }
+  // cabinet
+  s+=`<rect x="944" y="430" width="16" height="295" fill="#000" opacity=".3"/><rect x="975" y="725" width="20" height="16" fill="${WOODD}" ${S}/><rect x="1345" y="725" width="20" height="16" fill="${WOODD}" ${S}/>
+   <rect x="960" y="420" width="420" height="305" fill="${WOODD}" ${S}/><rect x="950" y="408" width="440" height="16" fill="${WOOD}" ${S}/>
+   <rect x="978" y="440" width="384" height="268" fill="#221a13" ${S}/>`;
+  for(let i=0;i<12;i++){const x=990+i*30.5; const empty=open&&i==6;
+    s+= empty?`<rect x="${x}" y="456" width="22" height="236" fill="#0e0a07"/>`:`<rect x="${x}" y="456" width="22" height="236" fill="#5d5a52" ${S2}/><rect x="${x}" y="456" width="22" height="236" fill="#8b877a" opacity=".5"/>`;
+    s+=`<text x="${x+11}" y="452" text-anchor="middle" font-family="Old Standard TT,serif" font-size="11" fill="${BONE}">${ROM[i]}</text>`}
+  if(open){ s+=`<path d="M978 440L920 462L920 730L978 708Z" fill="#9fb0ad" opacity=".25" ${S}/><path d="M1362 440L1420 462L1420 730L1362 708Z" fill="#9fb0ad" opacity=".25" ${S}/>`}
+  else { s+=`<rect x="978" y="440" width="192" height="268" fill="#9fb0ad" opacity=".16" ${S}/><rect x="1170" y="440" width="192" height="268" fill="#9fb0ad" opacity=".16" ${S}/><path d="M1000 690l60-230M1200 690l50-200" stroke="#fff" opacity=".12" stroke-width="8"/>
+    <rect x="1140" y="540" width="60" height="64" rx="4" fill="${BRASS}" ${S}/>${[0,1,2,3].map(i=>`<circle cx="${1155+(i%2)*30}" cy="${557+Math.floor(i/2)*30}" r="10" fill="${BRASSL}" ${S2}/>`).join('')}`}
+  // lantern
+  s+=`<rect x="1270" y="340" width="60" height="68" fill="#2b2622" ${S}/><rect x="1280" y="352" width="40" height="44" fill="${RUBY}" ${S}/><path d="M1264 340h72l-12-16h-48ZM1290 324v-12h20v12" fill="#2b2622" ${S}/><path d="M1286 310q14-14 28 0" ${S2}/>`;
+  return s}
+function ghostE(){return st.f.finale?'':`<g fill="#1a1410"><ellipse cx="690" cy="280" rx="22" ry="20"/><rect x="664" y="232" width="8" height="34" rx="4" transform="rotate(-14 668 262)"/><rect x="677" y="224" width="8" height="40" rx="4" transform="rotate(-5 681 260)"/><rect x="690" y="222" width="8" height="42" rx="4"/><rect x="703" y="227" width="8" height="38" rx="4" transform="rotate(8 707 262)"/><rect x="712" y="262" width="8" height="30" rx="4" transform="rotate(58 716 277)"/></g>
+  ${st.f.cabinet?'':`<rect x="1171" y="454" width="26" height="240" fill="none" stroke="#000" stroke-width="5"/>`}`}
+
+function photoMini(x,y,hr,who,big){const k=big?1:1; /* drawn in a 160x200 frame at x,y */
+  let p=`<rect x="${x}" y="${y}" width="160" height="200" fill="${WOODD}" ${S}/><rect x="${x+12}" y="${y+12}" width="136" height="176" fill="${BONE}" ${S2}/><rect x="${x+24}" y="${y+24}" width="112" height="140" fill="#9a8460" ${S2}/>`;
+  p+=`<g transform="translate(${x+24},${y+24})"><rect width="112" height="140" fill="#a8916b"/><rect y="112" width="112" height="28" fill="#6f5a3d"/>
+   <g transform="translate(20,10) scale(.2)"><path d="M-88 48L0-8L88 48Z" fill="#4a3a26"/><rect x="-70" y="48" width="140" height="150" fill="#5d4930"/><circle cx="0" cy="135" r="48" fill="#241b12"/>
+   <g transform="translate(0,135)">${hand(hr*30,26,9,'#f0e6cc')}${hand(0,38,6,'#f0e6cc')}</g></g>`;
+  const sit=(cx,sc,hat)=>`<g transform="translate(${cx},0) scale(${sc})"><ellipse cx="0" cy="62" rx="11" ry="13" fill="#e0d2b0" stroke="${INK}" stroke-width="1.5"/>${hat}<path d="M-24 122q0-40 24-44q24 4 24 44Z" fill="#3a2e22" stroke="${INK}" stroke-width="1.5"/></g>`;
+  if(who=='ved') p+=sit(66,1,`<path d="M-13 54h26l-3-10h-20Z" fill="#2a2119"/><path d="M-16 55h32" stroke="#2a2119" stroke-width="3"/>`);
+  if(who=='koh') p+=sit(66,1,`<path d="M-14 54q14-16 28 0" fill="#2a2119"/><path d="M10 46q14-14 10-26" stroke="#e0d2b0" stroke-width="3" fill="none"/>`);
+  if(who=='shu') p+=sit(66,1,`<circle cx="-5" cy="62" r="4" fill="none" stroke="${INK}"/><circle cx="5" cy="62" r="4" fill="none" stroke="${INK}"/><path d="M-9 75q9 12 18 0" fill="#e0d2b0" stroke="${INK}"/>`);
+  if(who=='ave') p+=sit(52,.8,'').replace('translate(52,0)','translate(52,24)')+sit(84,.8,'').replace('translate(84,0)','translate(84,24)');
+  p+=`<ellipse cx="66" cy="124" rx="44" ry="7" fill="#5a2a2c" stroke="${INK}" stroke-width="1.5"/></g>`;
+  return p}
+const PHOTOS=[['shu',9,'Шульц'],['ave',7,'Аверины'],['ved',2,'Ведель'],['koh',4,'Кох']];
+function sceneS(){let s=room();
+  // photos
+  const pos=[[130,150],[340,150],[130,410],[340,410]];
+  pos.forEach((p,i)=>{const cx=p[0]+80; s+= i<2?`<path d="M${cx-50} ${p[1]+6}L${cx} 72L${cx+50} ${p[1]+6}" ${S2} stroke="${SEPD}"/><path d="M${cx-5} 66h10v10h-10Z" fill="${BRASS}" ${S2}/>`
+      :`<path d="M${cx-40} ${p[1]+6}L${cx} ${p[1]-26}L${cx+40} ${p[1]+6}" ${S2} stroke="${SEPD}"/><circle cx="${cx}" cy="${p[1]-27}" r="4" fill="${BRASS}" ${S2}/>`;
+    s+=`<rect x="${p[0]-10}" y="${p[1]+8}" width="160" height="200" fill="#000" opacity=".25"/>`+photoMini(p[0],p[1],PHOTOS[i][1],PHOTOS[i][0])});
+  // entrance door
+  s+=`<rect x="1186" y="136" width="268" height="582" fill="${WOODD}" ${S}/><rect x="1200" y="150" width="240" height="568" fill="#5a3d28" ${S}/><rect x="1224" y="186" width="192" height="220" fill="none" ${S}/><rect x="1224" y="440" width="192" height="240" fill="none" ${S}/>
+   <rect x="1212" y="430" width="20" height="60" rx="4" fill="${BRASS}" ${S}/><path d="M1222 444h30" stroke="${BRASSL}" stroke-width="8" stroke-linecap="round"/><circle cx="1222" cy="474" r="3.5" fill="${INK}"/>`;
+  // coat rack
+  s+=`<path d="M1050 760l-48 30M1050 760l52 30M1050 760v34" stroke="${INK}" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M1000 800l-110 22l90 6Z" fill="#000" opacity=".3"/>
+   <rect x="1045" y="225" width="10" height="540" fill="${WOODD}" ${S}/><path d="M1050 250q-34-4-40-26M1050 250q34-4 40-26M1050 300q-30 0-40-18M1050 300q30 0 40-18" ${S2} stroke-width="5"/>
+   <path d="M986 214q8-34 32-34q24 0 30 34Z" fill="${BLACK}" ${S}/><path d="M974 216h86" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>
+   <path d="M1090 282q-46 14-62 60L1016 640L1150 640L1140 340q-12-44-50-58Z" fill="#3b3329" ${S}/><path d="M1082 300v340M1040 360q-6 140-4 280M1126 360q4 140 2 280" ${S2} stroke="#241e18"/>
+   <path d="M1098 296l-16 44l16-12l16 12Z" fill="#2c261f" ${S}/><path d="M1094 500h40v6h-40Z" fill="#241e18" ${S}/>`;
+  // camera (front, lens toward viewer)
+  s+=`<path d="M690 800l-130 26l110 10Z" fill="#000" opacity=".3"/>
+   <path d="M760 560L720 745" stroke="${WOODD}" stroke-width="12" stroke-linecap="round"/><path d="M745 560L650 800M775 560L870 800" stroke="${INK}" stroke-width="17" stroke-linecap="round"/><path d="M745 560L650 800M775 560L870 800" stroke="${WOODL}" stroke-width="11" stroke-linecap="round"/>
+   <path d="M700 680h120" stroke="${BRASS}" stroke-width="4"/><rect x="725" y="540" width="70" height="26" fill="${BRASS}" ${S}/>
+   <path d="M640 384q120-34 240 0l14 190q-10 26-28-4l-6-150h-200l-6 150q-18 30-28 4Z" fill="${BLACK}" ${S}/><path d="M660 420l-6 150M860 420l6 150" ${S2} stroke="#3a322b"/>
+   <rect x="660" y="400" width="200" height="140" fill="${WOOD}" ${S}/><rect x="672" y="412" width="176" height="116" fill="${WOODL}" ${S}/><circle cx="672" cy="412" r="5" fill="${BRASS}"/><circle cx="848" cy="412" r="5" fill="${BRASS}"/><circle cx="672" cy="528" r="5" fill="${BRASS}"/><circle cx="848" cy="528" r="5" fill="${BRASS}"/>`;
+  s+= st.f.lensOn?`<circle cx="760" cy="470" r="44" fill="${BRASS}" ${S}/><circle cx="760" cy="470" r="32" fill="${BRASSL}" ${S}/><circle cx="760" cy="470" r="22" fill="#1b232b" ${S}/><path d="M746 458q10-10 22-4" stroke="#8fa3ad" stroke-width="4" fill="none"/>`
+     :`<circle cx="760" cy="470" r="36" fill="#0d0907" ${S}/><circle cx="760" cy="470" r="36" fill="none" stroke="${BRASS}" stroke-width="3"/>`;
+  if(st.f.birdOn) s+=`<path d="M800 400q-6-20 4-30q-10-6 0-18" ${S2}/><path d="M780 344q8-18 26-12l12-5-6 11q2 16-14 18q-14 0-18-12Z" fill="${BRASSL}" ${S}/><circle cx="806" cy="337" r="2" fill="${INK}"/><rect x="794" y="396" width="14" height="8" fill="${BRASS}" ${S2}/>`;
+  if(st.f.bulbOn) s+=`<path d="M860 520q60 40 40 160q-10 60 30 70" ${S2} stroke="#3a1014" stroke-width="4"/><ellipse cx="940" cy="756" rx="20" ry="13" fill="${BOR}" ${S}/>`;
+  return s}
+function ghostS(){return st.f.bulb?'':`<ellipse cx="1112" cy="540" rx="14" ry="20" fill="#000"/><path d="M1112 520q-10-20 6-34" stroke="#000" stroke-width="5" fill="none"/>`}
+
+function owl(){return `<g>
+  <path d="M1322 236q0-70 48-70q48 0 48 70q0 62-48 66q-48-4-48-66Z" fill="#4b3a28" ${S}/><path d="M1330 180l-8-26l26 14M1410 180l8-26l-26 14" fill="#4b3a28" ${S}/>
+  <ellipse cx="1370" cy="252" rx="26" ry="40" fill="#8a7350" ${S2}/><path d="M1352 236q8 6 14 0M1374 236q8 6 14 0M1350 256q8 6 14 0M1376 256q8 6 14 0M1360 276q10 6 20 0" ${S2} stroke="#4b3a28"/>
+  <circle cx="1352" cy="200" r="14" fill="${BRASSL}" ${S}/><circle cx="1388" cy="200" r="14" fill="${BRASSL}" ${S}/><circle cx="1352" cy="200" r="6" fill="${INK}"/><circle cx="1388" cy="200" r="6" fill="${INK}"/>
+  <path d="M1364 210l6 14l6-14Z" fill="${BRASS}" ${S2}/><path d="M1328 230q-10 40 6 62M1412 230q10 40-6 62" ${S2}/>
+  <path d="M1350 298v10M1358 298v11M1366 298v10M1376 298v10M1384 298v11M1392 298v10" stroke="${BRASS}" stroke-width="4" stroke-linecap="round"/>
+  ${st.f.bird?`<path d="M1370 222v56" stroke="#0d0907" stroke-width="6"/><path d="M1364 226l12 8M1364 244l12 8M1364 262l12 8" stroke="${BONE}" stroke-width="1.5"/>`:''}</g>`}
+function sceneW(){const o=st.f.light, fin=st.f.finale; const lit=Date.now()<st.matchUntil;
+  let s=room();
+  s+=`<rect x="486" y="76" width="628" height="478" fill="${WOODD}" ${S}/><rect x="500" y="90" width="600" height="450" fill="url(#${fin?'skyN':'sky'})"/>
+   ${fin?'':`<circle cx="930" cy="512" r="46" fill="#ffd9a0" opacity=".8"/><path d="M500 500q160-30 300 4t300-10v46h-600Z" fill="#6a5a48"/>`}
+   <path d="M800 90v450M500 240h600M500 390h600" stroke="${WOODD}" stroke-width="12"/><rect x="500" y="90" width="600" height="450" fill="none" ${S}/><rect x="480" y="548" width="640" height="14" fill="${WOOD}" ${S}/>`;
+  // curtains
+  s+=`<path d="M450 70h700" stroke="${BRASS}" stroke-width="8" stroke-linecap="round"/><circle cx="446" cy="70" r="9" fill="${BRASSL}" ${S}/><circle cx="1154" cy="70" r="9" fill="${BRASSL}" ${S}/>`;
+  const cur=(x1,x2,folds)=>{let p=`<path d="M${x1} 72L${x2} 72L${x2+(x2>800?6:-6)} 640q${(x1-x2)/2} 14 ${x1-x2-(x2>800?12:-12)} 0Z" fill="${BOR}" ${S}/>`;for(let i=1;i<folds;i++){const x=x1+(x2-x1)*i/folds;p+=`<path d="M${x} 76q6 280 -2 560" stroke="${BORD}" stroke-width="3" fill="none"/>`}
+    for(let x=Math.min(x1,x2)+12;x<Math.max(x1,x2);x+=28)p+=`<circle cx="${x}" cy="70" r="7" fill="none" stroke="${BRASSL}" stroke-width="3"/>`;return p};
+  if(o){ s+=`<path d="M470 72L560 72Q566 330 520 420Q500 520 560 640Q510 652 466 640Z" fill="${BOR}" ${S}/><path d="M500 76q20 250-10 340M530 76q20 240-20 344M486 430q10 110 20 208M510 428q0 110 24 210" stroke="${BORD}" stroke-width="3" fill="none"/><path d="M474 412q24 16 52 4" stroke="${BRASSL}" stroke-width="7" fill="none" stroke-linecap="round"/>
+     <path d="M1130 72L1040 72Q1034 330 1080 420Q1100 520 1040 640Q1090 652 1134 640Z" fill="${BOR}" ${S}/><path d="M1100 76q-20 250 10 340M1070 76q-20 240 20 344M1114 430q-10 110-20 208M1090 428q0 110-24 210" stroke="${BORD}" stroke-width="3" fill="none"/><path d="M1126 412q-24 16-52 4" stroke="${BRASSL}" stroke-width="7" fill="none" stroke-linecap="round"/>`}
+  else s+=cur(470,772,9)+cur(1130,828,9);
+  s+=`<path d="M1160 76v${o?250:330}" stroke="${BONE}" stroke-width="3"/><path d="M1160 ${o?326:406}l-8 30h16Z" fill="${BRASSL}" ${S}/>`;
+  // desk (backlit)
+  s+=`<path d="M470 800l-60 80h780l-60-80Z" fill="#000" opacity=".28"/>
+   <rect x="490" y="596" width="22" height="186" fill="#3a2718" ${S}/><rect x="1088" y="596" width="22" height="186" fill="#3a2718" ${S}/><rect x="520" y="596" width="16" height="150" fill="#2c1d12" ${S}/><rect x="1064" y="596" width="16" height="150" fill="#2c1d12" ${S}/>
+   <rect x="484" y="596" width="632" height="52" fill="#3a2718" ${S}/><rect x="700" y="606" width="200" height="34" fill="#33210f" ${S}/><circle cx="800" cy="623" r="6" fill="${BRASS}" ${S2}/>
+   <rect x="470" y="576" width="660" height="20" fill="#4a3220" ${S}/><path d="M472 577h656" stroke="#e9b877" stroke-width="2" opacity="${o?.8:.3}"/>
+   <g fill="#241a12" ${S}><path d="M548 576h56l-8-20h-40Z"/><path d="M562 556q-12-30 14-58q26 28 14 58Z" fill="#3b3a36" opacity=".9"/><rect x="566" y="486" width="20" height="12"/>
+   <path d="M700 576l10-14q90-14 90 6q0-20 90-6l10 14Z" fill="#cbbd9c"/><rect x="990" y="552" width="40" height="24"/><path d="M1042 574l40-52" fill="none"/></g>`;
+  // chair
+  s+=`<path d="M200 790l-50 40h200l-20-40Z" fill="#000" opacity=".25"/><rect x="190" y="380" width="14" height="410" fill="#3a2718" ${S}/><rect x="306" y="380" width="14" height="410" fill="#3a2718" ${S}/>
+   <rect x="204" y="400" width="102" height="18" fill="#3a2718" ${S}/><rect x="204" y="450" width="102" height="14" fill="#3a2718" ${S}/><rect x="212" y="600" width="12" height="150" fill="#2c1d12" ${S}/><rect x="286" y="600" width="12" height="150" fill="#2c1d12" ${S}/>
+   <path d="M180 580h150l10 26h-170Z" fill="${BORD}" ${S}/>`;
+  // owl shelf
+  s+=`<path d="M1280 312v40l40-40ZM1460 312v40l-40-40Z" fill="${WOODD}" ${S}/><rect x="1260" y="300" width="220" height="14" fill="${WOOD}" ${S}/>`+owl();
+  s+=`<rect x="1150" y="42" width="450" height="676" fill="url(#corner)"/>`;
+  if(lit) s+=`<circle cx="1370" cy="250" r="220" fill="url(#flame)"/>`+(st.f.bird?'':`<path d="M1370 222v56" stroke="${BONE}" stroke-width="2.5" stroke-dasharray="5 4"/><path d="M1364 228l12 6M1364 246l12 6M1364 264l12 6" stroke="${BONE}" stroke-width="1.5"/>`)
+     +`<path d="M1290 420l40-30" stroke="${BONE}" stroke-width="4"/><path d="M1332 388q4-14 10-2q0 8-10 2Z" fill="#ffcf7a" ${S2}/>`;
+  return s}
+function ghostW(){return st.f.light?`<g fill="none" stroke="#1a1410" stroke-width="5" stroke-linecap="round" opacity=".9"><path d="M610 300q0-70 50-70q50 0 50 70q0 60-50 64q-50-4-50-64Z"/><path d="M620 240l-6-22l24 12M700 240l6-22l-24 12"/><circle cx="643" cy="268" r="9"/><circle cx="677" cy="268" r="9"/>
+   <path d="M640 318q8-14 22-9l10-4l-5 9q1 12-12 13q-11 0-15-9Z"/><path d="M655 334v10"/></g>`
+   :`<text x="800" y="330" text-anchor="middle" font-family="Caveat,cursive" font-size="40" fill="#f6eedc">ткань, только ткань</text>`}
+
+/* ---------- zoom screens ---------- */
+function zDesk(){let s=`<rect width="1600" height="900" fill="url(#plank)"/><rect width="1600" height="900" fill="#2a1a0e" opacity=".35"/>`;
+  // dust
+  for(let i=0;i<70;i++){const x=(i*211)%1600,y=(i*137)%900;s+=`<circle cx="${x}" cy="${y}" r="${1+i%3}" fill="${BONE}" opacity=".12"/>`}
+  // lamp (top-left, seen from above at an angle)
+  s+=`<ellipse cx="250" cy="236" rx="100" ry="34" fill="#000" opacity=".3" transform="translate(40,26)"/><ellipse cx="250" cy="236" rx="92" ry="32" fill="${BRASS}" ${S}/><ellipse cx="250" cy="228" rx="60" ry="20" fill="${BRASSL}" ${S}/>
+   <path d="M214 224q-22-90 36-150q58 60 36 150Z" fill="#c9cfc6" opacity=".55" ${S}/><path d="M236 214q-12-70 14-120" stroke="#3a322b" stroke-width="14" opacity=".4" fill="none"/><rect x="236" y="62" width="28" height="16" fill="${BRASS}" ${S}/>`;
+  // inkwell + pen
+  s+=`<rect x="1180" y="150" width="260" height="110" rx="8" fill="${WOODD}" ${S}/><rect x="1204" y="166" width="78" height="78" fill="#20262c" ${S}/><circle cx="1243" cy="205" r="26" fill="${BRASS}" ${S}/><circle cx="1243" cy="205" r="8" fill="${BRASSL}" ${S2}/>
+   <path d="M1300 226h124" stroke="#2a1a0e" stroke-width="16" stroke-linecap="round"/><path d="M1306 226h84" stroke="${BLACK}" stroke-width="9" stroke-linecap="round"/><path d="M1390 221l32 5l-32 5Z" fill="#9aa0a0" ${S2}/>
+   <circle cx="1470" cy="300" r="7" fill="#12161b"/><circle cx="1492" cy="322" r="4" fill="#12161b"/><circle cx="1456" cy="330" r="3" fill="#12161b"/>`;
+  // ledger
+  s+=`<path d="M520 268h560v400h-560Z" fill="#000" opacity=".3" transform="translate(16,14)"/><rect x="510" y="258" width="580" height="412" fill="${BORD}" ${S}/>
+   <path d="M524 270q138-14 276 4v384q-138-18-276-4Z" fill="${BONE}" ${S}/><path d="M1076 270q-138-14-276 4v384q138-18 276-4Z" fill="#e2d5b6" ${S}/>`;
+  const L=[['3 ноября','Ведель'],['4 ноября','Кох, Мирра'],['5 ноября','Шульц'],['6 ноября','бл. Аверины'],['7 ноября','Хольм, пл. VII']];
+  s+=`<text x="662" y="308" text-anchor="middle" font-family="Old Standard TT,serif" font-size="20" fill="${INK}" letter-spacing="2">ЖУРНАЛ СЕАНСОВ</text>`;
+  L.forEach((r,i)=>{const y=354+i*58;s+=`<path d="M540 ${y+10}h246" stroke="#b7a983" stroke-width="1.5"/><text x="544" y="${y}" font-family="Caveat,cursive" font-size="27" fill="#2b2a4a">${r[0]}</text><text x="648" y="${y}" font-family="Caveat,cursive" font-size="25" fill="#2b2a4a">${r[1]}</text>`});
+  s+=`<path d="M690 610q30-16 60 2q14 20-16 26q-40 4-44-28Z" fill="#12161b"/>`;
+  const R=['Шкаф с пластинами:','шифр — часы. Каждый','сам выставил своё время.','Порядок — как в журнале.','Объектив — за небом.','Птичку убрал от сквозняка.','Минерва присмотрит.'];
+  R.forEach((t,i)=>{s+=`<text x="822" y="${312+i*38}" font-family="Caveat,cursive" font-size="24" fill="#2b2a4a">${t}</text>`});
+  s+=`<circle cx="860" cy="606" r="34" fill="none" stroke="#a88a5f" stroke-width="6" opacity=".55"/>`;
+  // magnifier on right page (handle toward the viewer)
+  s+=`<path d="M1010 640L1036 716" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M1010 640L1036 716" stroke="${WOOD}" stroke-width="15" stroke-linecap="round"/><circle cx="994" cy="596" r="44" fill="#cfe0dc" opacity=".35" ${S}/><circle cx="994" cy="596" r="44" fill="none" stroke="${BRASS}" stroke-width="9"/><circle cx="994" cy="596" r="49" fill="none" ${S2}/>`;
+  if(!has('knife')&&!st.f.knifeTaken) s+=`<path d="M1150 300l14 40v170h-28v-170Z" fill="${BRASSL}" ${S}/><path d="M1136 340v170" stroke="#fff" stroke-width="2" opacity=".5"/><rect x="1134" y="510" width="32" height="130" rx="10" fill="${BONE}" ${S}/><rect x="1130" y="504" width="40" height="12" fill="${BRASS}" ${S}/>`;
+  if(!st.f.matchesTaken) s+=`<rect x="262" y="686" width="100" height="70" fill="#000" opacity=".3"/><rect x="250" y="676" width="100" height="70" fill="${SEP}" ${S}/><rect x="250" y="676" width="100" height="16" fill="#3a2718" ${S}/><rect x="262" y="700" width="76" height="36" fill="${BOR}" ${S2}/><text x="300" y="723" text-anchor="middle" font-family="Old Standard TT,serif" font-size="11" fill="${BONE}">ВЕЙСМАРЪ</text>
+     <rect x="350" y="684" width="34" height="54" fill="#d9c8a0" ${S}/><path d="M356 690v42M366 690v42M376 690v42" stroke="${BONE}" stroke-width="4"/><circle cx="356" cy="692" r="4" fill="${BOR}"/><circle cx="366" cy="692" r="4" fill="${BOR}"/><circle cx="376" cy="692" r="4" fill="${BOR}"/>`;
+  if(!st.f.keyTaken) s+=`<g transform="translate(1290,690) rotate(-24)"><path d="M0 0h70M56 0v14M68 0v12" stroke="${INK}" stroke-width="13" stroke-linecap="round"/><path d="M0 0h70M56 0v14M68 0v12" stroke="${BRASS}" stroke-width="8" stroke-linecap="round"/><path d="M0 0C-34-30-34 6 0 0C-34 30-34-6 0 0Z" fill="${BRASSL}" ${S}/></g>`;
+  return s}
+function zPhotos(){let s=`<rect width="1600" height="900" fill="url(#wp)"/>`;
+  PHOTOS.forEach((p,i)=>{const x=110+i*360;s+=`<g transform="translate(${x},90) scale(2.1)">${photoMini(0,0,p[1],p[0])}</g><path d="M${x+60} 94L${x+168} 20L${x+276} 94" ${S2} stroke="${SEPD}"/>
+   <rect x="${x+68}" y="540" width="200" height="50" fill="${BONE}" ${S2}/><text x="${x+168}" y="575" text-anchor="middle" font-family="Caveat,cursive" font-size="34" fill="#3a3320">${p[2]}</text>`});
+  s+=`<rect y="690" width="1600" height="210" fill="#221a13"/>`;
+  if(!st.f.light) s+=`<rect width="1600" height="900" fill="#070504" opacity=".8"/>`;
+  return s}
+function zLock(){let s=`<rect width="1600" height="900" fill="${WOODD}"/><rect x="300" y="180" width="1000" height="540" rx="20" fill="${BRASS}" ${S}/><rect x="324" y="204" width="952" height="492" rx="12" fill="none" ${S2}/>
+  <circle cx="350" cy="230" r="9" fill="${BRASSL}" ${S2}/><circle cx="1250" cy="230" r="9" fill="${BRASSL}" ${S2}/><circle cx="350" cy="670" r="9" fill="${BRASSL}" ${S2}/><circle cx="1250" cy="670" r="9" fill="${BRASSL}" ${S2}/>
+  <text x="800" y="286" text-anchor="middle" font-family="Old Standard TT,serif" font-size="30" letter-spacing="8" fill="${INK}">ЛАНГЕ И СЫН · ПЛАСТИНЫ</text>`;
+  st.dials.forEach((v,i)=>{const cx=470+i*220;s+=`<circle cx="${cx}" cy="470" r="92" fill="${BRASSL}" ${S}/><circle cx="${cx}" cy="470" r="70" fill="${BLACK}" ${S}/>
+   ${[0,1,2,3,4,5,6,7,8,9,10,11].map(k=>{const r=(k*30-90)*Math.PI/180;return `<line x1="${cx+Math.cos(r)*74}" y1="${470+Math.sin(r)*74}" x2="${cx+Math.cos(r)*88}" y2="${470+Math.sin(r)*88}" stroke="${INK}" stroke-width="3"/>`}).join('')}
+   <text x="${cx}" y="490" text-anchor="middle" font-family="Old Standard TT,serif" font-weight="700" font-size="56" fill="${BONE}">${ROM[v]}</text><path d="M${cx-10} 362l10 18l10-18Z" fill="${INK}"/>`});
+  return s}
+function zCam(){const ok=st.f.lensOn; const b=Math.abs(st.focus-5)*3;
+  let s=`<rect width="1600" height="900" fill="#1a130d"/><path d="M0 760h1600v140H0Z" fill="${FLOOR}"/>
+   <path d="M300 70q400-60 800 0l40 760q-60 40-100-20l-20-200h-640l-20 200q-40 60-100 20Z" fill="${BLACK}" ${S}/><path d="M340 140l-30 620M1060 140l30 620" ${S2} stroke="#3a322b"/>
+   <rect x="350" y="130" width="700" height="560" fill="${WOOD}" ${S}/><rect x="384" y="164" width="632" height="492" fill="${WOODL}" ${S}/><rect x="420" y="200" width="560" height="420" fill="${ok?'#cfc6b0':'#3b372f'}" ${S}/>
+   ${[[366,146],[1034,146],[366,674],[1034,674]].map(c=>`<circle cx="${c[0]}" cy="${c[1]}" r="8" fill="${BRASS}" ${S2}/>`).join('')}`;
+  if(ok){ s+=`<g clip-path="url(#ggClip)"><g filter="url(#blur)" data-blur="${b}"><g transform="translate(700,410) rotate(180) scale(.78) translate(-840,-440)"><rect x="300" y="100" width="1100" height="700" fill="#b8a27a"/><g fill="#cdb991"><ellipse cx="640" cy="230" rx="120" ry="44"/><ellipse cx="1030" cy="300" rx="130" ry="46"/></g>${widowFull({blink:st.f.blink,receipt:false})}</g></g>
+     <rect x="420" y="200" width="560" height="420" fill="#d9d2c0" opacity=".3"/><path d="M700 200v420M420 410h560" stroke="${INK}" stroke-width="1" opacity=".4"/></g>`}
+  // right-side controls
+  s+=`<rect x="1050" y="250" width="26" height="320" fill="${st.f.holderOn?WOODD:'#0d0907'}" ${S}/>${st.f.holderOn?`<rect x="1054" y="${st.f.slide?150:236}" width="18" height="${st.f.slide?90:30}" fill="${BRASS}" ${S}/>`:''}
+   <circle cx="1230" cy="250" r="64" fill="${BRASS}" ${S}/><circle cx="1230" cy="250" r="46" fill="${BRASSL}" ${S}/><g transform="rotate(${st.focus*40} 1230 250)"><path d="M1230 206v30" stroke="${INK}" stroke-width="6" stroke-linecap="round"/></g>
+   <text x="1230" y="350" text-anchor="middle" font-family="Old Standard TT,serif" font-size="22" fill="${BONE}" letter-spacing="3">НАВОДКА</text>
+   <path d="M1106 250l30-22v44Z" fill="${BONE}" ${S}/><path d="M1354 250l-30-22v44Z" fill="${BONE}" ${S}/>
+   <text x="1063" y="610" text-anchor="middle" font-family="Old Standard TT,serif" font-size="18" fill="${BONE}">${st.f.holderOn?'шибер':'кассета'}</text>`;
+  if(st.f.bulbOn) s+=`<path d="M1040 660q120 40 180-40" ${S2} stroke="#3a1014" stroke-width="6"/><ellipse cx="1280" cy="600" rx="${st.hold?74:86}" ry="${st.hold?44:56}" fill="${BOR}" ${S}/><path d="M1230 580q40-24 90-6" stroke="#a8474c" stroke-width="6" fill="none"/>
+     <text x="1280" y="700" text-anchor="middle" font-family="Old Standard TT,serif" font-size="20" fill="${BONE}">сжать и держать</text>`;
+  else s+=`<circle cx="1046" cy="660" r="9" fill="${BRASS}" ${S2}/>`;
+  return s}
+
+/* ---------- hotspots ---------- */
+function has(id){return st.inv.includes(id)}
+function give(id){ if(!has(id)) st.inv.push(id) }
+function drop(id){ st.inv=st.inv.filter(x=>x!=id); if(st.sel==id) st.sel=null }
+function say(t){document.getElementById('say').textContent=t}
+function spots(){const it=st.sel; const H=[]; const add=(x,y,w,h,fn,l)=>H.push({x,y,w,h,fn,l});
+  if(st.zoom=='desk'){
+    add(520,260,570,280,()=>{SFX.paper();say('Слева клиенты по дням. Справа рука Ланге: «шифр — часы… порядок — как в журнале». И ещё про небо, сквозняк и Минерву.')},'Журнал');
+    if(!st.f.matchesTaken) add(240,666,150,90,()=>{st.f.matchesTaken=1;give('matches');SFX.wood();say('Спички. Три штуки гремят в коробке.')},'Спички');
+    if(!st.f.keyTaken) add(1240,640,160,110,()=>{st.f.keyTaken=1;give('key');SFX.clink();say('Маленький латунный ключ. К бюро не подходит — слишком короткий. Часовой.')},'Ключ');
+    if(!st.f.knifeTaken) add(1120,290,60,360,()=>{st.f.knifeTaken=1;give('knife');SFX.clink();say('Нож для бумаг. Лежал лезвием к журналу.')},'Нож');
+    add(150,60,210,220,()=>say('Лампа. На пыли вокруг основания ни одного отпечатка: её не зажигали с пятницы.'),'Лампа');
+    add(1180,150,260,110,()=>say('Чернильница закрыта. Перо сухое.'),'Чернильница');
+    add(940,550,120,180,()=>say('Лупа. Под ней буквы те же, только крупнее.'),'Лупа');
+  } else if(st.zoom=='photos'){
+    PHOTOS.forEach((p,i)=>add(110+i*360,90,336,500,()=>{ if(!st.f.light){say('Слишком темно. Лиц не разобрать, стрелок тем более.');return}
+      say(`${p[2]}. Тот же стол, тот же стул. В углу кадра часы: стрелка на ${ROM[p[1]-1]}.`)},p[2]));
+  } else if(st.zoom=='lock'){
+    st.dials.forEach((v,i)=>add(378+i*220,378,184,184,()=>{st.dials[i]=(v+1)%12;SFX.click();
+      if(st.dials.every((d,k)=>d==CODE[k])){st.f.cabinet=1;give('plate');give('holder');st.zoom=null;SFX.clink();say('Дверцы отходят. В гнезде VII — проявленная пластина. Рядом кассета с чистой. В стекле пластины комната выглядит иначе.')}
+    },'Диск '+(i+1)));
+  } else if(st.zoom=='cam'){
+    add(420,200,560,420,()=>say(st.f.lensOn?'Матовое стекло. Вдова висит вниз головой, как положено в камере.'+(st.focus==5?' Вуаль видна до нитки.':' Всё плывёт.'):'Без объектива на стекле только серая муть.'),'Матовое стекло');
+    add(1096,216,60,70,()=>focus(-1),'Наводка назад'); add(1310,216,60,70,()=>focus(1),'Наводка вперёд');
+    add(1030,140,70,460,()=>{ if(!st.f.holderOn){ if(it=='holder'){st.f.holderOn=1;drop('holder');SFX.wood();say('Кассета входит в паз до щелчка.')} else say('Паз для кассеты. Пусто.'); return}
+      st.f.slide=!st.f.slide; SFX.wood(); say(st.f.slide?'Шибер выдвинут. Пластина открыта в темноту камеры.':'Шибер задвинут.')},'Кассета');
+    if(st.f.bulbOn) H.push({x:1190,y:536,w:180,h:130,hold:true,l:'Груша'});
+    else add(1010,630,80,60,()=>{ if(it=='bulb'){st.f.bulbOn=1;drop('bulb');SFX.click();say('Трубка села на штуцер затвора.')} else say('Штуцер затвора. Сюда что-то надевалось.')},'Штуцер');
+  } else if(st.view=='N'){
+    add(760,250,160,160,()=>{SFX.cloth();say(st.f.receipt?'«Я не шевелюсь четыре дня. Птичка не вылетала».':'«Господин Ланге велел не шевелиться, пока не вылетит птичка. Я не шевелюсь». Она смотрит мимо вас, в объектив.')},'Вдова');
+    add(640,530,110,60,()=>{ if(!st.f.receipt){st.f.receipt=1;give('receipt');SFX.clink();say('Чай остыл и затянулся плёнкой. Под блюдцем квитанция: «Пластина VII. Выдержка — четыре удара».')} else say('Холодный чай. Она к нему не притронулась.')},'Чашка');
+    add(1200,90,60,460,()=>{ if(st.f.backdropUp){say('Небо уже свёрнуто.');return} st.f.backdropUp=1;SFX.roll();say('Холст с облаками уходит вверх. За ним в стене ниша, в нише кожаный футляр.')},'Шнур задника');
+    if(st.f.backdropUp&&!has('lens')&&!st.f.lensOn) add(790,240,110,96,()=>{give('lens');SFX.clink();say('Объектив. Латунь тёплая, будто его только что держали.')},'Ниша');
+    else if(!st.f.backdropUp) add(480,110,270,300,()=>say('Задник: облака, написанные сепией. Висит на рулоне, до пола не достаёт.'),'Задник');
+    add(170,90,160,430,()=>{ if(st.f.clockRun){say('Часы идут. Удар в секунду.');return}
+      if(it=='key'){ if(!st.f.holeSeen){say('Циферблат чёрный, гладкий. Скважины не найти.');return} st.f.clockRun=1;drop('key');SFX.click();setTimeout(SFX.click,250);setTimeout(SFX.click,500);say('Три оборота. Маятник качнулся. Часы пошли с 15:56.')}
+      else say('Часы с кукушкой стоят на 15:56. Циферблат чёрной эмали. Дверца кукушки закрыта.')},'Часы');
+    add(1330,300,100,490,()=>say('Подголовник. Железная вилка держала затылок, чтобы клиент не дрогнул. Вдове он не понадобился.'),'Подголовник');
+  } else if(st.view=='E'){
+    add(322,250,126,160,()=>say('7 ноября, пятница. Сегодня вторник, одиннадцатое. Листки никто не отрывал.'),'Календарь');
+    add(560,150,260,568,()=>{ if(st.f.finale){say('Дверь открыта на ладонь. Кто-то держит её изнутри.');return} SFX.dull();say('Ручки нет. Заперто изнутри. За рубиновым стеклом темно.')},'Дверь');
+    add(960,430,420,290,()=>say(st.f.cabinet?'Гнездо VII пустое. Остальные пластины — обычные портреты.':'Шкаф для пластин. Двенадцать гнёзд, стекло, латунный замок.'),'Шкаф');
+    if(!st.f.cabinet) add(1120,520,100,104,()=>{st.zoom='lock';say('Четыре диска. На каждом римские цифры от I до XII.')},'Замок');
+    add(1260,310,80,100,()=>say('Рубиновый фонарь для тёмной комнаты. Холодный.'),'Фонарь');
+  } else if(st.view=='S'){
+    add(120,140,390,480,()=>{st.zoom='photos';say(st.f.light?'Четыре портрета. Все сняты здесь, за тем же столом.':'Четыре рамки. В полутьме видны только овалы лиц.')},'Фотографии');
+    add(640,380,240,180,()=>{
+      if(it=='lens'){st.f.lensOn=1;drop('lens');SFX.wood();say('Объектив вкручен в доску. Камера снова смотрит.');return}
+      if(it=='bird'){st.f.birdOn=1;drop('bird');SFX.click();say('Птичка села на прищепку над объективом.');return}
+      if(it=='holder'||it=='bulb'){say('Это ставится сзади.');return}
+      st.zoom='cam';say('Вы заходите за камеру и поднимаете покрывало.')},'Камера');
+    add(1010,280,150,370,()=>{ if(!st.f.bulb){st.f.bulb=1;give('bulb');SFX.cloth();say('Пальто Ланге. В кармане резиновая груша с трубкой.')} else say('Пальто. Карманы пусты.')},'Пальто');
+    add(1200,150,240,568,()=>{SFX.dull();say('Входная. Её заперли снаружи на три оборота. Вас впустили и ушли вниз.')},'Дверь');
+  } else if(st.view=='W'){
+    add(1130,76,60,370,()=>{ if(st.f.finale){say('За окном уже темно.');return} st.f.light=!st.f.light;SFX.cloth();say(st.f.light?'Кольца едут по карнизу. Низкое солнце ложится через всю комнату на восточную стену.':'Портьеры сомкнулись. Полутьма.')},'Шнур портьер');
+    add(560,100,480,430,()=>say(st.f.light?'Закат. На стекле, если смотреть сбоку, жирный след пальца.':'Портьеры задёрнуты.'),'Окно');
+    add(470,540,660,110,()=>{st.zoom='desk';SFX.paper();say('Бюро Ланге. Всё под ровным слоем пыли.')},'Бюро');
+    add(1300,150,140,170,()=>{const lit=Date.now()<st.matchUntil;
+      if(st.f.bird){say('Минерва. Грудка распорота, внутри пакля.');return}
+      if(it=='matches'){ if(st.matches<=0){st.matches=1;say('В коробке нашлась ещё одна, под этикеткой.')} st.matches--;st.matchUntil=Date.now()+8000;SFX.match();say('Спичка. На грудке совы шов, нитки свежие, белые.');setTimeout(()=>{ if(!st.f.bird&&st.view=='W'){say('Спичка догорела. Шов снова не видно.')} render()},8050);return}
+      if(it=='knife'){ if(!lit){say('В углу темно. Резать вслепую нечего.');return} st.f.bird=1;give('bird');SFX.rip();say('Нитки лопаются. Из пакли выпадает латунная птичка на пружине.');return}
+      say(lit?'Шов на грудке. Его зашивали недавно и наспех.':'В углу темно. Чучело совы, два стеклянных глаза.')},'Сова');
+    add(170,380,170,410,()=>say('Стул для ожидающих. На сиденье вмятина.'),'Стул');
+  }
+  return H}
+function focus(d){ if(!st.f.lensOn){say('Крутить можно, смотреть не на что.');return} st.focus=Math.max(0,Math.min(8,st.focus+d)); SFX.creak(); say(st.focus==5?'Резко. Видно сетку вуали и пыль на плечах.':'Мех скрипит. Изображение плывёт.')}
+
+/* exposure */
+function holdStart(){ if(st.hold||st.f.finale) return;
+  const miss=!st.f.lensOn?'Без объектива снимать нечем.':!st.f.holderOn?'В камере нет пластины.':!st.f.slide?'Шибер задвинут: пластина закрыта.':!st.f.birdOn?'Вдова смотрит в объектив и ждёт. Птички нет.':st.focus!=5?'Изображение не в фокусе.':!st.f.clockRun?'Без хода часов не отмерить выдержку.':null;
+  if(miss){say(miss);SFX.dull();return}
+  st.hold={n:0}; st.f.blink=1; SFX.chirp(); say('Затвор открыт. Птичка свистит. Вдова моргает.'); render()}
+function holdEnd(){ if(!st.hold) return; const n=st.hold.n; st.hold=null; SFX.click(); document.getElementById('ticks').textContent='';
+  if(n==4){ finale(); return } st.f.blink=0; st.f.slide=0;
+  say(n<4?`Пластина недодержана: ${n} ${n==1?'удар':n==0?'ударов':'удара'}. Шибер обратно, пробуем ещё.`:'Пластина передержана. Шибер обратно, пробуем ещё.'); render()}
+function finale(){ st.f.finale=1; st.sel=null; say('Щелчок затвора. Четыре удара.'); render();
+  setTimeout(()=>{SFX.chime(4);st.zoom=null;st.view='N';st.f.clockRun=0;say('Часы бьют четыре. За окном гаснет солнце. Вдова опускает глаза на свои руки.');render()},1400);
+  setTimeout(()=>{SFX.creak();st.view='E';say('«Теперь он может выйти. Или вы — войти». В рубиновом стекле загорается свет. Дверь тёмной комнаты отходит на ладонь.');render()},7200);
+  setTimeout(()=>{st.ended=1;document.getElementById('end').hidden=false},13500)}
+
+/* ---------- render ---------- */
+const NAMES={N:'СЕВЕР',E:'ВОСТОК',S:'ЮГ',W:'ЗАПАД'}, ORDER=['N','E','S','W'];
+const svg=document.getElementById('view'); let HS=[], plate={x:-999,y:-999,t:0,done:{}};
+function render(){
+  const z=st.zoom; let base, ghost='';
+  if(z=='desk') base=zDesk(); else if(z=='photos') base=zPhotos(); else if(z=='lock') base=zLock(); else if(z=='cam') base=zCam();
+  else { base={N:sceneN,E:sceneE,S:sceneS,W:sceneW}[st.view](); ghost={N:ghostN,E:ghostE,S:ghostS,W:ghostW}[st.view]() }
+  const dark = z=='lock'||z=='desk'?0 : st.f.finale?.5 : st.f.light?.1:.5;
+  const tint = st.f.finale&&!z ? `<rect width="1600" height="900" fill="#7a1512" opacity="${st.view=='E'?.22:.08}"/>`:'';
+  HS=spots();
+  const usePlate = st.sel=='plate' && !z;
+  svg.innerHTML=defs()+`<g id="base">${base}<rect width="1600" height="900" fill="#0b0705" opacity="${dark}"/>${tint}</g>
+   <rect width="1600" height="900" filter="url(#grain)" opacity=".5" style="mix-blend-mode:multiply" pointer-events="none"/>
+   ${usePlate?`<g clip-path="url(#plateClip)" pointer-events="none"><g filter="url(#neg)"><use href="#base"/>${ghost}</g></g>
+   <g id="plateFrame" pointer-events="none" transform="translate(-999,-999)"><rect width="300" height="220" fill="none" stroke="${BONE}" stroke-width="5"/><rect x="4" y="4" width="292" height="212" fill="#fff" opacity=".05"/><path d="M270 0l30 26" stroke="${BONE}" stroke-width="3"/>
+     <path d="M-26 96q14-12 34-6q14 4 14 16q0 14-16 16q-18 4-32-4Z" fill="#dccfb2" ${S}/><path d="M6 96q8 4 8 12" ${S2}/>
+     <path d="M326 96q-14-12-34-6q-14 4-14 16q0 14 16 16q18 4 32-4Z" fill="#dccfb2" ${S}/><path d="M294 96q-8 4-8 12" ${S2}/></g>`:''}
+   <g id="hs">${HS.map((h,i)=>`<rect class="hs" data-i="${i}" x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}"><title>${h.l||''}</title></rect>`).join('')}</g>`;
+  const bg=svg.querySelector('[data-blur]'); if(bg){svg.querySelector('#blurG').setAttribute('stdDeviation',bg.getAttribute('data-blur'))}
+  document.getElementById('compass').textContent = z?{desk:'БЮРО',photos:'ФОТОГРАФИИ',lock:'ЗАМОК',cam:'КАМЕРА'}[z]:NAMES[st.view];
+  document.getElementById('navB').hidden=!z; document.getElementById('navL').hidden=!!z; document.getElementById('navR').hidden=!!z;
+  if(usePlate) movePlate();
+  renderInv()}
+function renderInv(){const el=document.getElementById('inv'); let h='';
+  for(let i=0;i<8;i++){const id=st.inv[i]; h+= id?`<button type="button" class="slot${st.sel==id?' sel':''}" data-id="${id}" title="${ITEMS[id].n}" aria-label="${ITEMS[id].n}"><svg viewBox="0 0 64 64">${ITEMS[id].i}</svg></button>`:`<button type="button" class="slot" disabled aria-label="Пусто"></button>`}
+  el.innerHTML=h}
+function pt(e){const r=svg.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*1600,y:(e.clientY-r.top)/r.height*900}}
+function movePlate(){const pr=svg.querySelector('#plateRect'), pf=svg.querySelector('#plateFrame'); if(!pr||!pf) return;
+  const x=plate.x-150,y=plate.y-110; pr.setAttribute('x',x);pr.setAttribute('y',y);pf.setAttribute('transform',`translate(${x},${y})`)}
+const GHOSTS={N:[{id:'felix',x:930,y:260,t:'В стекле за её спиной стоит мужчина без лица. Одна рука у неё на плече. Другая показывает вверх, на рулон. На облаках: «подними небо».'},
+                 {id:'hole',x:272,y:213,t:'На чёрном циферблате светится кольцо. Заводная скважина. Чёрная на чёрном, без пластины не найти.',f:'holeSeen'}],
+  E:[{id:'palm',x:690,y:265,t:'На рубиновом стекле отпечаток ладони. Пять пальцев. Изнутри.'}],
+  S:[{id:'pocket',x:1112,y:535,t:'В кармане пальто светится что-то округлое, с хвостом.'}],
+  W:[{id:'draw',x:660,y:300,t:'Кто-то рисовал пальцем по стеклу: сова, а внутри неё — птичка.',need:'light'}]};
+function checkGhost(){ if(st.sel!='plate'||st.zoom) return; const now=Date.now();
+  for(const g of GHOSTS[st.view]||[]){ if(g.need&&!st.f[g.need]) continue; if(st.f.finale) continue;
+    const inside=Math.abs(plate.x-g.x)<120&&Math.abs(plate.y-g.y)<85;
+    if(inside){ if(plate.cur!=g.id){plate.cur=g.id;plate.t=now} else if(now-plate.t>450&&plate.said!=g.id){plate.said=g.id; if(g.f) st.f[g.f]=1; SFX.ghost(); say(g.t)} return } }
+  plate.cur=null}
+
+/* ---------- events ---------- */
+svg.addEventListener('pointermove',e=>{const p=pt(e);plate.x=p.x;plate.y=p.y; if(st.sel=='plate'&&!st.zoom){movePlate();checkGhost()}});
+svg.addEventListener('pointerdown',e=>{const p=pt(e);plate.x=p.x;plate.y=p.y; if(st.sel=='plate'&&!st.zoom){movePlate();plate.cur=null;checkGhost()}
+  const i=e.target.getAttribute&&e.target.getAttribute('data-i'); if(i!=null&&HS[i]&&HS[i].hold){e.preventDefault();holdStart()}});
+window.addEventListener('pointerup',()=>{ if(st.hold) holdEnd() });
+svg.addEventListener('click',e=>{ if(st.ended) return; const i=e.target.getAttribute('data-i'); if(i==null) return; const h=HS[i]; if(!h||h.hold) return;
+  if(st.sel=='plate'&&!st.zoom){ checkGhost(); return }
+  h.fn(); render()});
+document.getElementById('inv').addEventListener('click',e=>{const b=e.target.closest('.slot'); if(!b||!b.dataset.id) return; const id=b.dataset.id;
+  if(st.sel==id){st.sel=null;say('')} else {st.sel=id;say(ITEMS[id].n+'. '+ITEMS[id].d)} plate.said=null; render()});
+function turn(d){ if(st.zoom) return; st.view=ORDER[(ORDER.indexOf(st.view)+d+4)%4]; plate.said=null; SFX.wind&&noise(.15,400,.04); render()}
+document.getElementById('navL').onclick=()=>turn(-1); document.getElementById('navR').onclick=()=>turn(1);
+document.getElementById('navB').onclick=()=>{st.zoom=null;render()};
+document.addEventListener('keydown',e=>{ if(e.target.tagName=='INPUT') return; if(e.key=='ArrowLeft')turn(-1); if(e.key=='ArrowRight')turn(1); if(e.key=='ArrowDown'||e.key=='Escape'){ if(st.zoom){st.zoom=null;render()} }});
+document.getElementById('snd').onclick=function(){soundOn=!soundOn;this.textContent='Звук: '+(soundOn?'вкл':'выкл'); if(soundOn){ac();if(AC&&AC.state=='suspended')AC.resume()} setDrone(soundOn)};
+function start(){st=fresh();document.getElementById('end').hidden=true;say('Ателье Ланге. Дверь за вами заперли. За столом сидит женщина в трауре и смотрит в камеру.');render()}
+document.getElementById('restart').onclick=start; document.getElementById('again').onclick=start;
+setInterval(()=>{ if(!st||!st.f.clockRun||st.f.finale&&!st.hold) return; st.clockT++; SFX.tick();
+  if(st.hold){st.hold.n++; document.getElementById('ticks').textContent='●'.repeat(Math.min(st.hold.n,8))}
+  if(st.clockT%60==0&&!st.zoom&&st.view=='N') render()},1000);
+
+/* ---------- document ---------- */
+try{const md=document.getElementById('gdd').textContent; const doc=document.getElementById('doc');
+  doc.innerHTML=window.marked?marked.parse(md):'<pre style="white-space:pre-wrap">'+md.replace(/</g,'&lt;')+'</pre>';
+  doc.querySelectorAll('table').forEach(t=>{const w=document.createElement('div');w.className='tw';t.replaceWith(w);w.appendChild(t)})}catch(e){}
+window.__neg={get st(){return st},render,holdStart,holdEnd};
+start();
+})();
+</script>
