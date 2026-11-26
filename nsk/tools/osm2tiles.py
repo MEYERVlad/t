@@ -23,6 +23,9 @@ index.js  — NSK.index: размеры, список тайлов, осевые
 graph.js  — NSK.graph: граф улиц для маршрутов. nodes — [x,y,...] в метрах; edges —
             [узел_а, узел_б, длина_м, класс, флаги, имя|-1, dx,dy, ...] (промежуточные точки от узла_а).
 bounds.js — NSK.bounds: границы города и районов [уровень, имя, [кольцо в метрах], ...].
+overview.js — NSK.overview: весь город одним файлом для дальнего плана (в метрах): крупная вода,
+            магистрали, рельсы, большие леса и парки, подписи и сетка «огней» — доля застройки
+            в клетках по CELL метров (строки цифр 0..9), чтобы не грузить сотни тайлов разом.
 
 Данные © участники OpenStreetMap, лицензия ODbL.
 """
@@ -39,6 +42,7 @@ BBOX = (54.79, 82.74, 55.20, 83.20)  # S, W, N, E
 LAT0, LON0 = 55.03, 82.92            # начало координат — площадь Ленина
 TILE = 1024                          # метров
 Q = 2                                # делений на метр (шаг 0,5 м)
+CELL = 128                           # клетка сетки огней для дальнего плана, метров
 
 MX = 111320.0 * math.cos(math.radians(LAT0))
 MY = 110574.0
@@ -187,6 +191,10 @@ def simplify(pts, eps):
     return [p for p, k in zip(pts, keep) if k]
 
 
+def ring_area(r):
+    return abs(sum(r[i - 1][0] * r[i][1] - r[i][0] * r[i - 1][1] for i in range(len(r)))) / 2
+
+
 def open_ring(r):
     """Кольца из OSM замкнуты (первая точка повторена в конце) — храним без повтора."""
     return r[:-1] if len(r) > 1 and r[0] == r[-1] else r
@@ -233,6 +241,12 @@ class Builder(osmium.SimpleHandler):
         self.gways = []                    # дороги для графа: (класс, флаги, имя, [(узел, x, y)])
         self.rivers = defaultdict(list)    # имя -> ломаные
         self.bounds = []                   # [уровень, имя, кольца...]
+        # дальний план
+        self.rect = (self.tx0 * TILE, self.ty0 * TILE, (self.tx1 + 1) * TILE, (self.ty1 + 1) * TILE)
+        self.gw = (self.rect[2] - self.rect[0]) // CELL
+        self.gh = (self.rect[3] - self.rect[1]) // CELL
+        self.lights = [0.0] * (self.gw * self.gh)
+        self.ov = {'water': [], 'roads': [], 'rails': [], 'green': [], 'labels': []}
 
     def inside(self, lat, lon):
         return self.S <= lat <= self.N and self.W <= lon <= self.E
@@ -316,6 +330,8 @@ class Builder(osmium.SimpleHandler):
         tx, ty = int(x // TILE), int(y // TILE)
         T = self.tiles[tx, ty]
         T.p.append([kind, use, T.name(name), round((x - tx * TILE) * Q), round((y - ty * TILE) * Q)])
+        if name and kind in (0, 1, 2):
+            self.ov['labels'].append([kind, use if kind == 2 else 0, name, round(x), round(y)])
         self.n['points'] += 1
 
     # ---------- линии ----------
@@ -335,10 +351,16 @@ class Builder(osmium.SimpleHandler):
             self.put_line('r', [ROAD[hw], -1, fl], pts, named=(1, t.get('name')))
             if ROAD[hw] <= GRAPH_MAX:
                 self.gways.append((ROAD[hw], fl, t.get('name'), nodes))
+            if ROAD[hw] <= 2:
+                for part in clip_line(pts, *self.rect):
+                    self.ov['roads'].append([ROAD[hw]] + flat(simplify(part, 8.0), q=1))
             self.n['roads'] += 1
         elif rw in RAIL:
             if t.get('service') is None:
                 self.put_line('l', [RAIL[rw], fl], pts)
+                if RAIL[rw] < 2:
+                    for part in clip_line(pts, *self.rect):
+                        self.ov['rails'].append([RAIL[rw]] + flat(simplify(part, 8.0), q=1))
                 self.n['rails'] += 1
         else:
             self.put_line('v', [0 if ww == 'river' else 1, -1], pts, named=(1, t.get('name')))
@@ -399,8 +421,22 @@ class Builder(osmium.SimpleHandler):
             if len(f) >= 6:
                 T.b.append([kind, lv, T.name(addr), use] + f)
                 self.n['buildings'] += 1
+                gx, gy = int((cx - self.rect[0]) // CELL), int((cy - self.rect[1]) // CELL)
+                if 0 <= gx < self.gw and 0 <= gy < self.gh:
+                    self.lights[gy * self.gw + gx] += ring_area(pts)
             return
         for o, inners in groups:
+            big = clip_poly(o, *self.rect) if len(o) >= 3 else []
+            if len(big) >= 3 and ring_area(big) >= (20000 if water else 100000):
+                rings = [flat(simplify(big + big[:1], 15.0 if water else 25.0)[:-1], q=1)]
+                if water:
+                    for inner in inners:
+                        c = clip_poly(inner, *self.rect) if len(inner) >= 3 else []
+                        if len(c) >= 3 and ring_area(c) >= 10000:
+                            rings.append(flat(simplify(c + c[:1], 15.0)[:-1], q=1))
+                    self.ov['water'].append(rings)
+                else:
+                    self.ov['green'].append([green, rings[0]])
             cut = self.tile_rings(o)
             if not cut:
                 continue
@@ -489,6 +525,10 @@ def main():
     g = h.graph()
     dump(os.path.join(out, 'graph.js'), 'NSK.graph', g)
     dump(os.path.join(out, 'bounds.js'), 'NSK.bounds', h.bounds)
+    full = CELL * CELL * 0.45  # сплошная застройка занимает около 45% клетки
+    rows = [''.join(str(min(9, round(9 * v / full))) for v in h.lights[y * h.gw:(y + 1) * h.gw]) for y in range(h.gh)]
+    dump(os.path.join(out, 'overview.js'), 'NSK.overview', dict(
+        h.ov, cell=CELL, x0=h.rect[0], y0=h.rect[1], w=h.gw, h=h.gh, lights=rows))
     with open(os.path.join(out, 'LICENSE.txt'), 'w', encoding='utf-8') as f:
         f.write('Данные карты © участники OpenStreetMap, распространяются по лицензии\n'
                 'Open Database License (ODbL) 1.0: https://www.openstreetmap.org/copyright\n')
